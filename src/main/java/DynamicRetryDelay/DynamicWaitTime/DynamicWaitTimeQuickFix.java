@@ -1,3 +1,5 @@
+package DynamicRetryDelay.DynamicWaitTime;
+
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.diagnostic.Logger;

@@ -1,3 +1,5 @@
+package DynamicRetryDelay.DynamicWaitTime;
+
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.*;
@@ -12,7 +14,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.Predicate;
 
-public class DynamicRetryDelayInspection extends LocalInspectionTool {
+public class DynamicWaitTimeInspection extends LocalInspectionTool {
 
     //instantiates the quickFix that changes wait time from constant to dynamic
     private DynamicWaitTimeQuickFix drdQuickFix;
@@ -33,7 +35,7 @@ public class DynamicRetryDelayInspection extends LocalInspectionTool {
              *  found a problem. It reuses a string from the inspections bundle.
              */
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME = "Refactor4Green:" + " Dynamic Retry Delay Dynamic Wait Time";
+            private final String DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME = "Refactor4Green: Dynamic Retry Delay Dynamic Wait Time";
 
 
             @Override
@@ -57,6 +59,7 @@ public class DynamicRetryDelayInspection extends LocalInspectionTool {
                  */
                 //NOTE: SINCE ITS CONSTANTLY INSPECTING, IF THE USER SWITCHES FROM LOCAL VARIABLE TO PARAMETER OR VICE VERSA, IT NEEDS TO CLEAN THE COLLECTION IN THE QUICK FIX
                 if(timeVariable.resolve() instanceof PsiLocalVariable) {
+
                     drdQuickFix = new DynamicWaitTimeQuickFix();
                     //NOTE: GET ALL ASSIGNMENTS OF THE VARIABLE
                     Collection<PsiAssignmentExpression> assignmentExpressions = PsiTreeUtil.collectElementsOfType(psiMethod.getBody(), PsiAssignmentExpression.class);
@@ -76,6 +79,7 @@ public class DynamicRetryDelayInspection extends LocalInspectionTool {
                  *  OPTION 2: VALUE IS FROM A PARAMETER
                  */
                 if(timeVariable.resolve() instanceof PsiParameter) {
+
                     drdQuickFix = new DynamicWaitTimeQuickFix();
                     PsiParameter parameter = (PsiParameter) timeVariable.resolve();
                     PsiMethod method = (PsiMethod) parameter.getDeclarationScope();

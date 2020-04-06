@@ -9,6 +9,8 @@ import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 public class Refactor4GreenAction extends AnAction {
+
+    // method implements the code that executes when an action is invoked by the user.
     @Override
     public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
         Editor editor = anActionEvent.getData(CommonDataKeys.EDITOR);
