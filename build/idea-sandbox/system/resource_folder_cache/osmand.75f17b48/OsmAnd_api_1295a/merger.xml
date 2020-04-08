@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="res" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAnd-api/res"><file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAnd-api/res/values/strings.xml" qualifiers="" timestamp="1584960768891"><string name="app_name">OsmAnd-api</string></file></source></dataSet><mergedItems/></merger>

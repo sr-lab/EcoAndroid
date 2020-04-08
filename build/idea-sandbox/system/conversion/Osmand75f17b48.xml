@@ -1,0 +1,30 @@
+<conversion>
+  <applied-converters>
+    <converter id="kotlin-non-jvm-source-roots" />
+    <converter id="junit-to-android-junit-configurations" />
+    <converter id="android-sdk-library" />
+    <converter id="android-module-to-java-module" />
+    <converter id="android-proguard-options" />
+  </applied-converters>
+  <project-files>
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAndCore-sample/OsmAndCore-sample.iml" timestamp="1586364745926" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/libraries/gradle_wrapper.xml" timestamp="1584974120582" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAnd/OsmAnd.iml" timestamp="1586364745938" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/plugins/Osmand-ParkingPlugin/Osmand-ParkingPlugin.iml" timestamp="1586364745915" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/plugins/Osmand-Skimaps/Osmand-Skimaps.iml" timestamp="1586364745966" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAnd-api/OsmAnd-api.iml" timestamp="1586364745877" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/libraries/libs1.xml" timestamp="1584974120618" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/misc.xml" timestamp="1584974120512" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAnd-telegram/OsmAnd-telegram.iml" timestamp="1586364745898" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAnd-java/src/main/main.iml" timestamp="1586364683353" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/OsmAnd-java/src/test/test.iml" timestamp="1584974120462" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/modules.xml" timestamp="1584974120544" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/libraries/OsmAnd_java.xml" timestamp="1584974120566" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/libraries/libs.xml" timestamp="1584974120597" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/vcs.xml" timestamp="1584974120532" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/libraries/libs2.xml" timestamp="1584974120638" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/plugins/Osmand-Nautical/Osmand-Nautical.iml" timestamp="1586364745904" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/plugins/Osmand-SRTMPlugin/Osmand-SRTMPlugin.iml" timestamp="1586364745954" />
+    <file path="/Users/anasofiaribeiro/Desktop/Thesis/FDroidApps/osmandapp/Osmand/.idea/workspace.xml" timestamp="1586364683372" />
+  </project-files>
+</conversion>

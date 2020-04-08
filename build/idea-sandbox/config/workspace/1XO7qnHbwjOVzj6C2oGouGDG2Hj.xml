@@ -13,8 +13,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/pack/DynamicRetryDelayExample2.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="327">
-              <caret line="155" selection-start-line="155" selection-end-line="155" />
+            <state relative-caret-position="362">
+              <caret line="187" selection-start-line="187" selection-end-line="187" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -85,15 +85,15 @@
           <select />
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="ToolWindowManager">
     <frame x="20" y="43" width="1400" height="756" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.32621503" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22680412" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -146,8 +146,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/pack/DynamicRetryDelayExample2.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="327">
-          <caret line="155" selection-start-line="155" selection-end-line="155" />
+        <state relative-caret-position="362">
+          <caret line="187" selection-start-line="187" selection-end-line="187" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

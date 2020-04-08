@@ -4,12 +4,35 @@
       <map>
         <entry key="$USER_HOME$/IdeaProjects/example">
           <value>
-            <RecentProjectMetaInfo opened="true" projectWorkspaceId="1XO7qnHbwjOVzj6C2oGouGDG2Hj">
+            <RecentProjectMetaInfo projectWorkspaceId="1XO7qnHbwjOVzj6C2oGouGDG2Hj">
               <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
               <option name="build" value="IC-193.6911.18" />
-              <option name="buildTimestamp" value="1584436417373" />
+              <option name="buildTimestamp" value="1584436385524" />
               <option name="productionCode" value="IC" />
-              <option name="projectOpenTimestamp" value="1586353427989" />
+              <option name="projectOpenTimestamp" value="1586364612655" />
+            </RecentProjectMetaInfo>
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/Desktop/Thesis/FDroidApps/osmandapp/Osmand">
+          <value>
+            <RecentProjectMetaInfo projectWorkspaceId="1ZX8VikxjxxZ4gs0nbBemQVQwmk">
+              <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
+              <option name="build" value="IC-193.6911.18" />
+              <option name="buildTimestamp" value="1584436385524" />
+              <frame x="20" y="43" width="1420" height="756" />
+              <option name="productionCode" value="IC" />
+              <option name="projectOpenTimestamp" value="1586364644755" />
+            </RecentProjectMetaInfo>
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/Desktop/Thesis/FDroidApps/nextcloud/android">
+          <value>
+            <RecentProjectMetaInfo projectWorkspaceId="1aGc0jq0Ez2V8Q51jt3hs8049uD">
+              <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
+              <option name="build" value="IC-193.6911.18" />
+              <option name="buildTimestamp" value="1584436385524" />
+              <option name="productionCode" value="IC" />
+              <option name="projectOpenTimestamp" value="1586365149780" />
             </RecentProjectMetaInfo>
           </value>
         </entry>
@@ -17,6 +40,8 @@
     </option>
     <option name="recentPaths">
       <list>
+        <option value="$USER_HOME$/Desktop/Thesis/FDroidApps/nextcloud/android" />
+        <option value="$USER_HOME$/Desktop/Thesis/FDroidApps/osmandapp/Osmand" />
         <option value="$USER_HOME$/IdeaProjects/example" />
       </list>
     </option>
