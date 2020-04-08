@@ -1,5 +1,4 @@
 /*
-
 package org.jamienicol.episodes;
 
 import android.app.AlarmManager;
@@ -38,6 +37,7 @@ public class AutoRefreshHelper
 
     public AutoRefreshHelper(Context context) {
         this.context = context;
+        context.
 
         preferences = PreferenceManager.getDefaultSharedPreferences(context);
         preferences.registerOnSharedPreferenceChangeListener(this);

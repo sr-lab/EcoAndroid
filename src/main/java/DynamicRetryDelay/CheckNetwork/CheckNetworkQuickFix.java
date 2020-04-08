@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-
 public class CheckNetworkQuickFix implements LocalQuickFix {
 
     private final String QUICK_FIX_NAME = "Refactor4Green: Dynamic Retry Delay Dynamic Check Network";
@@ -28,6 +27,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
     *               3.1 - onReceive
     *               3.2 - enable
     *               3.3 - disable
+    *      4 - change the xml settings
     *
     * */
     @Override
@@ -70,6 +70,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         // disable Method
         PsiMethod disabelMethod = factory.createMethod("disable", PsiType.VOID);
         PsiCodeBlock disableMethodBody = onReceiveMethod.getBody();
+
 
 
     }
