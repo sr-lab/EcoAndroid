@@ -48,10 +48,14 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                 PsiExpression argument =  expression.getArgumentList().getExpressions()[0];
                 PsiMethod psiMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
                 // Thread.sleep apenas tem 1 arg que é o tempo, no entanto este pode ser uma expressão. eu quero a ref
-                Collection<PsiReferenceExpression> childrenOfAnyType = PsiTreeUtil.findChildrenOfAnyType(argument, PsiReferenceExpression.class);
-                //TODO: neste momento, só com variaveis
-                if(childrenOfAnyType.size() == 0) { return; }
-                PsiReferenceExpression timeVariable = childrenOfAnyType.iterator().next();
+                PsiReferenceExpression timeVariable;
+                if(!(argument instanceof PsiReferenceExpression)) {
+                    Collection<PsiReferenceExpression> childrenOfAnyType = PsiTreeUtil.findChildrenOfAnyType(argument, PsiReferenceExpression.class);
+                    //TODO: neste momento, só com variaveis
+                    if(childrenOfAnyType.size() == 0) { return; }
+                    timeVariable = childrenOfAnyType.iterator().next();
+                }
+                else { timeVariable = (PsiReferenceExpression) argument; }
 
                 /*
                  *  SECOND PHASE: CHECK THE WHERE THE VARIABLE COMES FROM: LOCAL VARIABLE OR PARAMETER
@@ -59,7 +63,6 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                  */
                 //NOTE: SINCE ITS CONSTANTLY INSPECTING, IF THE USER SWITCHES FROM LOCAL VARIABLE TO PARAMETER OR VICE VERSA, IT NEEDS TO CLEAN THE COLLECTION IN THE QUICK FIX
                 if(timeVariable.resolve() instanceof PsiLocalVariable) {
-
                     drdQuickFix = new DynamicWaitTimeQuickFix();
                     //NOTE: GET ALL ASSIGNMENTS OF THE VARIABLE
                     Collection<PsiAssignmentExpression> assignmentExpressions = PsiTreeUtil.collectElementsOfType(psiMethod.getBody(), PsiAssignmentExpression.class);
@@ -79,7 +82,6 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                  *  OPTION 2: VALUE IS FROM A PARAMETER
                  */
                 if(timeVariable.resolve() instanceof PsiParameter) {
-
                     drdQuickFix = new DynamicWaitTimeQuickFix();
                     PsiParameter parameter = (PsiParameter) timeVariable.resolve();
                     PsiMethod method = (PsiMethod) parameter.getDeclarationScope();

@@ -1,6 +1,6 @@
 <application>
   <component name="WindowManager">
-    <frame x="20" y="43" width="1420" height="756" />
+    <frame x="24" y="63" width="1310" height="755" extendedState="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.25" />
       <window_info id="Structure" order="1" weight="0.25" />
@@ -17,9 +17,11 @@
     </layout>
   </component>
   <component name="WindowStateApplicationService">
-    <state x="719" y="376" key="WELCOME_SCREEN" timestamp="1586365266176">
-      <screen x="0" y="23" width="1440" height="796" />
+    <state x="719" y="375" key="WELCOME_SCREEN" timestamp="1587472608837">
+      <screen x="0" y="23" width="1440" height="795" />
     </state>
+    <state x="719" y="375" key="WELCOME_SCREEN/0.23.1440.795" timestamp="1586958163414" />
+    <state x="719" y="375" key="WELCOME_SCREEN/1440.-40.1280.1001/0.23.1440.795" timestamp="1587472608837" />
     <state x="719" y="376" key="WELCOME_SCREEN/1440.23.1280.1001/0.23.1440.796" timestamp="1586365266176" />
   </component>
 </application>

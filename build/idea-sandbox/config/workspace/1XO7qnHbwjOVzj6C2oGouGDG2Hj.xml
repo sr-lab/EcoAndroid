@@ -2,22 +2,31 @@
   <component name="FileEditorManager">
     <leaf>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/DynamicRetryDelayExample1.java">
+        <entry file="file://$PROJECT_DIR$/src/pack/AutoRefreshHelper.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="36">
-              <caret line="3" column="23" selection-start-line="3" selection-start-column="23" selection-end-line="3" selection-end-column="23" />
+            <state relative-caret-position="504">
+              <caret line="28" column="24" selection-start-line="28" selection-start-column="7" selection-end-line="28" selection-end-column="24" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/pack/DynamicRetryDelayExample2.java">
+        <entry file="file://$PROJECT_DIR$/src/MusicPlaybackReceiver.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="362">
-              <caret line="187" selection-start-line="187" selection-end-line="187" />
+            <state relative-caret-position="124">
+              <caret line="10" column="62" lean-forward="true" selection-start-line="10" selection-start-column="62" selection-end-line="10" selection-end-column="62" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/AndroidManifest.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="234">
+              <caret line="13" selection-start-line="13" selection-end-line="13" />
             </state>
           </provider>
         </entry>
@@ -42,21 +51,28 @@
       <find>getContentResolver()</find>
       <find>getContentResolver</find>
       <find>RefreshShowUtil</find>
+      <find>getContentr</find>
+      <find>getContentR</find>
     </findStrings>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/DynamicRetryDelayExample1.java" />
         <option value="$PROJECT_DIR$/src/pack/RefreshShowUtil.java" />
         <option value="$PROJECT_DIR$/src/org/jamienicol/episodes/AutoRefreshHelper.java" />
+        <option value="$PROJECT_DIR$/src/DynamicRetryDelayExample1.java" />
         <option value="$PROJECT_DIR$/src/pack/DynamicRetryDelayExample2.java" />
+        <option value="$PROJECT_DIR$/src/AndroidManifest.xml" />
+        <option value="$PROJECT_DIR$/src/pack/AutoRefreshHelper.java" />
+        <option value="$PROJECT_DIR$/src/MusicPlaybackReceiver.java" />
       </list>
     </option>
   </component>
+  <component name="ProjectFrameBounds" x="24" y="63" width="1310" height="755" extendedState="6" />
   <component name="ProjectView">
     <navigator proportions="" version="1" />
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -73,12 +89,6 @@
               <item name="example" type="b2602c69:ProjectViewProjectNode" />
               <item name="example" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="episodes" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="example" type="b2602c69:ProjectViewProjectNode" />
-              <item name="example" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="pack" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -86,14 +96,13 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="ToolWindowManager">
-    <frame x="20" y="43" width="1400" height="756" extended-state="0" />
+    <frame x="0" y="23" width="1440" height="795" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22680412" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.40271816" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -129,8 +138,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/DynamicRetryDelayExample1.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="36">
-          <caret line="3" column="23" selection-start-line="3" selection-start-column="23" selection-end-line="3" selection-end-column="23" />
+        <state relative-caret-position="324">
+          <caret line="19" column="57" selection-start-line="19" selection-start-column="57" selection-end-line="19" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/pack/AutoRefreshHelper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="504">
+          <caret line="28" column="24" selection-start-line="28" selection-start-column="7" selection-end-line="28" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/AndroidManifest.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="13" selection-start-line="13" selection-end-line="13" />
         </state>
       </provider>
     </entry>
@@ -144,10 +167,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/pack/DynamicRetryDelayExample2.java">
+    <entry file="file://$PROJECT_DIR$/src/MusicPlaybackReceiver.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="362">
-          <caret line="187" selection-start-line="187" selection-end-line="187" />
+        <state relative-caret-position="124">
+          <caret line="10" column="62" lean-forward="true" selection-start-line="10" selection-start-column="62" selection-end-line="10" selection-end-column="62" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

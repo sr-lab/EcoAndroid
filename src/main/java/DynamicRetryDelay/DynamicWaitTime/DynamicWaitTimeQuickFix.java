@@ -59,9 +59,11 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
             /*
              * THIRD PHASE: CREATE NEW VARIABLE THAT WILL COUNT THE # OF FAILED ATTEMPTS TO ACCESS THE RESOURCE
              */
+            //TODO: CHECK IF THE VAR NAME IS UNIQUE
+            // public static boolean isVariableNameUnique(@NotNull String name, @NotNull PsiElement place)
             PsiExpression initializer = factory.createExpressionFromText("0", null);
             PsiDeclarationStatement counterVariable = factory.createVariableDeclarationStatement("accessAttempts", PsiType.INT, initializer);
-            PsiClass psiClass = PsiTreeUtil.getParentOfType(PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiClass.class), PsiClass.class);
+            PsiClass psiClass = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiClass.class);
             psiClass.addAfter(counterVariable, psiClass.getLBrace());
 
             while(psiReferenceExpression != null) {

@@ -5,12 +5,13 @@ import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.Collection;
+import java.util.Iterator;
 
 public class CheckNetworkInspection extends LocalInspectionTool {
 
@@ -39,26 +40,17 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                 super.visitMethod(method);
 
                 // check if the name of the method is "onHandleIntent"
-                if(!method.getName().equals("onHandleIntent"))
+                if(!method.getName().equals("onHandleIntent")) // This method is invoked on the worker thread with a request to process.
                     return;
 
                 // check if the class the method is inserted in extends "IntentService"
                 PsiClass psiClass = PsiTreeUtil.getParentOfType(method, PsiClass.class);
-                PsiClassType[] list = psiClass.getExtendsListTypes();
-                boolean extendsIntent = false;
-                for (int i = 0; i < list.length ; i++ ) {
-                    if (list[i].getName().equals("IntentService")) {
-                        extendsIntent = true;
-                        break;
-                    }
-                }
-                if(!extendsIntent)
-                    return;
+                PsiClass serviceClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.IntentService", GlobalSearchScope.allScope(holder.getProject()));
+                if(!(InheritanceUtil.isInheritorOrSelf(psiClass, serviceClass, true))) { return;}
 
                 // check if somewhere on the method (or a method that calls it) the method ConnectivityManager.getActiveNetworkInfo() is called
                 Collection<PsiMethodCallExpression> methodsCalls = PsiTreeUtil.collectElementsOfType(method.getBody(), PsiMethodCallExpression.class);
                 Iterator<PsiMethodCallExpression> iterator = methodsCalls.iterator();
-                System.out.println(methodsCalls.size());
                 // if the siz is the same, it means nothing was removed from the collection and there is no direct call to the method
                 while(iterator.hasNext()) {
                     // if something is left, then we find if any method being called, calls ConnectivityManager.getActiveNetworkInfo()
@@ -67,17 +59,17 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                     PsiClass psiClassConnectivyManager = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.net.ConnectivityManager", GlobalSearchScope.allScope(holder.getProject()));
                     PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetworkInfo", true)[0];
                     if(expr.getReference().isReferenceTo(met)) {
-                        checkNetworkQuickFix = new CheckNetworkQuickFix();
-                        holder.registerProblem(method.getNameIdentifier(), DESCRIPTION_TEMPLATE_CHECK_NETWORK, checkNetworkQuickFix);
+                        System.out.println("CHECKING NETWORK FOUND!");
+                        return;
                     }
                     else if(checkIfBodyMethodChecksNetworkConnection(currentMethodCall, holder.getProject())) {
-                        //TODO: só está a verificar a um nivel de metodos
-                        System.out.println("CHECKING NETWORK CONNETION");
-                        checkNetworkQuickFix = new CheckNetworkQuickFix();
-                        holder.registerProblem(method.getNameIdentifier(), DESCRIPTION_TEMPLATE_CHECK_NETWORK, checkNetworkQuickFix);
+                        //TODO: SÓ VERICA UM NIVEL DE METODOS
+                        System.out.println("CHECKING NETWORK FOUND!");
+                        return;
                     }
                 }
-
+                checkNetworkQuickFix = new CheckNetworkQuickFix();
+                holder.registerProblem(method.getNameIdentifier(), DESCRIPTION_TEMPLATE_CHECK_NETWORK, checkNetworkQuickFix);
             }
         };
     }

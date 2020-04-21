@@ -32,6 +32,15 @@
             enabledByDefault="true"
             level="WARNING"
             implementationClass="DynamicRetryDelay.CheckNetwork.CheckNetworkInspection"/>
+    <localInspection
+            language="JAVA"
+            displayName="Refactor4Green: Cache - Check if metadata changed before sending it"
+            groupPath="Java"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.probable.bugs"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="Cache.CheckMetadata.CheckMetadataInspection"/>
   </extensions>
 
   <actions>
