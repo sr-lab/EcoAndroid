@@ -1,21 +1,14 @@
-/*
-package org.jamienicol.episodes;
-
+package DynamicRetryDelay.CheckNetwork;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.database.Cursor;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import org.jamienicol.episodes.db.ShowsTable;
-import org.jamienicol.episodes.db.ShowsProvider;
-import org.jamienicol.episodes.RefreshShowUtil;
+//import org.jamienicol.episodes.RefreshShowUtil;
+//import org.jamienicol.episodes.db.ShowsProvider;
+//import org.jamienicol.episodes.db.ShowsTable;
 
 public class AutoRefreshHelper
         implements SharedPreferences.OnSharedPreferenceChangeListener
@@ -131,9 +124,6 @@ public class AutoRefreshHelper
         protected void onHandleIntent(Intent intent) {
             Log.i(TAG, "Refreshing all shows.");
 
-            final AutoRefreshHelper helper =
-                    AutoRefreshHelper.getInstance(getApplicationContext());
-
             final ContentResolver contentResolver = getContentResolver();
             final Cursor cursor = getShowsCursor(contentResolver);
 
@@ -182,4 +172,3 @@ public class AutoRefreshHelper
         }
     }
 }
-*/
