@@ -6,6 +6,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
@@ -22,6 +23,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
     // NOTA: nome que aparece como warning
     private final String QUICK_FIX_NAME = "Refactor4Green: " + "Dynamic Retry Delay Dynamic Wait Time";
     ArrayList psiReferenceExpressions = new ArrayList(); // isto é porque quero o higlight numa coisa diferente da var no segundo tipo do caso
+    private String counterVariableName = "accessAttempts";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -47,6 +49,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
 
             PsiReferenceExpression psiReferenceExpression = iterator.next();
             PsiFile psiFile = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiFile.class);
+            PsiClass psiClass = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiClass.class);
             PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiMethod.class);
 
             /*
@@ -59,11 +62,10 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
             /*
              * THIRD PHASE: CREATE NEW VARIABLE THAT WILL COUNT THE # OF FAILED ATTEMPTS TO ACCESS THE RESOURCE
              */
-            //TODO: CHECK IF THE VAR NAME IS UNIQUE
-            // public static boolean isVariableNameUnique(@NotNull String name, @NotNull PsiElement place)
+
             PsiExpression initializer = factory.createExpressionFromText("0", null);
-            PsiDeclarationStatement counterVariable = factory.createVariableDeclarationStatement("accessAttempts", PsiType.INT, initializer);
-            PsiClass psiClass = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiClass.class);
+            if(!PsiUtil.isVariableNameUnique(counterVariableName, psiClass)) { counterVariableName = "NEW" + counterVariableName; }
+            PsiDeclarationStatement counterVariable = factory.createVariableDeclarationStatement(counterVariableName, PsiType.INT, initializer);
             psiClass.addAfter(counterVariable, psiClass.getLBrace());
 
             while(psiReferenceExpression != null) {
@@ -87,9 +89,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
                 //TODO: change the log.info if they exist
             }
 
-        } catch (IncorrectOperationException e) {
-            LOG.error(e);
-        }
+        } catch (IncorrectOperationException e) { LOG.error(e); }
     }
 
 
@@ -103,7 +103,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
                 //TODO: devo apenas alterar literal expressions ? ou seja, se algures, é calculado dinamicamente e nao constantement, devo fazer o que?
                 if(currentAssignmentExpression.getRExpression() instanceof PsiLiteralExpression) {
                     if(PsiUtilBase.compareElementsByPosition(currentAssignmentExpression, methodCallExpression) < 0) {
-                        PsiPostfixExpression statement = (PsiPostfixExpression) factory.createExpressionFromText("accessAttempts++", null);
+                        PsiPostfixExpression statement = (PsiPostfixExpression) factory.createExpressionFromText(counterVariableName + "++", null);
                         currentAssignmentExpression.replace(statement);
                     }
                 }
