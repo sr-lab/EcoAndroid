@@ -83,8 +83,7 @@ public class CheckNetworkInspection extends LocalInspectionTool {
             PsiExpression expr = innerMethodCall.getMethodExpression();
             PsiClass psiClassConnectivyManager = JavaPsiFacade.getInstance(project).findClass("android.net.ConnectivityManager", GlobalSearchScope.allScope(project));
             PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetworkInfo", true)[0];
-            if(expr.getReference().isReferenceTo(met))
-                return true;
+            if(expr.getReference().isReferenceTo(met)) { return true; }
         }
         return false;
     }

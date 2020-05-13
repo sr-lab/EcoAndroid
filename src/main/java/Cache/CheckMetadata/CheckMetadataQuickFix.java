@@ -2,19 +2,18 @@ package Cache.CheckMetadata;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.lang.ASTNode;
-import com.intellij.openapi.project.CacheUpdateRunner;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.impl.source.codeStyle.IndentHelper;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.function.Predicate;
 
 public class CheckMetadataQuickFix implements LocalQuickFix {
     private final String QUICK_FIX_NAME = "Refactor4Green: Cache - Check Metadata";
@@ -37,46 +36,66 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
         PsiElementFactory factory = PsiElementFactory.getInstance(project);
         PsiMethod psiMethod = (PsiMethod) ( problemDescriptor.getPsiElement()).getContext();
-        PsiClass containingClass = psiMethod.getContainingClass();
+        PsiClass psiClass = psiMethod.getContainingClass();
+        PsiFile psiFile = psiClass.getContainingFile();
+
+        /*
+         * ADDING COMMENT THAT SUMMARIZES CHANGES MADE TO THE CODE
+         */
+        PsiComment comment = factory.createCommentFromText("/* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                + "Whenever a request is received, checks if anything changes before using the data \n"
+                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                + "Application changed java file \"" + psiClass.getContainingFile().getName() +
+                "*/", psiClass.getContainingFile());
+        psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
         Iterator<PsiLocalVariable> iterator = intentVariables.iterator();
         String ifStatement = "if ( ";
-        PsiCodeBlock declarationsBlock = factory.createCodeBlock();
+
+        /*
+         * FOR EVERY VARIABLE THAT IS CREATED FROM THE INTENT, CREATES A LAST+VARNAME, DELETES THE OLD VAR AND ADD IF
+         */
         while (iterator.hasNext()) {
             PsiLocalVariable currentLocalVariable = iterator.next();
             //create the variable that will store the last value
-            PsiDeclarationStatement declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText("public static "
-                    + currentLocalVariable.getType().getCanonicalText()
+            PsiCodeBlock declarationsBlock = factory.createCodeBlock();
+            PsiDeclarationStatement declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
                     + " last" + currentLocalVariable.getName() + " = null;", psiMethod);
             declarationsBlock.add(declarationStatement);
+            declarationsBlock.getLBrace().delete();
+            declarationsBlock.getRBrace().delete();
+            psiClass.addAfter(declarationsBlock, psiClass.getLBrace());
             String name = currentLocalVariable.getName();
-            ifStatement += "last" + name + " == " + currentLocalVariable.getInitializer().getText() + " && ";
-            updateStatements.add(factory.createStatementFromText("last" + name + " = " + currentLocalVariable.getInitializer().getText() + ";", containingClass));
+
+            ifStatement += "last" + name + ".equals(" + currentLocalVariable.getInitializer().getText() + ") && ";
+            updateStatements.add(factory.createStatementFromText("last" + name + " = " + currentLocalVariable.getInitializer().getText() + ";", psiClass));
+
+            Collection<PsiReferenceExpression> references = PsiTreeUtil.collectElementsOfType(psiMethod, PsiReferenceExpression.class);
+            references.removeIf(el -> !( el.getQualifiedName().equals(currentLocalVariable.getName())));
+            references.forEach((el) -> { el.getChildren()[1].replace(factory.createIdentifier("last" + el.getQualifiedName())); });
+            currentLocalVariable.getInitializer().getContext().delete();
         }
-        declarationsBlock.getLBrace().delete();
-        declarationsBlock.getRBrace().delete();
-        containingClass.addAfter(declarationsBlock, containingClass.getLBrace());
 
         String newMethodBody = "private void updateValues(android.content.Intent intent) {";
         Iterator<PsiStatement> iteratorStatements = updateStatements.iterator();
         while(iteratorStatements.hasNext()) {
             PsiStatement currentStatement = iteratorStatements.next();
-            newMethodBody += currentStatement.getText() + "\n";
+            newMethodBody += currentStatement.getText();
         }
         newMethodBody += "}";
         PsiMethod updateMethod = factory.createMethodFromText(newMethodBody, null);
-        containingClass.add(updateMethod);
-        PsiStatement methodCallStatement = factory.createStatementFromText("updateValues(intent);", containingClass);
+        psiClass.add(updateMethod);
+        PsiStatement methodCallStatement = factory.createStatementFromText("updateValues(intent);", psiClass);
         psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
 
         ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
-        //TODO: um exemplo para fazer return;
+        //TODO: add the Log.info
         ifStatement += ") { return; } ";
-        PsiStatement statementFromText = factory.createStatementFromText(ifStatement, containingClass);
+        PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
         psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
 
-        //TODO: dar \n entre os vars
-        containingClass = (PsiClass) CodeStyleManager.getInstance(project).reformat(containingClass);
+        psiClass = (PsiClass) CodeStyleManager.getInstance(project).reformat(psiClass);
 
     }
 

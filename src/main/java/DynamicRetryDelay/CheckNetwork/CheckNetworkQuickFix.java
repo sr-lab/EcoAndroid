@@ -2,7 +2,6 @@ package DynamicRetryDelay.CheckNetwork;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.formatting.Indent;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
@@ -67,7 +66,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 "*/", intentServiceClass.getContainingFile());
         psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
-        //TODO: criar a var que é helper
         Collection<PsiReferenceExpression> references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
         Predicate<PsiReferenceExpression> predicateRefExpr = a -> !(a.resolve() instanceof PsiField || a.resolve() instanceof PsiLocalVariable);
         references.removeIf(predicateRefExpr);
@@ -91,9 +89,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     break;
                 }
             }
-            if(implementsClass) {
-                break;
-            }
+            if(implementsClass) { break; }
         }
 
         /*
@@ -146,6 +142,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 "\t\t\t\tAutoRefreshHelper.getInstance(context.getApplicationContext());\n" +
                 "\n" +
                 "\t\t\tif (helper.checkNetwork()) {\n" +
+                        //TODO: falta fazer o rescheduleAlarm
                 "\t\t\t\thelper.rescheduleAlarm();\n" +
                 "\t\t\t}\n" +
                 "\t\t}\n" +
@@ -190,7 +187,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
         javaCodeStyleManager.shortenClassReferences(intentServiceClass);
 
-
         /*
          * ADD THE NEW RECEIVER TO THE "AndroidManifest.xml" FILE
          */
@@ -207,6 +203,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             psiDirectory = psiDirectory.getParentDirectory();
         }
         if(xmlFile != null) {
+            // TODO: findFileSystemItem in PsiUtilCore
             // já existe ficheiro
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
@@ -219,13 +216,8 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 // nao ha permissao para acesso ainda
                 XmlTag usesPermissionTag = xmlElementFactory.createTagFromText("<uses-permission/>");
                 usesPermissionTag.setAttribute("android:name", "android.permission.ACCESS_NETWORK_STATE");
-                if(originalSize > 0) {
-                    // adicionar a nova tag ao pe das outras
-                    subTags[0].addAfter(usesPermissionTag,rootTag);
-                }
-                else {
-                    rootTag.add(usesPermissionTag);
-                }
+                if(originalSize > 0) { subTags[0].addAfter(usesPermissionTag,rootTag); }
+                else { rootTag.add(usesPermissionTag); }
             }
 
             // criar a tag para o receiver
@@ -239,14 +231,15 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             intentFilterTag.add(actionTag);
             receiverTag.add(intentFilterTag);
             XmlTag applicationTag = rootTag.findFirstSubTag("application");
-            // TODO: check null!!!!!!
+            boolean applicationTagNull = false;
+            if(applicationTag == null) {
+                applicationTagNull = true;
+                applicationTag = xmlElementFactory.createTagFromText("<application/>");
+            }
             XmlTag firstProvider = applicationTag.findFirstSubTag("provider");
-            if(firstProvider != null) {
-                applicationTag.addBefore(receiverTag, firstProvider);
-            }
-            else {
-                applicationTag.add(receiverTag);
-            }
+            if(firstProvider != null) { applicationTag.addBefore(receiverTag, firstProvider); }
+            else { applicationTag.add(receiverTag); }
+            if(applicationTagNull) { xmlFile.add(applicationTag); }
 
         }
         else {
