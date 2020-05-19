@@ -86,7 +86,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
                 if(iterator.hasNext()) { psiReferenceExpression = iterator.next(); }
                 else { break; }
 
-                //TODO: change the log.info if they exist
+                //TODO: CHANGE THE LOG.INFO
             }
 
         } catch (IncorrectOperationException e) { LOG.error(e); }
@@ -100,7 +100,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
         while(iterator.hasNext()) {
             PsiAssignmentExpression currentAssignmentExpression = iterator.next();
             if(currentAssignmentExpression.getLExpression().getReference().getCanonicalText().equals(identifier)) {
-                //TODO: devo apenas alterar literal expressions ? ou seja, se algures, é calculado dinamicamente e nao constantement, devo fazer o que?
+                //TODO: ONLY CHANGES IF ITS A LITERAL EXPRESSION. IF ITS DYNAMICALLY COMPUTED, NOTHING CHANGES
                 if(currentAssignmentExpression.getRExpression() instanceof PsiLiteralExpression) {
                     if(PsiUtilBase.compareElementsByPosition(currentAssignmentExpression, methodCallExpression) < 0) {
                         PsiPostfixExpression statement = (PsiPostfixExpression) factory.createExpressionFromText(counterVariableName + "++", null);

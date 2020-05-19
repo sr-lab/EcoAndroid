@@ -43,9 +43,9 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
          * ADDING COMMENT THAT SUMMARIZES CHANGES MADE TO THE CODE
          */
         PsiComment comment = factory.createCommentFromText("/* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "Whenever a request is received, checks if anything changes before using the data \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "Application changed java file \"" + psiClass.getContainingFile().getName() +
                 "*/", psiClass.getContainingFile());
         psiMethod.addBefore(comment, psiMethod.getFirstChild());
@@ -90,7 +90,7 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
         psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
 
         ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
-        //TODO: add the Log.info
+        //TODO: CHANGE THE LOG.INFO
         ifStatement += ") { return; } ";
         PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
         psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());

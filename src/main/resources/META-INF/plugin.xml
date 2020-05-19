@@ -41,6 +41,15 @@
             enabledByDefault="true"
             level="WARNING"
             implementationClass="Cache.CheckMetadata.CheckMetadataInspection"/>
+    <localInspection
+            language="JAVA"
+            displayName="Refactor4Green: Cache - Check size of layout before resetting it"
+            groupPath="Java"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.probable.bugs"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="Cache.CheckLayoutSize.CheckLayoutSizeInspection"/>
   </extensions>
 
   <actions>
