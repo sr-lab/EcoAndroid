@@ -56,7 +56,7 @@ public class CheckMetadataInspection extends LocalInspectionTool {
 
                 if(intentVariables.size() == 0) { return; }
 
-                // TODO: PRIMEIRA, VOU SO VER SE AS VARIAVEIS SAO UTILIZADAS EM IFS
+                // TODO: AT THIS LEVEL, ONLY CHECKING IF THE VARIABLES ARE USED IN THE IF CONDITION
                 Iterator<PsiLocalVariable> iteratorLocalVariable = intentVariables.iterator();
                 while(iteratorLocalVariable.hasNext()) {
                     boolean isChecked = false;
@@ -68,10 +68,8 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                         PsiReference next = iterator1.next();
                         PsiIfStatement firstParent = (PsiIfStatement) PsiTreeUtil.findFirstParent((PsiElement) next, el -> el instanceof PsiIfStatement);
                         if(firstParent == null) { continue; }
-                        // TODO: CHECK THIS NUMBER
-                        if(PsiUtilBase.compareElementsByPosition(firstParent.getCondition(), (PsiElement) next) == 0) {
-                            isChecked = true;
-                        }
+                        // comparing the positions between the reference and the condition of the if. if its 0 then the reference is in the condition.
+                        if(PsiUtilBase.compareElementsByPosition(firstParent.getCondition(), (PsiElement) next) == 0) { isChecked = true; }
                     }
                     if(isChecked) { return; }
                 }

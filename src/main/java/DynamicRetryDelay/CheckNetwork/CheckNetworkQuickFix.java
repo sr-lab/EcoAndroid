@@ -32,7 +32,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         return QUICK_FIX_NAME;
     }
 
-
     /*
     *
     * The changes applied to the code are:
@@ -74,7 +73,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         boolean implementsClass = false;
         PsiClass aClass = null;
         while (iterator.hasNext()) {
-            // TODO: ESTA VERIFICAO DEVE PODER SER OPTIMIZADA
             ref = iterator.next();
             if(ref.getType() == null) continue;
             aClass = JavaPsiFacade.getInstance(project).findClass(ref.getType().getCanonicalText(), GlobalSearchScope.allScope(project));
@@ -124,6 +122,51 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         newBody.add(ifStatement);
         psiMethod.getBody().replace(newBody);
 
+        String methodName = "rescheduleAlarm";
+        int counter = 2;
+        while(aClass.findMethodsByName(methodName, true).length > 0) {
+            methodName = methodName + counter;
+            counter = counter + 1;
+        }
+        String psiRescheduleAlarmString = "public void " + methodName + "() {\n" +
+                "\t\tNetworkStateReceiver.disable(context);\n" +
+                "\n" +
+                "\t\tfinal android.app.AlarmManager alarmManager =\n" +
+                "\t\t\t(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);\n" +
+                "\n" +
+                "\t\tfinal android.content.Intent intent =\n" +
+                "\t\t\tnew Intent(context, AutoRefreshHelper.Service.class);\n" +
+                "\t\tfinal android.app.PendingIntent pendingIntent =\n" +
+                "\t\t\tPendingIntent.getService(context, 0, intent, 0);\n" +
+                "\n" +
+                "\t\tSharedPreferences preferences =\n" +
+                "\t\t\t\tPreferenceManager.getDefaultSharedPreferences(context);\n" +
+                "\t\tpreferences.registerOnSharedPreferenceChangeListener(this);\n" +
+                "\t\tboolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
+                "\n" +
+                "\t\tfinal String hours =\n" +
+                "\t\t\t\tpreferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
+                "\t\t\n" +
+                "\t\tlong hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;" +
+                "\n" +
+                "\t\tif (autoRefreshEnabled && hoursLong != 0) {\n" +
+                "\t\t\tfinal long alarmTime =\n" +
+                "\t\t\t\tgetPrevAutoRefreshTime() + getAutoRefreshPeriod();\n" +
+                "\n" +
+                "\t\t\tLog.i(TAG, String.format(\"Scheduling auto refresh alarm for %d.\", alarmTime));\n" +
+                "\n" +
+                "\t\t\talarmManager.set(AlarmManager.RTC,\n" +
+                "\t\t\t                 alarmTime,\n" +
+                "\t\t\t                 pendingIntent);\n" +
+                "\t\t} else {\n" +
+                "\t\t\tLog.i(TAG, \"Cancelling auto refresh alarm.\");\n" +
+                "\n" +
+                "\t\t\talarmManager.cancel(pendingIntent);\n" +
+                "\t\t}\n" +
+                "\t}";
+        PsiMethod psiRescheduleAlarm = factory.createMethodFromText(psiRescheduleAlarmString, null);
+        aClass.add(psiRescheduleAlarm);
+
         /*
          * CREATE A CLASS THAT EXTENDS "BROADCASTRECEIVER" THAT IMPLEMENTS:
          *           1. onReceive
@@ -142,8 +185,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 "\t\t\t\tAutoRefreshHelper.getInstance(context.getApplicationContext());\n" +
                 "\n" +
                 "\t\t\tif (helper.checkNetwork()) {\n" +
-                        //TODO: falta fazer o rescheduleAlarm
-                "\t\t\t\thelper.rescheduleAlarm();\n" +
+                "\t\t\t\thelper." +  methodName +"();\n" +
                 "\t\t\t}\n" +
                 "\t\t}\n" +
                 "\n" +
@@ -191,19 +233,28 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
          * ADD THE NEW RECEIVER TO THE "AndroidManifest.xml" FILE
          */
         XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
-        // assumo que nunca irá estar na directoria dos ficheiro java
-        // TODO: ESTA A FAZER BOTTOM-UP MAS NAO OLHA PARA OS LADOS
         XmlFile xmlFile = null;
-        while (psiDirectory.getParentDirectory() != null) {
-            xmlFile = (XmlFile) psiDirectory.getParentDirectory().findFile("AndroidManifest.xml");
-            if (xmlFile != null) {
+        PsiDirectory currentPsiDirectory = psiDirectory;
+        while (currentPsiDirectory != null) {
+            xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
+            if(xmlFile != null) {
                 System.out.println("Found xml file!");
                 break;
             }
-            psiDirectory = psiDirectory.getParentDirectory();
+            PsiDirectory[] subDirectories = currentPsiDirectory.getSubdirectories();
+            boolean checked = false;
+            for (int i = 0; i < subDirectories.length; i++) {
+                xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
+                if(xmlFile != null) {
+                    System.out.println("Found xml file!");
+                    checked = true;
+                    break;
+                }
+            }
+            if(checked) { break; }
+            currentPsiDirectory = currentPsiDirectory.getParentDirectory();
         }
         if(xmlFile != null) {
-            // TODO: findFileSystemItem in PsiUtilCore
             // já existe ficheiro
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
@@ -244,6 +295,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         }
         else {
             // TODO: NAO EXISTINDO O FICHEIRO XML, DEVE CRIAR CERTO? PORQUE TENHO QUE DECLARAR O RECEIVER
+            // TODO: EU ACHO QUE ISTO NUNCA PODE ACONTECER, PORQUE ELE PROCURA UM SERVICE NA INSPECTION, QUE TEM QUE ESTAR DEFINIDO RIGHT ?
         }
     }
 

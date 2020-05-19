@@ -51,7 +51,6 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                 PsiReferenceExpression timeVariable;
                 if(!(argument instanceof PsiReferenceExpression)) {
                     Collection<PsiReferenceExpression> childrenOfAnyType = PsiTreeUtil.findChildrenOfAnyType(argument, PsiReferenceExpression.class);
-                    //TODO: neste momento, só com variaveis
                     if(childrenOfAnyType.size() == 0) { return; }
                     timeVariable = childrenOfAnyType.iterator().next();
                 }
