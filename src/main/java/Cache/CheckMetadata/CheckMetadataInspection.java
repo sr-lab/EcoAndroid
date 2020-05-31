@@ -23,10 +23,7 @@ public class CheckMetadataInspection extends LocalInspectionTool {
     @Override
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
         return new JavaElementVisitor() {
-            /**
-             *  This string defines the short message shown to a user signaling the inspection
-             *  found a problem. It reuses a string from the inspections bundle.
-             */
+
             @NonNls
             private final String DESCRIPTION_TEMPLATE_CHECK_METADATA = "Refactor4Green: Cache - Check Metadata";
 
@@ -34,28 +31,44 @@ public class CheckMetadataInspection extends LocalInspectionTool {
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
 
-                if(!(method.getName().equals("onReceive"))) { return; }
+                /*
+                 *
+                 * FIRST PHASE: LOOK FOR THE METHOD onReceive FROM THE CLASS BroadcastReceiver
+                 *
+                 */
+                if(!(method.getName().equals("onReceive")))
+                    return;
 
                 PsiClass psiClass = PsiTreeUtil.getParentOfType(method, PsiClass.class);
                 PsiClass broadcastReceiverClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.content.BroadcastReceiver", GlobalSearchScope.allScope(holder.getProject()));
                 if(!(InheritanceUtil.isInheritorOrSelf(psiClass, broadcastReceiverClass, true))) { return;}
 
-                // check if the content retrieve from the intent is being checked before restoring
+                /*
+                 *
+                 * SECOND PHASE: LOOK FOR THE VARIABLES THAT STORE THE VALUE OF THE intent PARAMETER
+                 *
+                 */
                 Collection<PsiMethodCallExpression> methodsCalls = PsiTreeUtil.collectElementsOfType(method.getBody(), PsiMethodCallExpression.class);
                 Iterator<PsiMethodCallExpression> iterator = methodsCalls.iterator();
                 ArrayList<PsiLocalVariable> intentVariables = new ArrayList<>();
                 while(iterator.hasNext()) {
                     PsiMethodCallExpression currentMethodCall = iterator.next();
-                    if(currentMethodCall.getMethodExpression().getQualifier() == null) { continue; }
+                    if(currentMethodCall.getMethodExpression().getQualifier() == null)
+                        continue;
                     if(currentMethodCall.getMethodExpression().getQualifier().getText().equals("intent")) {
-                        if(currentMethodCall.getParent() instanceof PsiLocalVariable) {
+                        if(currentMethodCall.getParent() instanceof PsiLocalVariable)
                             intentVariables.add((PsiLocalVariable) currentMethodCall.getParent());
-                        }
                     }
                 }
+                // NOTE: IF THIS SIZE IS 0 MEANS NOTHING IS RETRIEVED FRMO THE intent PARAMETER
+                if(intentVariables.size() == 0)
+                    return;
 
-                if(intentVariables.size() == 0) { return; }
-
+                /*
+                 *
+                 * THIRD PHASE: CHECK IF THE CONTENT RETRIEVED FROM THE intent PARAMETER IS BEING USED IN IF CONDITIONALS
+                 *
+                 */
                 // TODO: AT THIS LEVEL, ONLY CHECKING IF THE VARIABLES ARE USED IN THE IF CONDITION
                 Iterator<PsiLocalVariable> iteratorLocalVariable = intentVariables.iterator();
                 while(iteratorLocalVariable.hasNext()) {
@@ -68,10 +81,11 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                         PsiReference next = iterator1.next();
                         PsiIfStatement firstParent = (PsiIfStatement) PsiTreeUtil.findFirstParent((PsiElement) next, el -> el instanceof PsiIfStatement);
                         if(firstParent == null) { continue; }
-                        // comparing the positions between the reference and the condition of the if. if its 0 then the reference is in the condition.
+                        // NOTE: COMPARING POSITIONS BETWEEN TEH REFERENCE AND THE CONDITION OF THE IF. IF ITS 0, THEN THE REFERENCE IS IN THE CONDITION
                         if(PsiUtilBase.compareElementsByPosition(firstParent.getCondition(), (PsiElement) next) == 0) { isChecked = true; }
                     }
-                    if(isChecked) { return; }
+                    if(isChecked)
+                        return;
                 }
                 checkMetadataQuickFix = new CheckMetadataQuickFix();
                 checkMetadataQuickFix.setIntentVariables(intentVariables);

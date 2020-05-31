@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 
 public class CheckNetworkQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "Refactor4Green: Dynamic Retry Delay Dynamic Check Network";
+    private final String QUICK_FIX_NAME = "Refactor4Green: Dynamic Retry Delay Energy Pattern - Checking network connection before processing request case";
 
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
@@ -32,21 +32,14 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         return QUICK_FIX_NAME;
     }
 
-    /*
-    *
-    * The changes applied to the code are:
-    *      1 - create a method to check the network connection
-    *      2 - rewrite the code of the "onHandleIntent" method to check network before autorefreshing
-    *      3 - adding class that extends "BroadcastReceiver" that implements methods:
-    *               3.1 - onReceive
-    *               3.2 - enable
-    *               3.3 - disable
-    *      4 - change the xml settings
-    *
-    * */
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
 
+        /*
+         *
+         * FIRST PHASE: RETRIEVE ELEMENTS TO BE USED IN THE QUICK FIX
+         *
+         */
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiIdentifier psiIdentifier = (PsiIdentifier) problemDescriptor.getPsiElement();
         PsiMethod psiMethod = (PsiMethod) psiIdentifier.getContext();
@@ -55,7 +48,9 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         PsiDirectory psiDirectory = psiFile.getContainingDirectory();
 
         /*
-         * ADDING COMMENT THAT SUMMARIZES CHANGES MADE TO THE CODE
+         *
+         * SECOND PHASE: ADD A COMMENT THAT SUMMARIZES THE CHANGES MADE BY THE ENERGY PATTERN
+         *
          */
         PsiComment comment = factory.createCommentFromText("/* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
@@ -65,8 +60,13 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 "*/", intentServiceClass.getContainingFile());
         psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
+        /*
+         *
+         * THIRD PHASE: LOOK FOR THE CLASS OnSharedPreferencesChangeListener VARIABLE
+         *
+         */
         Collection<PsiReferenceExpression> references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
-        Predicate<PsiReferenceExpression> predicateRefExpr = a -> !(a.resolve() instanceof PsiField || a.resolve() instanceof PsiLocalVariable);
+        Predicate<PsiReferenceExpression> predicateRefExpr = el -> !(el.resolve() instanceof PsiField || el.resolve() instanceof PsiLocalVariable);
         references.removeIf(predicateRefExpr);
         Iterator<PsiReferenceExpression> iterator = references.iterator();
         PsiReferenceExpression ref = null;
@@ -78,7 +78,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             aClass = JavaPsiFacade.getInstance(project).findClass(ref.getType().getCanonicalText(), GlobalSearchScope.allScope(project));
             if(aClass == null) continue;
             // vejo se a class implementa a class do helper ? --- isto parece muito martelado
-            PsiClass sharedPreferencesClass = JavaPsiFacade.getInstance(project).findClass("SharedPreferences.OnSharedPreferenceChangeListener", GlobalSearchScope.allScope(project));
             PsiClassType[] list = aClass.getImplementsListTypes();
             implementsClass = false;
             for (int i = 0; i < list.length ; i++ ) {
@@ -91,7 +90,9 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         }
 
         /*
-         * CREATE A METHOD TO CHECK THE NETWORK CONNECTION
+         *
+         * FOURTH PHASE: CREATE THE checkNetwork() METHOD
+         *
          */
         String psiCheckNetworkMethodString =
                 "private boolean checkNetwork() {\n" +
@@ -105,73 +106,33 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         PsiMethod psiCheckNetworkMethod = factory.createMethodFromText(psiCheckNetworkMethodString, null);
         aClass.add(psiCheckNetworkMethod);
 
+        /*
+         *
+         *  FIFTH PHASE: CREATES IF STATEMENT
+         *
+         */
         PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if ( " + ref.getElement().getText() + ".checkNetwork())"  +
                 " { b; } else { NetworkStateReceiver.enable(this); }", intentServiceClass);
         PsiVariable var = (PsiVariable) ref.resolve();
         PsiDeclarationStatement decl = (PsiDeclarationStatement) factory.createStatementFromText("final " + aClass.getName() + " " + ref.getElement().getText() + " = " + var.getInitializer().getText() +  ";", intentServiceClass);
-        // retirar a declaracao
         String name = ref.getElement().getText();
-        Collection<PsiDeclarationStatement> decls = PsiTreeUtil.findChildrenOfAnyType(psiMethod.getBody(), PsiDeclarationStatement.class);
-        Predicate<PsiDeclarationStatement> predicateDecls = a ->
-                ! ( ((PsiLocalVariable) a.getDeclaredElements()[0]).getName().equals(name) );
-        decls.removeIf(predicateDecls);
-        decls.iterator().next().delete();
+        Collection<PsiDeclarationStatement> declarationStatements = PsiTreeUtil.findChildrenOfAnyType(psiMethod.getBody(), PsiDeclarationStatement.class);
+        Predicate<PsiDeclarationStatement> predicateDeclarationStatements = el -> !(((PsiLocalVariable) el.getDeclaredElements()[0]).getName().equals(name));
+        declarationStatements.removeIf(predicateDeclarationStatements);
+        declarationStatements.iterator().next().delete();
         ifStatement.getThenBranch().replace(psiMethod.getBody());
-        PsiCodeBlock newBody =  factory.createCodeBlock();
+        PsiCodeBlock newBody = factory.createCodeBlock();
         newBody.add(decl);
         newBody.add(ifStatement);
         psiMethod.getBody().replace(newBody);
 
-        String methodName = "rescheduleAlarm";
-        int counter = 2;
-        while(aClass.findMethodsByName(methodName, true).length > 0) {
-            methodName = methodName + counter;
-            counter = counter + 1;
-        }
-        String psiRescheduleAlarmString = "public void " + methodName + "() {\n" +
-                "\t\tNetworkStateReceiver.disable(context);\n" +
-                "\n" +
-                "\t\tfinal android.app.AlarmManager alarmManager =\n" +
-                "\t\t\t(AlarmManager)context.getSystemService(Context.ALARM_SERVICE);\n" +
-                "\n" +
-                "\t\tfinal android.content.Intent intent =\n" +
-                "\t\t\tnew Intent(context, AutoRefreshHelper.Service.class);\n" +
-                "\t\tfinal android.app.PendingIntent pendingIntent =\n" +
-                "\t\t\tPendingIntent.getService(context, 0, intent, 0);\n" +
-                "\n" +
-                "\t\tSharedPreferences preferences =\n" +
-                "\t\t\t\tPreferenceManager.getDefaultSharedPreferences(context);\n" +
-                "\t\tpreferences.registerOnSharedPreferenceChangeListener(this);\n" +
-                "\t\tboolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
-                "\n" +
-                "\t\tfinal String hours =\n" +
-                "\t\t\t\tpreferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
-                "\t\t\n" +
-                "\t\tlong hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;" +
-                "\n" +
-                "\t\tif (autoRefreshEnabled && hoursLong != 0) {\n" +
-                "\t\t\tfinal long alarmTime =\n" +
-                "\t\t\t\tgetPrevAutoRefreshTime() + getAutoRefreshPeriod();\n" +
-                "\n" +
-                "\t\t\tLog.i(TAG, String.format(\"Scheduling auto refresh alarm for %d.\", alarmTime));\n" +
-                "\n" +
-                "\t\t\talarmManager.set(AlarmManager.RTC,\n" +
-                "\t\t\t                 alarmTime,\n" +
-                "\t\t\t                 pendingIntent);\n" +
-                "\t\t} else {\n" +
-                "\t\t\tLog.i(TAG, \"Cancelling auto refresh alarm.\");\n" +
-                "\n" +
-                "\t\t\talarmManager.cancel(pendingIntent);\n" +
-                "\t\t}\n" +
-                "\t}";
-        PsiMethod psiRescheduleAlarm = factory.createMethodFromText(psiRescheduleAlarmString, null);
-        aClass.add(psiRescheduleAlarm);
-
         /*
-         * CREATE A CLASS THAT EXTENDS "BROADCASTRECEIVER" THAT IMPLEMENTS:
+         *
+         * SIXTH PHASE: CREATE A CLASS THAT EXTENDS "BROADCASTRECEIVER" THAT IMPLEMENTS:
          *           1. onReceive
          *           2. enable
          *           3. disable
+         *
          */
         String broadcastReceiverString =
                 "public static class NetworkStateReceiver extends BroadcastReceiver {\n" +
@@ -185,7 +146,28 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 "\t\t\t\tAutoRefreshHelper.getInstance(context.getApplicationContext());\n" +
                 "\n" +
                 "\t\t\tif (helper.checkNetwork()) {\n" +
-                "\t\t\t\thelper." +  methodName +"();\n" +
+                "\t\t\t\tNetworkStateReceiver.disable(context);\n" +
+                "\n" +
+                "\t\t\t\tfinal android.app.AlarmManager alarmManager = (AlarmManager) Interconnect.getSystemService(Context.ALARM_SERVICE);\n" +
+                "\n" +
+                "\t\t\t\tfinal android.content.Intent innerIntent = new Intent(context, AutoRefreshHelper.Service.class);\n" +
+                "\t\t\t\tfinal android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, 0);\n" +
+                "\n" +
+                "\t\t\t\tandroid.content.SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(Interconnect);\n" +
+                "\t\t\t\tpreferences.registerOnSharedPreferenceChangeListener(helper);\n" +
+                "\t\t\t\tboolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
+                "\n" +
+                "\t\t\t\tfinal String hours = preferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
+                "\n" +
+                "\t\t\t\tlong hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;\n" +
+                "\t\t\t\tif (autoRefreshEnabled && hoursLong != 0){\n" +
+                "\t\t\t\t\tfinal long alarmTime = helper.getPrevAutoRefreshTime() + helper.getAutoRefreshPeriod();\n" +
+                "\n" +
+                "\t\t\t\t\talarmManager.set(AlarmManager.RTC, alarmTime, pendingIntent);\n" +
+                "\t\t\t\t} else{\n" +
+                "\n" +
+                "\t\t\t\t\talarmManager.cancel(pendingIntent);\n" +
+                "\t\t\t\t}" +
                 "\t\t\t}\n" +
                 "\t\t}\n" +
                 "\n" +
@@ -230,37 +212,35 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         javaCodeStyleManager.shortenClassReferences(intentServiceClass);
 
         /*
-         * ADD THE NEW RECEIVER TO THE "AndroidManifest.xml" FILE
+         *
+         *  SEVENTH PHASE: ADD THE NEW RECEIVER TO THE AndroidManifest.xml FILE
+         *
          */
         XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
         XmlFile xmlFile = null;
         PsiDirectory currentPsiDirectory = psiDirectory;
         while (currentPsiDirectory != null) {
             xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
-            if(xmlFile != null) {
-                System.out.println("Found xml file!");
-                break;
-            }
+            if(xmlFile != null) { break; }
             PsiDirectory[] subDirectories = currentPsiDirectory.getSubdirectories();
             boolean checked = false;
             for (int i = 0; i < subDirectories.length; i++) {
                 xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
                 if(xmlFile != null) {
-                    System.out.println("Found xml file!");
                     checked = true;
                     break;
                 }
             }
-            if(checked) { break; }
+            if(checked)
+                break;
             currentPsiDirectory = currentPsiDirectory.getParentDirectory();
         }
         if(xmlFile != null) {
-            // já existe ficheiro
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
             List<XmlTag> xmlTags = Arrays.asList(subTags);
-            Predicate<XmlTag> xmlTagAccessPredicate = a -> a.getAttributeValue("android:name") == "android.permission.ACCESS_NETWORK_STATE";
+            Predicate<XmlTag> xmlTagAccessPredicate = el -> el.getAttributeValue("android:name") == "android.permission.ACCESS_NETWORK_STATE";
             int originalSize = xmlTags.size();
             xmlTags.removeIf(xmlTagAccessPredicate);
             if(xmlTags.size() == originalSize) {
@@ -288,14 +268,16 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 applicationTag = xmlElementFactory.createTagFromText("<application/>");
             }
             XmlTag firstProvider = applicationTag.findFirstSubTag("provider");
-            if(firstProvider != null) { applicationTag.addBefore(receiverTag, firstProvider); }
-            else { applicationTag.add(receiverTag); }
-            if(applicationTagNull) { xmlFile.add(applicationTag); }
+            if(firstProvider != null)
+                applicationTag.addBefore(receiverTag, firstProvider);
+            else
+                applicationTag.add(receiverTag);
+            if(applicationTagNull)
+                xmlFile.add(applicationTag);
 
         }
         else {
-            // TODO: NAO EXISTINDO O FICHEIRO XML, DEVE CRIAR CERTO? PORQUE TENHO QUE DECLARAR O RECEIVER
-            // TODO: EU ACHO QUE ISTO NUNCA PODE ACONTECER, PORQUE ELE PROCURA UM SERVICE NA INSPECTION, QUE TEM QUE ESTAR DEFINIDO RIGHT ?
+            // NOTE: I'M ASSUMING THAT THIS FILES ALWAYS EXISTS BECAUSE IM ASSUMING THERE IS ALREADY A LISTENER.
         }
     }
 

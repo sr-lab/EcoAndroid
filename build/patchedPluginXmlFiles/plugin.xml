@@ -3,7 +3,6 @@
   <change-notes>
       Add change notes here.&lt;br&gt;
       &lt;em&gt;most HTML tags may be used&lt;/em&gt;</change-notes>
-  <idea-version since-build="193.6911" until-build="193.*"/>
   <id>com.your.company.unique.plugin.id</id>
   <name>Refactor4Green</name>
   <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
@@ -12,6 +11,7 @@
     This changes are according to well-known energy patterns.
     THIS TEXT IS TO KNOW IF THIS IS THE NEW PLUGIN OR NOT.
   </description>
+  <idea-version since-build="141"/>
   <extensions defaultExtensionNs="com.intellij">
     <localInspection language="JAVA" displayName="Refactor4Green: Dynamic Retry Delay - Constant Wait Time to Dynamic Wait Time'" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="DynamicRetryDelay.DynamicWaitTime.DynamicWaitTimeInspection"/>
     <localInspection language="JAVA" displayName="Refactor4Green: Dynamic Retry Delay - Check Network Connection Before Autorefresh'" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="DynamicRetryDelay.CheckNetwork.CheckNetworkInspection"/>

@@ -8,6 +8,7 @@
     This changes are according to well-known energy patterns.
     THIS TEXT IS TO KNOW IF THIS IS THE NEW PLUGIN OR NOT.
   </description>
+  <idea-version since-build="141"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products
