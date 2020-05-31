@@ -15,12 +15,6 @@ import java.util.Iterator;
 
 public class CheckNetworkInspection extends LocalInspectionTool {
 
-    /*
-    *
-    *  This inspection follows the steps:
-    *        1 - look if there is a "onHandleInternet" in the class that extends "IntentService"
-    *        2 -
-    * */
     private CheckNetworkQuickFix checkNetworkQuickFix;
 
     @NotNull
@@ -28,10 +22,6 @@ public class CheckNetworkInspection extends LocalInspectionTool {
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
         return new JavaElementVisitor() {
 
-            /**
-             *  This string defines the short message shown to a user signaling the inspection
-             *  found a problem. It reuses a string from the inspections bundle.
-             */
             @NonNls
             private final String DESCRIPTION_TEMPLATE_CHECK_NETWORK = "Refactor4Green: Check Network Before Autorefresh";
 
@@ -39,32 +29,35 @@ public class CheckNetworkInspection extends LocalInspectionTool {
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
 
-                // check if the name of the method is "onHandleIntent"
+                /*
+                 *
+                 * FIRST PHASE: LOOK FOR THE onHandleIntent METHOD FROM THE IntentService CLASS
+                 *
+                 */
                 if(!method.getName().equals("onHandleIntent")) // This method is invoked on the worker thread with a request to process.
                     return;
 
-                // check if the class the method is inserted in extends "IntentService"
                 PsiClass psiClass = PsiTreeUtil.getParentOfType(method, PsiClass.class);
                 PsiClass serviceClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.IntentService", GlobalSearchScope.allScope(holder.getProject()));
                 if(!(InheritanceUtil.isInheritorOrSelf(psiClass, serviceClass, true))) { return;}
 
-                // check if somewhere on the method (or a method that calls it) the method ConnectivityManager.getActiveNetworkInfo() is called
+                /*
+                 *
+                 * SECOND PHASE: CHECK IF THE SOMEWHERE IN THE METHOD BODY THERE IS A CALL TO THE METHOD ConnectivityManager.getActiveNetworkInfo()
+                 *
+                 */
                 Collection<PsiMethodCallExpression> methodsCalls = PsiTreeUtil.collectElementsOfType(method.getBody(), PsiMethodCallExpression.class);
                 Iterator<PsiMethodCallExpression> iterator = methodsCalls.iterator();
-                // if the siz is the same, it means nothing was removed from the collection and there is no direct call to the method
+                // NOTE: IF THE SIZE IS THE SAME IT MEANS NOTHING WAS REMOVED FROM THE COLLECTION AND THERE IS NO DIRECT CALL TO THE METHOD
                 while(iterator.hasNext()) {
-                    // if something is left, then we find if any method being called, calls ConnectivityManager.getActiveNetworkInfo()
+                    // NOTE: CHECK IF INNER METHODS CALL ConnectivityManager.getActiveNetworkInfo()
                     PsiMethodCallExpression currentMethodCall = iterator.next();
                     PsiExpression expr = currentMethodCall.getMethodExpression();
                     PsiClass psiClassConnectivyManager = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.net.ConnectivityManager", GlobalSearchScope.allScope(holder.getProject()));
                     PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetworkInfo", true)[0];
-                    if(expr.getReference().isReferenceTo(met)) {
-                        System.out.println("CHECKING NETWORK FOUND!");
-                        return;
-                    }
+                    if(expr.getReference().isReferenceTo(met)) { return; }
                     else if(checkIfBodyMethodChecksNetworkConnection(currentMethodCall, holder.getProject())) {
                         //TODO: SÓ VERICA UM NIVEL DE METODOS
-                        System.out.println("CHECKING NETWORK FOUND!");
                         return;
                     }
                 }

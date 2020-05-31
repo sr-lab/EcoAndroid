@@ -1,4 +1,4 @@
-package DynamicRetryDelay.CheckNetwork;
+/*package DynamicRetryDelay.CheckNetwork;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
@@ -172,3 +172,4 @@ public class AutoRefreshHelper
         }
     }
 }
+*/

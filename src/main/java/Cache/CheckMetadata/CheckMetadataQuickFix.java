@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 public class CheckMetadataQuickFix implements LocalQuickFix {
-    private final String QUICK_FIX_NAME = "Refactor4Green: Cache - Check Metadata";
+    private final String QUICK_FIX_NAME = "Refactor4Green: Cache Energy Pattern - Checking Values before processing them case";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -34,13 +34,20 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
+        /*
+         *
+         * FIRST PHASE: RETRIEVED VARIABLES TO BE USED BELOW
+         *
+         */
         PsiElementFactory factory = PsiElementFactory.getInstance(project);
         PsiMethod psiMethod = (PsiMethod) ( problemDescriptor.getPsiElement()).getContext();
         PsiClass psiClass = psiMethod.getContainingClass();
         PsiFile psiFile = psiClass.getContainingFile();
 
         /*
-         * ADDING COMMENT THAT SUMMARIZES CHANGES MADE TO THE CODE
+         *
+         *  SECOND PHASE: ADDING COMMENT THAT SUMMARIZES CHANGES MADE TO THE CODE
+         *
          */
         PsiComment comment = factory.createCommentFromText("/* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -54,11 +61,13 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
         String ifStatement = "if ( ";
 
         /*
-         * FOR EVERY VARIABLE THAT IS CREATED FROM THE INTENT, CREATES A LAST+VARNAME, DELETES THE OLD VAR AND ADD IF
+         *
+         *  THIRD PHASE: FOR EVERY VARIABLE THAT IS CREATED FROM THE INTENT, CREATES A LAST+variableName, DELETES THE OLD VAR AND ADD IF
+         *
          */
         while (iterator.hasNext()) {
             PsiLocalVariable currentLocalVariable = iterator.next();
-            //create the variable that will store the last value
+            //NOTE: CREATE THE VARIABLE THAT WILL STORE THE LAST VALUE
             PsiCodeBlock declarationsBlock = factory.createCodeBlock();
             PsiDeclarationStatement declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
                     + " last" + currentLocalVariable.getName() + " = null;", psiMethod);
@@ -77,6 +86,11 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
             currentLocalVariable.getInitializer().getContext().delete();
         }
 
+        /*
+         *
+         * FOURTH PHASE: CREATE METHOD THAT UPDATES THE OLD VALUES OF THE VARIABLES
+         *
+         */
         String newMethodBody = "private void updateValues(android.content.Intent intent) {";
         Iterator<PsiStatement> iteratorStatements = updateStatements.iterator();
         while(iteratorStatements.hasNext()) {
@@ -90,12 +104,10 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
         psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
 
         ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
-        //TODO: CHANGE THE LOG.INFO
         ifStatement += ") { return; } ";
         PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
         psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
-
-        psiClass = (PsiClass) CodeStyleManager.getInstance(project).reformat(psiClass);
+        CodeStyleManager.getInstance(project).reformat(psiClass);
 
     }
 
