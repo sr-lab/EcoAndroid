@@ -2,6 +2,7 @@ package DynamicRetryDelay.CheckNetwork;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.mock.MockPsiDirectory;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
@@ -28,9 +29,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
-    public String getFamilyName() {
-        return QUICK_FIX_NAME;
-    }
+    public String getFamilyName() { return QUICK_FIX_NAME; }
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
@@ -52,11 +51,12 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
          * SECOND PHASE: ADD A COMMENT THAT SUMMARIZES THE CHANGES MADE BY THE ENERGY PATTERN
          *
          */
-        PsiComment comment = factory.createCommentFromText("/* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
+        PsiComment comment = factory.createCommentFromText("/*"
+                + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
-                + "Checking the network connection before attempting to answer a request \n"
+                + "* Checking the network connection before attempting to answer a request \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
-                + "Application changed java file \"" + intentServiceClass.getContainingFile().getName() + "\"  and xml file \"AndroidManifest.xml\"." +
+                + "* Application changed java file \"" + intentServiceClass.getContainingFile().getName() + "\"  and xml file \"AndroidManifest.xml\"." +
                 "*/", intentServiceClass.getContainingFile());
         psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
@@ -148,7 +148,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 "\t\t\tif (helper.checkNetwork()) {\n" +
                 "\t\t\t\tNetworkStateReceiver.disable(context);\n" +
                 "\n" +
-                "\t\t\t\tfinal android.app.AlarmManager alarmManager = (AlarmManager) Interconnect.getSystemService(Context.ALARM_SERVICE);\n" +
+                "\t\t\t\tfinal android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
                 "\n" +
                 "\t\t\t\tfinal android.content.Intent innerIntent = new Intent(context, AutoRefreshHelper.Service.class);\n" +
                 "\t\t\t\tfinal android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, 0);\n" +
@@ -216,25 +216,28 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
          *  SEVENTH PHASE: ADD THE NEW RECEIVER TO THE AndroidManifest.xml FILE
          *
          */
+        // get root directory
         XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
         XmlFile xmlFile = null;
-        PsiDirectory currentPsiDirectory = psiDirectory;
-        while (currentPsiDirectory != null) {
-            xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
-            if(xmlFile != null) { break; }
-            PsiDirectory[] subDirectories = currentPsiDirectory.getSubdirectories();
-            boolean checked = false;
+        PsiDirectory rootDirectory = psiDirectory;
+        JavaDirectoryService javaDirectoryService = JavaDirectoryService.getInstance();
+        while(!javaDirectoryService.isSourceRoot(rootDirectory)) {
+            rootDirectory = rootDirectory.getParentDirectory();
+        }
+
+        // retrieve AndroidManifest xml file
+        xmlFile = (XmlFile) rootDirectory.findFile("AndroidManifest.xml");
+        if(xmlFile == null) {
+            PsiDirectory[] subDirectories = rootDirectory.getSubdirectories();
             for (int i = 0; i < subDirectories.length; i++) {
+                PsiDirectory currentPsiDirectory = subDirectories[i];
                 xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
                 if(xmlFile != null) {
-                    checked = true;
                     break;
                 }
             }
-            if(checked)
-                break;
-            currentPsiDirectory = currentPsiDirectory.getParentDirectory();
         }
+
         if(xmlFile != null) {
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();

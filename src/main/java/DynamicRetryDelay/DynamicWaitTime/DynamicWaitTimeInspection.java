@@ -15,12 +15,14 @@ import java.util.function.Predicate;
 public class DynamicWaitTimeInspection extends LocalInspectionTool {
 
     private DynamicWaitTimeQuickFix dynamicWaitTimeQuickFix;
+    private InfoWarningQuickFix infoWarningQuickFix = new InfoWarningQuickFix();
 
     @NotNull
     @Override
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
         return new JavaElementVisitor() {
 
+            // the texts that appears when you pass the mouse through it wo/ clicking it
             @NonNls
             private final String DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME = "The Dynamic Retry Delay energy pattern applied here is specific to the case.";
 
@@ -50,7 +52,7 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                 /*
                  *
                  *  SECOND PHASE: CHECK THE WHERE THE VARIABLE COMES FROM: LOCAL VARIABLE OR PARAMETER
-         *                 OPTION 1: VALUE IS FROM A LOCAL VARIABLE
+                 *                 OPTION 1: VALUE IS FROM A LOCAL VARIABLE
                  *
                  */
                 //NOTE: SINCE ITS CONSTANTLY INSPECTING, IF THE USER SWITCHES FROM LOCAL VARIABLE TO PARAMETER OR VICE VERSA, IT NEEDS TO CLEAN THE COLLECTION IN THE QUICK FIX
@@ -59,14 +61,14 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                     //NOTE: GET ALL ASSIGNMENTS OF THE VARIABLE
                     Collection<PsiAssignmentExpression> assignmentExpressions = PsiTreeUtil.collectElementsOfType(psiMethod.getBody(), PsiAssignmentExpression.class);
                     Predicate<PsiAssignmentExpression> predicate = el -> !((el.getLExpression().getReference().getCanonicalText().equals(timeVariable.getReference().getCanonicalText()))
-                                                                        && (el.getOperationSign().getTokenType().equals(JavaTokenType.EQ))
-                                                                        && (el.getRExpression() instanceof PsiLiteralExpression)
-                                                                        && (PsiUtilBase.compareElementsByPosition(el, expression) < 0));
+                            && (el.getOperationSign().getTokenType().equals(JavaTokenType.EQ))
+                            && (el.getRExpression() instanceof PsiLiteralExpression)
+                            && (PsiUtilBase.compareElementsByPosition(el, expression) < 0));
                     assignmentExpressions.removeIf(predicate);
                     Iterator<PsiAssignmentExpression> iterator = assignmentExpressions.iterator();
                     if(iterator.hasNext()) {
                         dynamicWaitTimeQuickFix.setReference(timeVariable);
-                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix);
+                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix, infoWarningQuickFix);
                         return;
                     }
                 }
@@ -84,7 +86,7 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
 
                     Collection<PsiMethodCallExpression> methodsCalls = PsiTreeUtil.collectElementsOfType(psiMethod.getBody(), PsiMethodCallExpression.class);
                     //NOTE: GET ALL METHOD CALLS USED WITH THIS VARIABLE
-                    Predicate<PsiMethodCallExpression> predicateMethodCall = a -> !((a.getMethodExpression().getCanonicalText().equals(method.getName())));
+                    Predicate<PsiMethodCallExpression> predicateMethodCall = el -> !((el.getMethodExpression().getCanonicalText().equals(method.getName())));
                     methodsCalls.removeIf(predicateMethodCall);
                     Iterator<PsiMethodCallExpression> iterator = methodsCalls.iterator();
                     while(iterator.hasNext()) {
@@ -92,18 +94,16 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                         PsiReferenceExpression ref = (PsiReferenceExpression) currentMethodCall.getArgumentList().getExpressions()[index];
                         Collection<PsiAssignmentExpression> assignmentExpressions = PsiTreeUtil.collectElementsOfType(method.getBody(), PsiAssignmentExpression.class);
                         Predicate<PsiAssignmentExpression> predicateAssignment = el -> !((el.getLExpression().getReference().getCanonicalText().equals(ref.getReference().getCanonicalText()))
-                                                                                && (el.getOperationSign().getTokenType().equals(JavaTokenType.EQ))
-                                                                                && (el.getRExpression() instanceof PsiLiteralExpression)
-                                                                                && (PsiUtilBase.compareElementsByPosition(el, currentMethodCall) < 0));
+                                && (el.getOperationSign().getTokenType().equals(JavaTokenType.EQ))
+                                && (el.getRExpression() instanceof PsiLiteralExpression)
+                                && (PsiUtilBase.compareElementsByPosition(el, currentMethodCall) < 0));
                         assignmentExpressions.removeIf(predicateAssignment);
-                        assignmentExpressions.forEach(el -> System.out.println(el.getOperationSign()));
                         //NOTE: ADD EVERY REFERENCE THAT IS USED TO CALL THE FUNCTION
                         if(assignmentExpressions.size() > 0)
                             dynamicWaitTimeQuickFix.setReference(ref);
-
                     }
                     if(dynamicWaitTimeQuickFix.psiReferenceExpressions.size() > 0)
-                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix);
+                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix, infoWarningQuickFix);
                     return;
                 }
             }

@@ -18,7 +18,6 @@ public class CheckMetadataInspection extends LocalInspectionTool {
 
     private CheckMetadataQuickFix checkMetadataQuickFix;
 
-
     @NotNull
     @Override
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {

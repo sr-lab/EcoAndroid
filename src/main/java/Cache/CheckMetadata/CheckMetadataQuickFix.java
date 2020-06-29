@@ -16,7 +16,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 public class CheckMetadataQuickFix implements LocalQuickFix {
-    private final String QUICK_FIX_NAME = "Refactor4Green: Cache Energy Pattern - Checking Values before processing them case";
+    private final String QUICK_FIX_NAME = "Refactor4Green: Cache Energy Pattern - Checking values before processing them case";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -107,7 +107,6 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
         ifStatement += ") { return; } ";
         PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
         psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
-        CodeStyleManager.getInstance(project).reformat(psiClass);
 
     }
 
