@@ -7,7 +7,7 @@ configurations {
     android
 }
 
-group 'com.your.company.unique.plugin.id'
+group 'anaribeiro.ist'
 version '1.0'
 sourceCompatibility = 1.8
 
@@ -16,17 +16,11 @@ repositories {
 }
 
 dependencies {
+
 }
 
 intellij {
     version '2019.3.4'
     plugins 'java'
     intellij.updateSinceUntilBuild false
-}
-
-
-patchPluginXml {
-    changeNotes """
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>"""
 }
