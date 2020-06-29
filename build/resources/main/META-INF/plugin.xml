@@ -1,22 +1,21 @@
 <idea-plugin>
   <version>1.0</version>
-  <change-notes>
-      Add change notes here.&lt;br&gt;
-      &lt;em&gt;most HTML tags may be used&lt;/em&gt;</change-notes>
-  <id>com.your.company.unique.plugin.id</id>
+  <id>anaribeiro.ist.Refactor4Green</id>
   <name>Refactor4Green</name>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <vendor email="anasofiaribeiro@tecnico.ulisboa.pt" url="http://www.yourcompany.com">Refactor4Green</vendor>
   <description>
-    Plugin used to modify the source code of Android mobile applications in order for them to be more energy efficient.
-    This changes are according to well-known energy patterns.
-    THIS TEXT IS TO KNOW IF THIS IS THE NEW PLUGIN OR NOT.
+    The Refactor4Green plugin aims at helping developers creating Android mobile applications with lower energy consumption rates.
+    In order to achieve this goal, the plugin refactors the source code, according to well-known energy patterns.
+    More details about the energy patterns applied can be found in the Refactor4Green github.
   </description>
   <idea-version since-build="141"/>
   <extensions defaultExtensionNs="com.intellij">
-    <localInspection language="JAVA" displayName="Refactor4Green: Dynamic Retry Delay - Constant Wait Time to Dynamic Wait Time'" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="DynamicRetryDelay.DynamicWaitTime.DynamicWaitTimeInspection"/>
-    <localInspection language="JAVA" displayName="Refactor4Green: Dynamic Retry Delay - Check Network Connection Before Autorefresh'" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="DynamicRetryDelay.CheckNetwork.CheckNetworkInspection"/>
-    <localInspection language="JAVA" displayName="Refactor4Green: Cache - Check if metadata changed before sending it" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="Cache.CheckMetadata.CheckMetadataInspection"/>
-    <localInspection language="JAVA" displayName="Refactor4Green: Cache - Check size of layout before resetting it" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="Cache.CheckLayoutSize.CheckLayoutSizeInspection"/>
+    <localInspection language="JAVA" displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Switching to a dynamic wait time between resource attempts case" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="DynamicRetryDelay.DynamicWaitTime.DynamicWaitTimeInspection"/>
+    <localInspection language="JAVA" displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Checking network connection before processing request case" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="DynamicRetryDelay.CheckNetwork.CheckNetworkInspection"/>
+    <localInspection language="JAVA" displayName="Refactor4Green: Cache Energy Pattern - Checking values before processing them case" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="Cache.CheckMetadata.CheckMetadataInspection"/>
+    <localInspection language="JAVA" displayName="Refactor4Green: Cache Energy Pattern - Checking layout size case" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="Cache.CheckLayoutSize.CheckLayoutSizeInspection"/>
+    <localInspection language="JAVA" displayName="Refactor4Green: Cache Energy Pattern - SSL Session Caching case" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="Cache.SSLSessionCaching.SSLSessionCachingInspection"/>
+    <localInspection language="JAVA" displayName="Refactor4Green: Cache Energy Pattern - Using PASSIVE_PROVIDER Instead of NETWORK_PROVIDER case" groupPath="Java" groupBundle="messages.InspectionsBundle" groupKey="group.names.probable.bugs" enabledByDefault="true" level="WARNING" implementationClass="Cache.PassiveProviderLocation.PassiveProviderLocationInspection"/>
   </extensions>
   <actions>
     <action id="Refactor4Green" class="Refactor4GreenAction" text="Refactor4Green" description="Refactor4Green">

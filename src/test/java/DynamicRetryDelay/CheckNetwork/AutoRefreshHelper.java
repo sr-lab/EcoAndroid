@@ -1,4 +1,4 @@
-/*package DynamicRetryDelay.CheckNetwork;
+package DynamicRetryDelay.CheckNetwork;
 import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
@@ -26,14 +26,12 @@ public class AutoRefreshHelper
     private static AutoRefreshHelper instance;
 
     private final Context context;
-    private final SharedPreferences preferences;
 
     public AutoRefreshHelper(Context context) {
         this.context = context;
-        context.
 
-        preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        preferences.registerOnSharedPreferenceChangeListener(this);
+   //     preferences = PreferenceManager.getDefaultSharedPreferences(context);
+   //     preferences.registerOnSharedPreferenceChangeListener(this);
     }
 
     public static synchronized AutoRefreshHelper getInstance(Context context) {
@@ -62,24 +60,26 @@ public class AutoRefreshHelper
     }
 
     private boolean getAutoRefreshEnabled() {
-        return preferences.getBoolean(KEY_PREF_AUTO_REFRESH_ENABLED, false);
+       // return preferences.getBoolean(KEY_PREF_AUTO_REFRESH_ENABLED, false);
+        return true;
     }
 
     private long getAutoRefreshPeriod() {
-        final String hours =
-                preferences.getString(KEY_PREF_AUTO_REFRESH_PERIOD, "0");
+      //  final String hours = preferences.getString(KEY_PREF_AUTO_REFRESH_PERIOD, "0");
+        final String hours  = "";
 
         // convert hours to milliseconds
         return Long.parseLong(hours) * 60 * 60 * 1000;
     }
 
     private long getPrevAutoRefreshTime() {
-        return preferences.getLong(KEY_LAST_AUTO_REFRESH_TIME, 0);
+    //    return preferences.getLong(KEY_LAST_AUTO_REFRESH_TIME, 0);
+        return (long) 0.0;
     }
 
     private void setPrevAutoRefreshTime(long time) {
-        final SharedPreferences.Editor editor =
-                preferences.edit();
+      //  final SharedPreferences.Editor editor = preferences.edit();
+        final SharedPreferences.Editor editor = null;
         editor.putLong(KEY_LAST_AUTO_REFRESH_TIME, time);
         editor.commit();
     }
@@ -128,9 +128,10 @@ public class AutoRefreshHelper
             final Cursor cursor = getShowsCursor(contentResolver);
 
             while (cursor.moveToNext()) {
-                final int showIdColumnIndex = cursor.getColumnIndexOrThrow(ShowsTable.COLUMN_ID);
+             // final int showIdColumnIndex = cursor.getColumnIndexOrThrow(ShowsTable.COLUMN_ID);
+                final int showIdColumnIndex = 0;
                 final int showId = cursor.getInt(showIdColumnIndex);
-                RefreshShowUtil.refreshShow(showId, contentResolver);
+             // RefreshShowUtil.refreshShow(showId, contentResolver);
             }
 
             final AutoRefreshHelper helper =  AutoRefreshHelper.getInstance(getApplicationContext());
@@ -141,17 +142,18 @@ public class AutoRefreshHelper
 
         private static Cursor getShowsCursor(ContentResolver contentResolver) {
             final String[] projection = {
-                    ShowsTable.COLUMN_ID
+               //     ShowsTable.COLUMN_ID
             };
 
-            final Cursor cursor =
-                    contentResolver.query(ShowsProvider.CONTENT_URI_SHOWS,
-                            projection,
-                            null,
-                            null,
-                            null);
+           // final Cursor cursor =
+           //         contentResolver.query(ShowsProvider.CONTENT_URI_SHOWS,
+           //                 projection,
+           //                 null,
+           //                 null,
+           //                 null);
 
-            return cursor;
+         //   return cursor;
+            return null;
         }
     }
 
@@ -172,4 +174,3 @@ public class AutoRefreshHelper
         }
     }
 }
-*/

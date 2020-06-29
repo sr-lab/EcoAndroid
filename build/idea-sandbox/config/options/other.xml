@@ -6,6 +6,7 @@
     <property name="MarketplacePluginsSearchHistory" value="PsiVi&#10;PsiViewer&#10;PsiView" />
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
+    <property name="PluginConfigurable.selectionTab" value="1" />
     <property name="com.intellij.openapi.roots.ui.configuration.TabbedModuleEditor.selectedEditor" value="Dependencies" />
     <property name="defaultJdkConfigured" value="true" />
     <property name="file.gist.reindex.count" value="2440" />
@@ -16,7 +17,7 @@
     <property name="lastTip" value="1" />
     <property name="packagesearch.endpoint.url.fulltext" value="https://package-search.services.jetbrains.com/api/search/idea/fulltext" />
     <property name="packagesearch.endpoint.url.suggest" value="https://package-search.services.jetbrains.com/api/search/idea/suggest" />
-    <property name="packagesearch.status.updated.ts" value="1590581536963" />
+    <property name="packagesearch.status.updated.ts" value="1593085416514" />
     <property name="tasks.pass.word.conversion.enforced" value="true" />
   </component>
 </application>

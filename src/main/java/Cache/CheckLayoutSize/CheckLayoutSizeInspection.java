@@ -8,7 +8,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CheckLayoutSizeInspection extends LocalInspectionTool {
@@ -47,21 +47,25 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
                  *  SECOND & THIRD PHASE - GO BACKWARDS TO WHERE THE SIZE IS RETRIEVED AND CHECK IF ITS BEING SEEN IF ITS 0 OR NOT
                  *
                  */
+                // get method the call is inserted in
                 PsiMethod psiMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
                 PsiStatement[] statements = psiMethod.getBody().getStatements();
                 boolean isGoingToBeSet = false;
                 for (PsiStatement statement : statements) {
-                    Collection<PsiMethodCallExpression> childOfType = PsiTreeUtil.findChildrenOfType(statement, PsiMethodCallExpression.class);
-                    childOfType.removeIf( el -> !(
+                    Collection<PsiMethodCallExpression> methodCallExpressions = PsiTreeUtil.findChildrenOfType(statement, PsiMethodCallExpression.class);
+                    methodCallExpressions.removeIf( el -> !(
                             el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("setFixedSize")));
-                    if(childOfType.size() > 0) {
-                        PsiMethodCallExpression next = childOfType.iterator().next();
+                    // means que ha uma chamada a setFixedSize
+                    if(methodCallExpressions.size() > 0) {
+                        PsiMethodCallExpression next = methodCallExpressions.iterator().next();
                         PsiMethod resolvedMethod = (PsiMethod) next.getMethodExpression().resolve();
                         PsiClass psiClass = resolvedMethod.getContainingClass();
                         PsiClass surfaceHolderClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.view.SurfaceHolder", GlobalSearchScope.allScope(holder.getProject()));
                         if(psiClass.equals(surfaceHolderClass) || hasClassInList(psiClass.getImplementsList(), surfaceHolderClass)) {
-                            isGoingToBeSet = true;
-                            break;
+                            if(variableIsUsedInTheSettingOfTheSize(next, expression)) {
+                                isGoingToBeSet = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -89,6 +93,34 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
             private boolean hasClassInList(PsiReferenceList list, PsiClass psiClass) {
                 for (PsiElement child : list.getChildren()) {
                     if(child.equals(psiClass)) { return true; }
+                }
+                return false;
+            }
+
+            private boolean variableIsUsedInTheSettingOfTheSize(PsiMethodCallExpression updateSizeMethodCall, PsiMethodCallExpression retrieveSizeMethodCall) {
+                PsiMethod psiMethod = PsiTreeUtil.getParentOfType(retrieveSizeMethodCall, PsiMethod.class);
+                if(retrieveSizeMethodCall.getContext() instanceof PsiAssignmentExpression) {
+                    PsiAssignmentExpression psiAssignmentExpression = (PsiAssignmentExpression) retrieveSizeMethodCall.getContext();
+                    PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression) psiAssignmentExpression.getLExpression();
+                    PsiReference psiReference = psiReferenceExpression.getReference();
+
+                    Collection<PsiReferenceExpression> references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
+                    references.removeIf(el -> !(el.getReference().getCanonicalText().equals(psiReference.getCanonicalText())) || el.getContext().equals(psiAssignmentExpression));
+
+                    List<PsiReferenceExpression> listReferences = new LinkedList<PsiReferenceExpression>(references);
+                    while(listReferences.size() > 0) {
+                        PsiReferenceExpression currentPsiReference = listReferences.get(0);
+                        PsiDeclarationStatement psiDeclarationStatement = (PsiDeclarationStatement) PsiTreeUtil.findFirstParent(currentPsiReference.getContext(), el -> el instanceof  PsiDeclarationStatement);
+                        PsiElement psiMethodCallExpression = PsiTreeUtil.findFirstParent(currentPsiReference.getContext(), el -> el instanceof PsiMethodCallExpression);
+                        if(psiDeclarationStatement != null) {
+                            PsiLocalVariable declaredElement = (PsiLocalVariable) psiDeclarationStatement.getDeclaredElements()[0];
+                            references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
+                            references.removeIf(el -> !( el.getReference().getCanonicalText().equals(declaredElement.getName())) || el.getContext().equals(psiAssignmentExpression));
+                            listReferences.addAll(references);
+                        }
+                        else if (psiMethodCallExpression != null && psiMethodCallExpression.equals(updateSizeMethodCall)){ return true; }
+                        listReferences.remove(0);
+                    }
                 }
                 return false;
             }

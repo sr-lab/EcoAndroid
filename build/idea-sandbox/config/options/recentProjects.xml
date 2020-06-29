@@ -27,13 +27,13 @@
         </entry>
         <entry key="$USER_HOME$/IdeaProjects/example">
           <value>
-            <RecentProjectMetaInfo projectWorkspaceId="1XO7qnHbwjOVzj6C2oGouGDG2Hj">
+            <RecentProjectMetaInfo opened="true" projectWorkspaceId="1XO7qnHbwjOVzj6C2oGouGDG2Hj">
               <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
               <option name="build" value="IC-193.6911.18" />
-              <option name="buildTimestamp" value="1584436402525" />
-              <frame x="0" y="0" width="1440" height="900" fullScreen="true" />
+              <option name="buildTimestamp" value="1584436425826" />
+              <frame x="0" y="23" width="1440" height="795" />
               <option name="productionCode" value="IC" />
-              <option name="projectOpenTimestamp" value="1590674373558" />
+              <option name="projectOpenTimestamp" value="1593453472533" />
             </RecentProjectMetaInfo>
           </value>
         </entry>

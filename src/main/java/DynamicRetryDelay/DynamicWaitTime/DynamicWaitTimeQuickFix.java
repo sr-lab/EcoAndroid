@@ -55,7 +55,20 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
 
         /*
          *
-         * SECOND PHASE: CREATE COMMENT EXPLAINING THE CHANGES MADE TO THE SOURCE CODE
+         * SECOND PHASE: VERIFY IF THE NEW VARIABLE NAME IS UNIQUE
+         *
+         */
+        PsiElement psiElement = problemDescriptor.getPsiElement();
+        if(!(PsiUtil.isVariableNameUnique(counterVariableName, psiElement))) {
+            int counterAux = 2;
+            while (!PsiUtil.isVariableNameUnique(counterVariableName + counterAux, psiElement))
+                counterAux++;
+            counterVariableName = counterVariableName + counterAux;
+        }
+
+        /*
+         *
+         * THIRD PHASE: CREATE COMMENT EXPLAINING THE CHANGES MADE TO THE SOURCE CODE
          *
          */
         PsiComment comment = factory.createCommentFromText("/* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
@@ -71,14 +84,13 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
          *
          */
         PsiExpression initializer = factory.createExpressionFromText("0", null);
-        if(!PsiUtil.isVariableNameUnique(counterVariableName, psiClass)) { counterVariableName = "NEW" + counterVariableName; }
         PsiDeclarationStatement counterVariable = factory.createVariableDeclarationStatement(counterVariableName, PsiType.INT, initializer);
         psiClass.addAfter(counterVariable, psiClass.getLBrace());
 
         while(psiReferenceExpression != null) {
             /*
              *
-             * FOURTH PHASE: CHANGE EVERY ASSIGNMENT TO THE VARIABLE TO X++ OF THE NEW VARIABLE
+             * FIFTH PHASE: CHANGE EVERY ASSIGNMENT TO THE VARIABLE TO X++ OF THE NEW VARIABLE
              *
              */
             PsiMethodCallExpression methodCallExpression  = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiMethodCallExpression.class);
@@ -86,12 +98,12 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
 
             /*
              *
-             * FIFTH PHASE: ALTER THE CONTENT OF THE ORIGINAL VARIABLE WITH A VALUE RETRIEVED FROM THE NEW VARIABLE
+             * SIXTH PHASE: ALTER THE CONTENT OF THE ORIGINAL VARIABLE WITH A VALUE RETRIEVED FROM THE NEW VARIABLE
              *
              */
             //NOTE: THE SECOND ARG IS TO RESOLVE REFERENCES OF THE NEW ELEMENT
             PsiExpressionStatement statement = (PsiExpressionStatement) factory.createStatementFromText( psiReferenceExpression.getCanonicalText()
-                    +  " = (" + psiReferenceExpression.getType().getCanonicalText() + ") (60.0 * (Math.pow(2.0, (double) accessAttempts) - 1.0));", psiMethod);
+                    +  " = (" + psiReferenceExpression.getType().getCanonicalText() + ") (60.0 * (Math.pow(2.0, (double) " + counterVariableName +") - 1.0));", psiMethod);
             methodCallExpression.getParent().getParent().addBefore(statement, methodCallExpression.getParent());
 
             if(iterator.hasNext())
