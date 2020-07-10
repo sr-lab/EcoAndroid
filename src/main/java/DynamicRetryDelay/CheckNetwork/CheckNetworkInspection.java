@@ -50,11 +50,11 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                 Iterator<PsiMethodCallExpression> iterator = methodsCalls.iterator();
                 // NOTE: IF THE SIZE IS THE SAME IT MEANS NOTHING WAS REMOVED FROM THE COLLECTION AND THERE IS NO DIRECT CALL TO THE METHOD
                 while(iterator.hasNext()) {
-                    // NOTE: CHECK IF INNER METHODS CALL ConnectivityManager.getActiveNetworkInfo()
+                    // NOTE: CHECK IF INNER METHODS CALL ConnectivityManager.getActiveNetwork()
                     PsiMethodCallExpression currentMethodCall = iterator.next();
                     PsiExpression expr = currentMethodCall.getMethodExpression();
                     PsiClass psiClassConnectivyManager = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.net.ConnectivityManager", GlobalSearchScope.allScope(holder.getProject()));
-                    PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetworkInfo", true)[0];
+                    PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetwork", true)[0];
                     if(expr.getReference().isReferenceTo(met)) { return; }
                     else if(checkIfBodyMethodChecksNetworkConnection(currentMethodCall, holder.getProject())) {
                         //TODO: SÓ VERICA UM NIVEL DE METODOS
@@ -75,7 +75,7 @@ public class CheckNetworkInspection extends LocalInspectionTool {
             PsiMethodCallExpression innerMethodCall = iterator.next();
             PsiExpression expr = innerMethodCall.getMethodExpression();
             PsiClass psiClassConnectivyManager = JavaPsiFacade.getInstance(project).findClass("android.net.ConnectivityManager", GlobalSearchScope.allScope(project));
-            PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetworkInfo", true)[0];
+            PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetwork", true)[0];
             if(expr.getReference().isReferenceTo(met)) { return true; }
         }
         return false;

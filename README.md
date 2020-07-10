@@ -9,9 +9,11 @@ The energy patterns the plugin can detect are the following: <br/>
   2.  *Cache*, with the following cases:<br/>
    * Checking the metadata before reloading information; <br/>
    * Verifying the size of a view before resetting said view. <br/>
-   * Switching to *LocationManager.PASSIVE_PROVIDER* when invoking the method *requestLocationUpdates* from the class *LocationManager* <br/>
+   * Switching to *LocationManager.PASSIVE_PROVIDER* when invoking the method *requestLocationUpdates* from the class *android.location.LocationManager* <br/>
    * Increasing the size of the cache on a SSL Session <br/>
-  3. *Avoid Graphics and Animations*, with the following cases:<br/> 
+   * Creating a *TODO* in the source code for when nothing is different since the last update from an URL connection <br/>
+  3. *Avoid Graphics and Animations*, with the following cases:<br/>
+   * Switching the rendering mode to *GLSurfaceView.RENDERMODE_WHEN_DIRTY* <br/>
  
 In order to make the examples more readable and more compact, parts of the source code retrieved from the original applications have either been removed or commented. 
 For every case in every energy pattern, there is an example under a directory with the same name. 

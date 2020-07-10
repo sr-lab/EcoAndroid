@@ -25,15 +25,49 @@
             </RecentProjectMetaInfo>
           </value>
         </entry>
+        <entry key="$USER_HOME$/Desktop/Thesis/Refactor4Green/scripts/pla1">
+          <value>
+            <RecentProjectMetaInfo projectWorkspaceId="1eJjZ67zOQRV7qcsaUoIaOGREVg">
+              <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
+              <option name="build" value="IC-193.6911.18" />
+              <option name="buildTimestamp" value="1584436413354" />
+              <frame x="0" y="23" width="1440" height="795" />
+              <option name="productionCode" value="IC" />
+              <option name="projectOpenTimestamp" value="1594057886257" />
+            </RecentProjectMetaInfo>
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/Desktop/Thesis/Refactor4Green/scripts/asdoi">
+          <value>
+            <RecentProjectMetaInfo projectWorkspaceId="1eSzrgZMmRok6Bphxyna7cURDMe">
+              <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
+              <option name="build" value="IC-193.6911.18" />
+              <option name="buildTimestamp" value="1584436403714" />
+              <option name="productionCode" value="IC" />
+              <option name="projectOpenTimestamp" value="1594368596401" />
+            </RecentProjectMetaInfo>
+          </value>
+        </entry>
+        <entry key="$USER_HOME$/Desktop/Thesis/Refactor4Green/scripts/farmerbb">
+          <value>
+            <RecentProjectMetaInfo projectWorkspaceId="1eUPHt9jexpx9qDM3tg7uiDDCim">
+              <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
+              <option name="build" value="IC-193.6911.18" />
+              <option name="buildTimestamp" value="1584436402453" />
+              <option name="productionCode" value="IC" />
+              <option name="projectOpenTimestamp" value="1594375168808" />
+            </RecentProjectMetaInfo>
+          </value>
+        </entry>
         <entry key="$USER_HOME$/IdeaProjects/example">
           <value>
             <RecentProjectMetaInfo opened="true" projectWorkspaceId="1XO7qnHbwjOVzj6C2oGouGDG2Hj">
               <option name="binFolder" value="$APPLICATION_HOME_DIR$/bin" />
               <option name="build" value="IC-193.6911.18" />
-              <option name="buildTimestamp" value="1584436425826" />
-              <frame x="0" y="23" width="1440" height="795" />
+              <option name="buildTimestamp" value="1584436402453" />
+              <frame x="0" y="23" width="1440" height="791" />
               <option name="productionCode" value="IC" />
-              <option name="projectOpenTimestamp" value="1593453472533" />
+              <option name="projectOpenTimestamp" value="1594375233745" />
             </RecentProjectMetaInfo>
           </value>
         </entry>
@@ -42,6 +76,9 @@
     <option name="recentPaths">
       <list>
         <option value="$USER_HOME$/IdeaProjects/example" />
+        <option value="$USER_HOME$/Desktop/Thesis/Refactor4Green/scripts/farmerbb" />
+        <option value="$USER_HOME$/Desktop/Thesis/Refactor4Green/scripts/asdoi" />
+        <option value="$USER_HOME$/Desktop/Thesis/Refactor4Green/scripts/pla1" />
         <option value="$USER_HOME$/Desktop/Thesis/FDroidApps/osmandapp/Osmand" />
         <option value="$USER_HOME$/Desktop/Thesis/FDroidApps/nextcloud/android" />
       </list>

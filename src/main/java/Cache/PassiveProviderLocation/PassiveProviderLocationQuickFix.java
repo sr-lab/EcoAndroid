@@ -5,6 +5,8 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
+import com.intellij.psi.search.FilenameIndex;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -33,43 +35,16 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
         PsiFile psiFile = PsiTreeUtil.getParentOfType(psiMethod.getContainingClass(), PsiFile.class);
         PsiDirectory psiDirectory = psiFile.getContainingDirectory();
 
-        PsiComment comment = factory.createCommentFromText("/* Refactor4Green: CACHE ENERGY PATTERN \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "This energy pattern changes the type of LocationManager to \"PASSIVE_PROVIDER\". \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "This change consumes less energy because it doesn't actually initiating a location fix.  \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "Application changed file \"" + psiFile.getName() + " and xml file \"AndroidManifest.xml\"." +
-                "*/", psiMethod.getContainingClass().getContainingFile());
-        psiMethodCallExpression.addBefore(comment, psiMethod.getFirstChild());
+        try {
+            // mudar o argumento na chamada a funcao
+            PsiExpression psiExpression = psiMethodCallExpression.getArgumentList().getExpressions()[0];
+            PsiExpression psiNewExpression = factory.createExpressionFromText("LocationManager.PASSIVE_PROVIDER",null);
+            psiExpression.replace(psiNewExpression);
 
-        // mudar o argumento na chamada a funcao
-        // TODO: make sure que so tenho que mudar esse
-        PsiExpression psiExpression = psiMethodCallExpression.getArgumentList().getExpressions()[0];
-        PsiExpression psiNewExpression = factory.createExpressionFromText("LocationManager.PASSIVE_PROVIDER",null);
-        psiExpression.replace(psiNewExpression);
+            // adicionar a linha ao ficheiro AndroidManifest.xml
+            XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
+            XmlFile xmlFile = (XmlFile) FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project))[0];
 
-        // adicionar a linha ao ficheiro AndroidManifest.xml
-        XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
-        XmlFile xmlFile = null;
-        PsiDirectory currentPsiDirectory = psiDirectory;
-        while (currentPsiDirectory != null) {
-            xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
-            if(xmlFile != null) { break; }
-            PsiDirectory[] subDirectories = currentPsiDirectory.getSubdirectories();
-            boolean checked = false;
-            for (int i = 0; i < subDirectories.length; i++) {
-                xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
-                if(xmlFile != null) {
-                    checked = true;
-                    break;
-                }
-            }
-            if(checked)
-                break;
-            currentPsiDirectory = currentPsiDirectory.getParentDirectory();
-        }
-        if(xmlFile != null) {
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
@@ -85,9 +60,30 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
                 else { rootTag.add(usesPermissionTag); }
             }
 
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* This energy pattern changes the type of LocationManager to \"PASSIVE_PROVIDER\". \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* This change consumes less energy because it doesn't actually initiating a location fix.\n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Application changed file \"" + psiFile.getName() + " and xml file \"AndroidManifest.xml\". \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "*/", psiMethod.getContainingClass().getContainingFile());
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        } catch(Throwable e) {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Something went wrong and the pattern could not be applied! \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
-        else {
-            // NOTE: I'M ASSUMING THAT THIS FILES ALWAYS EXISTS BECAUSE IM ASSUMING THERE IS ALREADY A LISTENER.
-        }
+
+
+
     }
 }

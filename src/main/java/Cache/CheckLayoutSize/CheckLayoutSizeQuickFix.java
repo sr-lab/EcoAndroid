@@ -26,54 +26,51 @@ public class CheckLayoutSizeQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
-        /*
-         *
-         * FIRST PHASE: RETRIEVED VARIABLES TO BE USED BELOW
-         *
-         */
+
         PsiElementFactory factory = PsiElementFactory.getInstance(project);
         PsiMethod psiMethod = (PsiMethod) ( problemDescriptor.getPsiElement()).getContext();
         PsiClass psiClass = psiMethod.getContainingClass();
         PsiFile psiFile = psiClass.getContainingFile();
 
-        /*
-         *
-         *  SECOND PHASE: ADDING COMMENT THAT SUMMARIZES CHANGES MADE TO THE CODE
-         *
-         */
-        // TODO: COMMENT NOT COMING OUT OK FOR SOME REASON
-        PsiComment comment = factory.createCommentFromText("/* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
-           //     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "Before resetting a view, make sure the view's measures are existent \n"
-           //     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "Application changed java file \"" + psiClass.getContainingFile().getName() +
-                "*/", psiClass.getContainingFile());
-        psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        try {
+            Collection<PsiMethodCallExpression> psiMethodCallExpressions = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiMethodCallExpression.class);
+            psiMethodCallExpressions.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredWidth")));
+            //psiMethodCallExpressions.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredHeight")));
+            Iterator<PsiMethodCallExpression> iterator = psiMethodCallExpressions.iterator();
+            //TODO ITS WRONG
+            PsiMethodCallExpression next = iterator.next();
+            String[] splittedName = next.getMethodExpression().getCanonicalText().split("\\.");
 
-        /*
-         *
-         *  THIRD PHASE: GET THE NAME OF THE VIEW VARIABLE
-         *
-         */
-        Collection<PsiMethodCallExpression> psiMethodCallExpressions = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiMethodCallExpression.class);
-        psiMethodCallExpressions.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredWidth")));
-        Iterator<PsiMethodCallExpression> iterator = psiMethodCallExpressions.iterator();
-        PsiMethodCallExpression next = iterator.next();
-        String[] splittedName = next.getMethodExpression().getCanonicalText().split("\\.");
+            PsiCodeBlock newBody = factory.createCodeBlock();
+            psiMethod.getBody().getLBrace().delete();
+            psiMethod.getBody().getRBrace().delete();
+            PsiStatement statement = factory.createStatementFromText("if (!(" + splittedName[0] + ".getMeasuredWidth() == 0 || " + splittedName[0]
+                            + ".getMeasuredHeight() == 0)) { "+ psiMethod.getBody().getText() + " }",
+                    null);
+            newBody.add(statement);
+            psiMethod.getBody().replace(newBody);
 
-        /*
-         *
-         *  FOURTH PHASE: CREATE THE IF STATEMENT AND CHANGE THE METHOD BODY
-         *
-         */
-        PsiCodeBlock newBody = factory.createCodeBlock();
-        psiMethod.getBody().getLBrace().delete();
-        psiMethod.getBody().getRBrace().delete();
-        PsiStatement statement = factory.createStatementFromText("if (!(" + splittedName[0] + ".getMeasuredWidth() == 0 || " + splittedName[0]
-                + ".getMeasuredHeight() == 0)) { "+ psiMethod.getBody().getText() + " }",
-                null);
-        newBody.add(statement);
-        psiMethod.getBody().replace(newBody);
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Before resetting a view, make sure the view's measures are existent \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "*/", psiClass.getContainingFile());
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        } catch(Throwable e) {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Something went wrong and the pattern could not be applied! \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        }
+
 
     }
 }

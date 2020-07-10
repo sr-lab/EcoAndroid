@@ -28,9 +28,6 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
                 super.visitMethodCallExpression(expression);
 
-                // isto da sslContext (que é tipo do objecto que está a ser chamado)
-                expression.getMethodExpression().getQualifierExpression();
-
                 if(!(expression.getMethodExpression().getReferenceName().equals("init"))) { return; }
 
                 PsiMethod psiMethodResolved = expression.resolveMethod();
@@ -45,6 +42,8 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
                 if(methodCallExpressionsCollection.size() > 0 ) { return; }
 
                 holder.registerProblem(expression, DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE, sslSessionCachingQuickFix);
+
+
 
 
             }

@@ -5,8 +5,10 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.psi.impl.source.codeStyle.IndentHelper;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,25 +25,51 @@ public class SSLSessionCachingQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
-        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(problemDescriptor.getPsiElement(), PsiMethod.class);
+        PsiMethodCallExpression psiMethodCallExpression = (PsiMethodCallExpression) problemDescriptor.getPsiElement();
+        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiMethod.class);
         PsiClass psiClass = psiMethod.getContainingClass();
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-        PsiMethodCallExpression psiHighlightedMethodCall = (PsiMethodCallExpression) problemDescriptor.getPsiElement();
+        PsiFile psiFile = PsiTreeUtil.getParentOfType(psiMethod.getContainingClass(), PsiFile.class);
 
-        String newCodeBlockString = "{ javax.net.ssl.SSLSessionContext sslSessionContext = context.getServerSessionContext();\n"
-                + " int sessionCacheSize = sslSessionContext.getSessionCacheSize();\n"
-                + " if (sessionCacheSize > 0) {\n"
-                    + " \t sslSessionContext.setSessionCacheSize(0);\n"
-                + "  }\n"
-                + " }";
-        PsiCodeBlock newCodeBlock = factory.createCodeBlockFromText(newCodeBlockString, psiClass);
-        newCodeBlock.getLBrace().delete();
-        newCodeBlock.getRBrace().delete();
+        try {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Increases cache size in a SSL Session \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Application changed file \"" + psiFile.getName() + " and xml file \"AndroidManifest.xml\". \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "*/", psiMethod.getContainingClass().getContainingFile());
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
-        psiMethod.getBody().addAfter(newCodeBlock,psiHighlightedMethodCall.getParent().getNextSibling());
+            //get the name of the variable of type SSLContext
+            String variableName = psiMethodCallExpression.getMethodExpression().getQualifier().getText();
 
-        JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
-        javaCodeStyleManager.shortenClassReferences(psiClass);
+            PsiStatement sslSessionContext = factory.createStatementFromText("javax.net.ssl.SSLSessionContext sslSessionContext = " + variableName + ".getServerSessionContext();\n", psiClass);
+            PsiStatement sessionCacheSize = factory.createStatementFromText("int sessionCacheSize = sslSessionContext.getSessionCacheSize();\n", psiClass);
+            PsiStatement ifStatement = factory.createStatementFromText("if (sessionCacheSize > 0) {\n" +
+                            "\t sslSessionContext.setSessionCacheSize(0); \n }"
+                    , psiClass);
+
+            PsiStatement psiStatement = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiStatement.class);
+            psiStatement.getParent().addAfter(ifStatement, psiStatement);
+            psiStatement.getParent().addAfter(sessionCacheSize, psiStatement);
+            psiStatement.getParent().addAfter(sslSessionContext, psiStatement);
+
+            JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
+            javaCodeStyleManager.shortenClassReferences(psiClass);
+        }catch(Throwable e) {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Something went wrong and the pattern could not be applied! \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        }
+
 
 
     }

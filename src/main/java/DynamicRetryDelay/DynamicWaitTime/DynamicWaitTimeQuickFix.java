@@ -37,11 +37,6 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
-        /*
-         *
-         * FIRST PHASE: RETRIEVE INFORMATION FROM THE problemDescriptor + CREATE FACTORY
-         *
-         */
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         Iterator<PsiReferenceExpression> iterator = psiReferenceExpressions.iterator();
 
@@ -53,64 +48,56 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
         PsiClass psiClass = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiClass.class);
         PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiMethod.class);
 
-        /*
-         *
-         * SECOND PHASE: VERIFY IF THE NEW VARIABLE NAME IS UNIQUE
-         *
-         */
-        PsiElement psiElement = problemDescriptor.getPsiElement();
-        if(!(PsiUtil.isVariableNameUnique(counterVariableName, psiElement))) {
-            int counterAux = 2;
-            while (!PsiUtil.isVariableNameUnique(counterVariableName + counterAux, psiElement))
-                counterAux++;
-            counterVariableName = counterVariableName + counterAux;
+        try {
+            PsiElement psiElement = problemDescriptor.getPsiElement();
+            if(!(PsiUtil.isVariableNameUnique(counterVariableName, psiElement))) {
+                int counterAux = 2;
+                while (!PsiUtil.isVariableNameUnique(counterVariableName + counterAux, psiElement))
+                    counterAux++;
+                counterVariableName = counterVariableName + counterAux;
+            }
+
+            PsiExpression initializer = factory.createExpressionFromText("0", null);
+            PsiDeclarationStatement counterVariable = factory.createVariableDeclarationStatement(counterVariableName, PsiType.INT, initializer);
+            psiClass.addAfter(counterVariable, psiClass.getLBrace());
+
+            while(psiReferenceExpression != null) {
+                PsiMethodCallExpression methodCallExpression  = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiMethodCallExpression.class);
+                replaceWithIncrementOfNewVariable(psiMethod, psiReferenceExpression.getCanonicalText(), factory, methodCallExpression);
+
+                //NOTE: THE SECOND ARG IS TO RESOLVE REFERENCES OF THE NEW ELEMENT
+                PsiExpressionStatement statement = (PsiExpressionStatement) factory.createStatementFromText( psiReferenceExpression.getCanonicalText()
+                        +  " = (" + psiReferenceExpression.getType().getCanonicalText() + ") (60.0 * (Math.pow(2.0, (double) " + counterVariableName +") - 1.0));", psiMethod);
+                methodCallExpression.getParent().getParent().addBefore(statement, methodCallExpression.getParent());
+
+                if(iterator.hasNext())
+                    psiReferenceExpression = iterator.next();
+                else
+                    break;
+            }
+
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Switching the wait time from constant to dynamic \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Application changed file \"" + psiFile.getName() + "\n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        } catch(Throwable e) {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN NOT APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Something went wrong and the pattern could not be applied! \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
 
-        /*
-         *
-         * THIRD PHASE: CREATE COMMENT EXPLAINING THE CHANGES MADE TO THE SOURCE CODE
-         *
-         */
-        PsiComment comment = factory.createCommentFromText("/* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "Switching the wait time from constant to dynamic \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "Application changed file \"" + psiFile.getName() + "\" */", psiFile);
-        psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
-        /*
-         *
-         * THIRD PHASE: CREATE NEW VARIABLE THAT WILL COUNT THE # OF FAILED ATTEMPTS TO ACCESS THE RESOURCE
-         *
-         */
-        PsiExpression initializer = factory.createExpressionFromText("0", null);
-        PsiDeclarationStatement counterVariable = factory.createVariableDeclarationStatement(counterVariableName, PsiType.INT, initializer);
-        psiClass.addAfter(counterVariable, psiClass.getLBrace());
-
-        while(psiReferenceExpression != null) {
-            /*
-             *
-             * FIFTH PHASE: CHANGE EVERY ASSIGNMENT TO THE VARIABLE TO X++ OF THE NEW VARIABLE
-             *
-             */
-            PsiMethodCallExpression methodCallExpression  = PsiTreeUtil.getParentOfType(psiReferenceExpression, PsiMethodCallExpression.class);
-            replaceWithIncrementOfNewVariable(psiMethod, psiReferenceExpression.getCanonicalText(), factory, methodCallExpression);
-
-            /*
-             *
-             * SIXTH PHASE: ALTER THE CONTENT OF THE ORIGINAL VARIABLE WITH A VALUE RETRIEVED FROM THE NEW VARIABLE
-             *
-             */
-            //NOTE: THE SECOND ARG IS TO RESOLVE REFERENCES OF THE NEW ELEMENT
-            PsiExpressionStatement statement = (PsiExpressionStatement) factory.createStatementFromText( psiReferenceExpression.getCanonicalText()
-                    +  " = (" + psiReferenceExpression.getType().getCanonicalText() + ") (60.0 * (Math.pow(2.0, (double) " + counterVariableName +") - 1.0));", psiMethod);
-            methodCallExpression.getParent().getParent().addBefore(statement, methodCallExpression.getParent());
-
-            if(iterator.hasNext())
-                psiReferenceExpression = iterator.next();
-            else
-                break;
-        }
     }
 
 

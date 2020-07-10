@@ -12,10 +12,12 @@
   <idea-version since-build="141"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products
-  <depends>com.intellij.modules.platform</depends> -->
+       on how to target different products -->
+  <depends>com.intellij.modules.platform</depends>
+  <depends>com.intellij.java</depends>
 
   <extensions defaultExtensionNs="com.intellij">
+    <!-- DYNAMIC RETRY DELAY  -->
     <localInspection
             language="JAVA"
             displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Switching to a dynamic wait time between resource attempts case"
@@ -27,16 +29,17 @@
             implementationClass="DynamicRetryDelay.DynamicWaitTime.DynamicWaitTimeInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Checking network connection before processing request case"
+            displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Checking network connection before processing request"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
             enabledByDefault="true"
             level="WARNING"
             implementationClass="DynamicRetryDelay.CheckNetwork.CheckNetworkInspection"/>
+    <!-- CACHE  -->
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Checking values before processing them case"
+            displayName="Refactor4Green: Cache Energy Pattern - Checking values before processing them"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -45,7 +48,7 @@
             implementationClass="Cache.CheckMetadata.CheckMetadataInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Checking layout size case"
+            displayName="Refactor4Green: Cache Energy Pattern - Checking layout size"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -54,7 +57,7 @@
             implementationClass="Cache.CheckLayoutSize.CheckLayoutSizeInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - SSL Session Caching case"
+            displayName="Refactor4Green: Cache Energy Pattern - SSL Session caching"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -63,13 +66,32 @@
             implementationClass="Cache.SSLSessionCaching.SSLSessionCachingInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Using PASSIVE_PROVIDER Instead of NETWORK_PROVIDER case"
+            displayName="Refactor4Green: Cache Energy Pattern - Using PASSIVE_PROVIDER instead of NETWORK_PROVIDER"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
             enabledByDefault="true"
             level="WARNING"
             implementationClass="Cache.PassiveProviderLocation.PassiveProviderLocationInspection"/>
+    <localInspection
+            language="JAVA"
+            displayName="Refactor4Green: Cache Energy Pattern - Adding caching mechanism to HTTPsURLConnection"
+            groupPath="Java"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.probable.bugs"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="Cache.HTTPsURLConnCacheMechanism.HTTPsURLConnCacheMechanismInspection"/>
+    <!-- AVOID EXTRANEOUS GRAPHICS AND ANIMATIONS -->
+    <localInspection
+            language="JAVA"
+            displayName="Refactor4Green: Avoid Extraneous Graphics and Animations Energy Pattern - Only rendering when surface is created or when requested"
+            groupPath="Java"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.probable.bugs"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="AvoidExtraneousGraphicsAndAnimations.DirtyRenderingInspection"/>
   </extensions>
 
   <actions>
