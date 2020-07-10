@@ -7,7 +7,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
+import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -25,7 +27,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
 
     private final String QUICK_FIX_NAME = "Refactor4Green: Dynamic Retry Delay Energy Pattern - Checking network connection before processing request case";
 
-
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
     @Override
@@ -34,229 +35,108 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
 
-        /*
-         *
-         * FIRST PHASE: RETRIEVE ELEMENTS TO BE USED IN THE QUICK FIX
-         *
-         */
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiIdentifier psiIdentifier = (PsiIdentifier) problemDescriptor.getPsiElement();
         PsiMethod psiMethod = (PsiMethod) psiIdentifier.getContext();
         PsiClass intentServiceClass = psiMethod.getContainingClass();
         PsiFile psiFile = PsiTreeUtil.getParentOfType(intentServiceClass, PsiFile.class);
-        PsiDirectory psiDirectory = psiFile.getContainingDirectory();
 
-        /*
-         *
-         * SECOND PHASE: ADD A COMMENT THAT SUMMARIZES THE CHANGES MADE BY THE ENERGY PATTERN
-         *
-         */
-        PsiComment comment = factory.createCommentFromText("/*"
-                + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
-                + "* Checking the network connection before attempting to answer a request \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
-                + "* Application changed java file \"" + intentServiceClass.getContainingFile().getName() + "\"  and xml file \"AndroidManifest.xml\"." +
-                "*/", intentServiceClass.getContainingFile());
-        psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        try {
+            String psiCheckNetworkMethodString =
+                    "boolean checkNetwork() {\n"
+                    + "     final android.net.ConnectivityManager connManager = (android.net.ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);\n"
+                    + "     android.net.Network activeNetwork = connManager.getActiveNetwork();\n"
+                    + "     if(activeNetwork != null) {\n"
+                    + "         return true;\n"
+                    + "     }\n"
+                    + "     return false;\n"
+                    + "}";
+            PsiMethod psiCheckNetworkMethod = factory.createMethodFromText(psiCheckNetworkMethodString, null);
+            intentServiceClass.add(psiCheckNetworkMethod);
 
-        /*
-         *
-         * THIRD PHASE: LOOK FOR THE CLASS OnSharedPreferencesChangeListener VARIABLE
-         *
-         */
-        Collection<PsiReferenceExpression> references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
-        Predicate<PsiReferenceExpression> predicateRefExpr = el -> !(el.resolve() instanceof PsiField || el.resolve() instanceof PsiLocalVariable);
-        references.removeIf(predicateRefExpr);
-        Iterator<PsiReferenceExpression> iterator = references.iterator();
-        PsiReferenceExpression ref = null;
-        boolean implementsClass = false;
-        PsiClass aClass = null;
-        while (iterator.hasNext()) {
-            ref = iterator.next();
-            if(ref.getType() == null) continue;
-            aClass = JavaPsiFacade.getInstance(project).findClass(ref.getType().getCanonicalText(), GlobalSearchScope.allScope(project));
-            if(aClass == null) continue;
-            // vejo se a class implementa a class do helper ? --- isto parece muito martelado
-            PsiClassType[] list = aClass.getImplementsListTypes();
-            implementsClass = false;
-            for (int i = 0; i < list.length ; i++ ) {
-                if (list[i].getName().equals("OnSharedPreferenceChangeListener")) {
-                    implementsClass = true;
-                    break;
-                }
-            }
-            if(implementsClass) { break; }
-        }
+            PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (checkNetwork()) { b; } else { NetworkStateReceiver.enable(getApplicationContext()); }", intentServiceClass);
+            ifStatement.getThenBranch().replace(psiMethod.getBody());
+            PsiCodeBlock newBody = factory.createCodeBlock();
+            newBody.add(ifStatement);
+            psiMethod.getBody().replace(newBody);
 
-        /*
-         *
-         * FOURTH PHASE: CREATE THE checkNetwork() METHOD
-         *
-         */
-        String psiCheckNetworkMethodString =
-                "private boolean checkNetwork() {\n" +
-                "\t\tfinal android.net.ConnectivityManager connManager =\n" +
-                "\t\t\t(ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
-                "\t\tfinal android.net.NetworkInfo  net = connManager.getActiveNetworkInfo();\n" +
-                "\t\tfinal boolean isConnected = net != null && net.isConnected();\n" +
-                "\n" +
-                "\t\treturn isConnected;\n" +
-                "\t}";
-        PsiMethod psiCheckNetworkMethod = factory.createMethodFromText(psiCheckNetworkMethodString, null);
-        aClass.add(psiCheckNetworkMethod);
+            String broadcastReceiverString =
+                    "public static class NetworkStateReceiver extends android.content.BroadcastReceiver {\n" +
+                    "       private static final String TAG = NetworkStateReceiver.class.getName();\n" +
+                    "\n" +
+                    "       private static " + intentServiceClass.getName() + " service;\n" +
+                    "\n" +
+                    "       public static void setService(" + intentServiceClass.getName() + " newService) { service = newService; }\n" +
+                    "\n" +
+                    "       @Override\n" +
+                    "       public void onReceive(android.content.Context context, android.content.Intent intent) {\n" +
+                    "\n" +
+                    "           if (service.checkNetwork()) {\n" +
+                    "               NetworkStateReceiver.disable(context);\n" +
+                    "\n" +
+                    "               final android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
+                    "\n" +
+                    "               final android.content.Intent innerIntent = new Intent(context, Service.class);\n" +
+                    "               final android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, innerIntent, 0);\n" +
+                    "\n" +
+                    "               android.content.SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);\n" +
+                    "               preferences.edit();\n" +
+                    "               boolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
+                    "\n" +
+                    "               final String hours = preferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
+                    "               long hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;\n" +
+                    "\n" +
+                    "                if (autoRefreshEnabled && hoursLong != 0) {\n" +
+                    "\n" +
+                    "                   final long alarmTime =  preferences.getLong(\"last_auto_refresh_time\", 0) + hoursLong;\n" +
+                    "                   alarmManager.set(AlarmManager.RTC, alarmTime, pendingIntent);\n" +
+                    "                    \n" +
+                    "                } else {\n" +
+                    "\n" +
+                    "                    alarmManager.cancel(pendingIntent);\n" +
+                    "                }\n" +
+                    "            }" +
+                    "       }" +
+                    "\n" +
+                    "       public static void enable(android.content.Context context) {\n" +
+                    "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
+                    "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
+                    "           packageManager.setComponentEnabledSetting(receiver, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.DONT_KILL_APP);\n" +
+                    "       }\n" +
+                    "\n" +
+                    "       public static void disable(android.content.Context context) {\n" +
+                    "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
+                    "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
+                    "           packageManager.setComponentEnabledSetting( receiver, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.DONT_KILL_APP);\n" +
+                    "       }" +
+                    "\n} ";
+            PsiClass broadcastReceiverClass = factory.createClassFromText(broadcastReceiverString, null);
+            intentServiceClass.add(broadcastReceiverClass.getInnerClasses()[0]);
+            // para fazer imports é assim! - tem que ser sempre com o fully qualified name na string e depois chamar o metodo shortenClassReferences !!
+            JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
+            javaCodeStyleManager.shortenClassReferences(intentServiceClass);
 
-        /*
-         *
-         *  FIFTH PHASE: CREATES IF STATEMENT
-         *
-         */
-        PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if ( " + ref.getElement().getText() + ".checkNetwork())"  +
-                " { b; } else { NetworkStateReceiver.enable(this); }", intentServiceClass);
-        PsiVariable var = (PsiVariable) ref.resolve();
-        PsiDeclarationStatement decl = (PsiDeclarationStatement) factory.createStatementFromText("final " + aClass.getName() + " " + ref.getElement().getText() + " = " + var.getInitializer().getText() +  ";", intentServiceClass);
-        String name = ref.getElement().getText();
-        Collection<PsiDeclarationStatement> declarationStatements = PsiTreeUtil.findChildrenOfAnyType(psiMethod.getBody(), PsiDeclarationStatement.class);
-        Predicate<PsiDeclarationStatement> predicateDeclarationStatements = el -> !(((PsiLocalVariable) el.getDeclaredElements()[0]).getName().equals(name));
-        declarationStatements.removeIf(predicateDeclarationStatements);
-        declarationStatements.iterator().next().delete();
-        ifStatement.getThenBranch().replace(psiMethod.getBody());
-        PsiCodeBlock newBody = factory.createCodeBlock();
-        newBody.add(decl);
-        newBody.add(ifStatement);
-        psiMethod.getBody().replace(newBody);
+            XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
+            XmlFile xmlFile = (XmlFile) FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project))[0];
 
-        /*
-         *
-         * SIXTH PHASE: CREATE A CLASS THAT EXTENDS "BROADCASTRECEIVER" THAT IMPLEMENTS:
-         *           1. onReceive
-         *           2. enable
-         *           3. disable
-         *
-         */
-        String broadcastReceiverString =
-                "public static class NetworkStateReceiver extends BroadcastReceiver {\n" +
-                "\t\tprivate static final String TAG = NetworkStateReceiver.class.getName();\n" +
-                "\n" +
-                "\t\t@Override\n" +
-                "\t\tpublic void onReceive(Context context, Intent intent) {\n" +
-                "\t\t\tandroid.util.Log.i(TAG, \"Network state change received.\");\n" +
-                "\n" +
-                "\t\t\tfinal AutoRefreshHelper helper =\n" +
-                "\t\t\t\tAutoRefreshHelper.getInstance(context.getApplicationContext());\n" +
-                "\n" +
-                "\t\t\tif (helper.checkNetwork()) {\n" +
-                "\t\t\t\tNetworkStateReceiver.disable(context);\n" +
-                "\n" +
-                "\t\t\t\tfinal android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
-                "\n" +
-                "\t\t\t\tfinal android.content.Intent innerIntent = new Intent(context, AutoRefreshHelper.Service.class);\n" +
-                "\t\t\t\tfinal android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, 0);\n" +
-                "\n" +
-                "\t\t\t\tandroid.content.SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(Interconnect);\n" +
-                "\t\t\t\tpreferences.registerOnSharedPreferenceChangeListener(helper);\n" +
-                "\t\t\t\tboolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
-                "\n" +
-                "\t\t\t\tfinal String hours = preferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
-                "\n" +
-                "\t\t\t\tlong hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;\n" +
-                "\t\t\t\tif (autoRefreshEnabled && hoursLong != 0){\n" +
-                "\t\t\t\t\tfinal long alarmTime = helper.getPrevAutoRefreshTime() + helper.getAutoRefreshPeriod();\n" +
-                "\n" +
-                "\t\t\t\t\talarmManager.set(AlarmManager.RTC, alarmTime, pendingIntent);\n" +
-                "\t\t\t\t} else{\n" +
-                "\n" +
-                "\t\t\t\t\talarmManager.cancel(pendingIntent);\n" +
-                "\t\t\t\t}" +
-                "\t\t\t}\n" +
-                "\t\t}\n" +
-                "\n" +
-                "\t\tpublic static void enable(Context context) {\n" +
-                "\t\t\tfinal android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
-                "\n" +
-                "\t\t\tfinal android.content.ComponentName receiver =\n" +
-                "\t\t\t\tnew ComponentName(context, NetworkStateReceiver.class);\n" +
-                "\n" +
-                "\t\t\tif (packageManager.getComponentEnabledSetting(receiver) !=\n" +
-                "\t\t\t    PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {\n" +
-                "\t\t\t\tandroid.util.Log.i(TAG, \"Enabling network state receiver.\");\n" +
-                "\t\t\t}\n" +
-                "\n" +
-                "\t\t\tpackageManager.setComponentEnabledSetting(\n" +
-                "\t\t\t\treceiver,\n" +
-                "\t\t\t\tandroid.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED,\n" +
-                "\t\t\t\tandroid.content.pm.PackageManager.DONT_KILL_APP);\n" +
-                "\t\t}\n" +
-                "\n" +
-                "\t\tpublic static void disable(Context context) {\n" +
-                "\t\t\tfinal android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
-                "\n" +
-                "\t\t\tfinal android.content.ComponentName receiver =\n" +
-                "\t\t\t\tnew ComponentName(context, NetworkStateReceiver.class);\n" +
-                "\n" +
-                "\t\t\tif (packageManager.getComponentEnabledSetting(receiver) !=\n" +
-                "\t\t\t    android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {\n" +
-                "\t\t\t\tandroid.util.Log.i(TAG, \"Disabling network state receiver.\");\n" +
-                "\t\t\t}\n" +
-                "\n" +
-                "\t\t\tpackageManager.setComponentEnabledSetting(\n" +
-                "\t\t\t\treceiver,\n" +
-                "\t\t\t\tandroid.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED,\n" +
-                "\t\t\t\tandroid.content.pm.PackageManager.DONT_KILL_APP);\n" +
-                "\t\t}" +
-                "\n} ";
-        PsiClass broadcastReceiverClass = factory.createClassFromText(broadcastReceiverString, null);
-        intentServiceClass.addAfter(broadcastReceiverClass.getInnerClasses()[0], intentServiceClass.getRBrace());
-        // para fazer imports é assim! - tem que ser sempre com o fully qualified name na string e depois chamar o metodo shortenClassReferences !!
-        JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
-        javaCodeStyleManager.shortenClassReferences(intentServiceClass);
-
-        /*
-         *
-         *  SEVENTH PHASE: ADD THE NEW RECEIVER TO THE AndroidManifest.xml FILE
-         *
-         */
-        // get root directory
-        XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
-        XmlFile xmlFile = null;
-        PsiDirectory rootDirectory = psiDirectory;
-        JavaDirectoryService javaDirectoryService = JavaDirectoryService.getInstance();
-        while(!javaDirectoryService.isSourceRoot(rootDirectory)) {
-            rootDirectory = rootDirectory.getParentDirectory();
-        }
-
-        // retrieve AndroidManifest xml file
-        xmlFile = (XmlFile) rootDirectory.findFile("AndroidManifest.xml");
-        if(xmlFile == null) {
-            PsiDirectory[] subDirectories = rootDirectory.getSubdirectories();
-            for (int i = 0; i < subDirectories.length; i++) {
-                PsiDirectory currentPsiDirectory = subDirectories[i];
-                xmlFile = (XmlFile) currentPsiDirectory.findFile("AndroidManifest.xml");
-                if(xmlFile != null) {
-                    break;
-                }
-            }
-        }
-
-        if(xmlFile != null) {
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
             List<XmlTag> xmlTags = Arrays.asList(subTags);
-            Predicate<XmlTag> xmlTagAccessPredicate = el -> el.getAttributeValue("android:name") == "android.permission.ACCESS_NETWORK_STATE";
+            Predicate<XmlTag> xmlTagAccessPredicate = el -> (el.getAttributeValue("android:name") == "android.permission.ACCESS_NETWORK_STATE");
             int originalSize = xmlTags.size();
             xmlTags.removeIf(xmlTagAccessPredicate);
             if(xmlTags.size() == originalSize) {
                 // nao ha permissao para acesso ainda
                 XmlTag usesPermissionTag = xmlElementFactory.createTagFromText("<uses-permission/>");
                 usesPermissionTag.setAttribute("android:name", "android.permission.ACCESS_NETWORK_STATE");
-                if(originalSize > 0) { subTags[0].addAfter(usesPermissionTag,rootTag); }
+                if(originalSize > 0) { subTags[0].getParent().addAfter(usesPermissionTag, subTags[0]); }
                 else { rootTag.add(usesPermissionTag); }
             }
 
             // criar a tag para o receiver
             XmlTag receiverTag = xmlElementFactory.createTagFromText("<receiver/>");
-            receiverTag.setAttribute("android:name", "." + aClass.getName() + "$NetworkStateReceiver");
+            receiverTag.setAttribute("android:name",  intentServiceClass.getQualifiedName() + "$NetworkStateReceiver");
             receiverTag.setAttribute("android:exported", "true");
             receiverTag.setAttribute("android:enabled", "false");
             XmlTag intentFilterTag = xmlElementFactory.createTagFromText("<intent-filter/>");
@@ -278,9 +158,25 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             if(applicationTagNull)
                 xmlFile.add(applicationTag);
 
-        }
-        else {
-            // NOTE: I'M ASSUMING THAT THIS FILES ALWAYS EXISTS BECAUSE IM ASSUMING THERE IS ALREADY A LISTENER.
+            PsiComment comment = factory.createCommentFromText("/*\n "
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                    + "* Checking the network connection before attempting to answer a request \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                    + "* Application changed java file \"" + intentServiceClass.getContainingFile().getName() + "\"  and xml file \"AndroidManifest.xml\". \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
+                    + "*/", intentServiceClass.getContainingFile());
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        } catch(Throwable e) {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN NOT APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Something went wrong and the pattern could not be applied! \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
     }
 

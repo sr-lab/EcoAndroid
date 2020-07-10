@@ -34,79 +34,78 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
-        /*
-         *
-         * FIRST PHASE: RETRIEVED VARIABLES TO BE USED BELOW
-         *
-         */
         PsiElementFactory factory = PsiElementFactory.getInstance(project);
         PsiMethod psiMethod = (PsiMethod) ( problemDescriptor.getPsiElement()).getContext();
         PsiClass psiClass = psiMethod.getContainingClass();
         PsiFile psiFile = psiClass.getContainingFile();
 
-        /*
-         *
-         *  SECOND PHASE: ADDING COMMENT THAT SUMMARIZES CHANGES MADE TO THE CODE
-         *
-         */
-        PsiComment comment = factory.createCommentFromText("/* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "Whenever a request is received, checks if anything changes before using the data \n"
-                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "Application changed java file \"" + psiClass.getContainingFile().getName() +
-                "*/", psiClass.getContainingFile());
-        psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        try {
+            Iterator<PsiLocalVariable> iterator = intentVariables.iterator();
+            String ifStatement = "if ( ";
 
-        Iterator<PsiLocalVariable> iterator = intentVariables.iterator();
-        String ifStatement = "if ( ";
+            while (iterator.hasNext()) {
+                PsiLocalVariable currentLocalVariable = iterator.next();
+                //NOTE: CREATE THE VARIABLE THAT WILL STORE THE LAST VALUE
+                PsiCodeBlock declarationsBlock = factory.createCodeBlock();
+                PsiDeclarationStatement declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
+                        + " last" + currentLocalVariable.getName() + " = null;", psiMethod);
+                declarationsBlock.add(declarationStatement);
+                declarationsBlock.getLBrace().delete();
+                declarationsBlock.getRBrace().delete();
+                psiClass.addAfter(declarationsBlock, psiClass.getLBrace());
+                String name = currentLocalVariable.getName();
 
-        /*
-         *
-         *  THIRD PHASE: FOR EVERY VARIABLE THAT IS CREATED FROM THE INTENT, CREATES A LAST+variableName, DELETES THE OLD VAR AND ADD IF
-         *
-         */
-        while (iterator.hasNext()) {
-            PsiLocalVariable currentLocalVariable = iterator.next();
-            //NOTE: CREATE THE VARIABLE THAT WILL STORE THE LAST VALUE
-            PsiCodeBlock declarationsBlock = factory.createCodeBlock();
-            PsiDeclarationStatement declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
-                    + " last" + currentLocalVariable.getName() + " = null;", psiMethod);
-            declarationsBlock.add(declarationStatement);
-            declarationsBlock.getLBrace().delete();
-            declarationsBlock.getRBrace().delete();
-            psiClass.addAfter(declarationsBlock, psiClass.getLBrace());
-            String name = currentLocalVariable.getName();
+                if(currentLocalVariable.getType().equals(PsiType.INT) || currentLocalVariable.getType().equals(PsiType.LONG) || currentLocalVariable.getType().equals(PsiType.FLOAT)) {
+                    ifStatement += "last" + name + " == " + currentLocalVariable.getInitializer().getText() + " && ";
+                }
+                else {
+                    ifStatement += "last" + name + ".equals(" + currentLocalVariable.getInitializer().getText() + ") && ";
+                }
+                updateStatements.add(factory.createStatementFromText("last" + name + " = " + currentLocalVariable.getInitializer().getText() + ";", psiClass));
 
-            ifStatement += "last" + name + ".equals(" + currentLocalVariable.getInitializer().getText() + ") && ";
-            updateStatements.add(factory.createStatementFromText("last" + name + " = " + currentLocalVariable.getInitializer().getText() + ";", psiClass));
+                Collection<PsiReferenceExpression> references = PsiTreeUtil.collectElementsOfType(psiMethod, PsiReferenceExpression.class);
+                references.removeIf(el -> !( el.getQualifiedName().equals(currentLocalVariable.getName())));
+                references.forEach((el) -> { el.getChildren()[1].replace(factory.createIdentifier("last" + el.getQualifiedName())); });
+                currentLocalVariable.getInitializer().getContext().delete();
+            }
 
-            Collection<PsiReferenceExpression> references = PsiTreeUtil.collectElementsOfType(psiMethod, PsiReferenceExpression.class);
-            references.removeIf(el -> !( el.getQualifiedName().equals(currentLocalVariable.getName())));
-            references.forEach((el) -> { el.getChildren()[1].replace(factory.createIdentifier("last" + el.getQualifiedName())); });
-            currentLocalVariable.getInitializer().getContext().delete();
+            String newMethodBody = "private void updateValues(android.content.Intent intent) {";
+            Iterator<PsiStatement> iteratorStatements = updateStatements.iterator();
+            while(iteratorStatements.hasNext()) {
+                PsiStatement currentStatement = iteratorStatements.next();
+                newMethodBody += currentStatement.getText();
+            }
+            newMethodBody += "}";
+            PsiMethod updateMethod = factory.createMethodFromText(newMethodBody, null);
+            psiClass.add(updateMethod);
+            PsiStatement methodCallStatement = factory.createStatementFromText("updateValues(intent);", psiClass);
+            psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
+
+            ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
+            ifStatement += ") { return; } ";
+            PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
+            psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
+
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Whenever a request is received, checks if anything changes before using the data \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "*/", psiClass.getContainingFile());
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        } catch(Throwable e) {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Something went wrong and the pattern could not be applied! \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
-
-        /*
-         *
-         * FOURTH PHASE: CREATE METHOD THAT UPDATES THE OLD VALUES OF THE VARIABLES
-         *
-         */
-        String newMethodBody = "private void updateValues(android.content.Intent intent) {";
-        Iterator<PsiStatement> iteratorStatements = updateStatements.iterator();
-        while(iteratorStatements.hasNext()) {
-            PsiStatement currentStatement = iteratorStatements.next();
-            newMethodBody += currentStatement.getText();
-        }
-        newMethodBody += "}";
-        PsiMethod updateMethod = factory.createMethodFromText(newMethodBody, null);
-        psiClass.add(updateMethod);
-        PsiStatement methodCallStatement = factory.createStatementFromText("updateValues(intent);", psiClass);
-        psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
-
-        ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
-        ifStatement += ") { return; } ";
-        PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
-        psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
 
     }
 

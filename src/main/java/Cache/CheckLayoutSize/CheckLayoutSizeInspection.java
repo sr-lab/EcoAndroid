@@ -37,10 +37,16 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
 
                 if(methodCallExpressionStringArray.length < 2) { return; }
 
-                // TODO: THE SAME WITH MEASURE HEIGHT
-                if(!methodCallExpressionStringArray[methodCallExpressionStringArray.length-1].equals("getMeasuredWidth")) { return; }
+                if(!(methodCallExpressionStringArray[methodCallExpressionStringArray.length-1].equals("getMeasuredWidth") ||
+                        methodCallExpressionStringArray[methodCallExpressionStringArray.length-1].equals("getMeasuredHeight"))) { return; }
 
-                if(expression.getContext() instanceof PsiBinaryExpression) { return; }
+                PsiMethod psiMethodResolved = expression.resolveMethod();
+                PsiClass psiViewClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.view.View", GlobalSearchScope.allScope(holder.getProject()));
+                if(!psiMethodResolved.getContainingClass().equals(psiViewClass)) { return ; }
+
+                if(expression.getContext() instanceof PsiBinaryExpression) {
+                    return;
+                }
 
                 /*
                  *
@@ -72,10 +78,11 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
 
 
                 if(isGoingToBeSet) {
-                    // TODO: MAKE SURE ITS CALLING THE METHOD OF THE CORRECT CLASS
                     Collection<PsiMethodCallExpression> methodCalls = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiMethodCallExpression.class);
                     methodCalls.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredWidth")));
-                    AtomicBoolean isChecked = new AtomicBoolean(false);
+                    methodCalls.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredHeight")));
+
+                            AtomicBoolean isChecked = new AtomicBoolean(false);
                     methodCalls.forEach( el -> {
                         if(el.getContext() instanceof PsiBinaryExpression) {
                             PsiBinaryExpression binaryExpression = (PsiBinaryExpression) el.getContext();
@@ -107,7 +114,7 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
                     Collection<PsiReferenceExpression> references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
                     references.removeIf(el -> !(el.getReference().getCanonicalText().equals(psiReference.getCanonicalText())) || el.getContext().equals(psiAssignmentExpression));
 
-                    List<PsiReferenceExpression> listReferences = new LinkedList<PsiReferenceExpression>(references);
+                    List<PsiReferenceExpression> listReferences = new LinkedList<>(references);
                     while(listReferences.size() > 0) {
                         PsiReferenceExpression currentPsiReference = listReferences.get(0);
                         PsiDeclarationStatement psiDeclarationStatement = (PsiDeclarationStatement) PsiTreeUtil.findFirstParent(currentPsiReference.getContext(), el -> el instanceof  PsiDeclarationStatement);
@@ -122,6 +129,27 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
                         listReferences.remove(0);
                     }
                 }
+                else if(retrieveSizeMethodCall.getContext() instanceof PsiLocalVariable) {
+                    PsiLocalVariable psiLocalVariable = (PsiLocalVariable) retrieveSizeMethodCall.getContext();
+
+                    Collection<PsiReferenceExpression> references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
+                    references.removeIf(el -> !(el.getReference().getCanonicalText().equals(psiLocalVariable.getName())));
+
+                    List<PsiReferenceExpression> listReferences = new LinkedList<>(references);
+                    while(listReferences.size() > 0) {
+                        PsiReferenceExpression currentPsiReference = listReferences.get(0);
+                        PsiDeclarationStatement psiDeclarationStatement = (PsiDeclarationStatement) PsiTreeUtil.findFirstParent(currentPsiReference.getContext(), el -> el instanceof  PsiDeclarationStatement);
+                        PsiElement psiMethodCallExpression = PsiTreeUtil.findFirstParent(currentPsiReference.getContext(), el -> el instanceof PsiMethodCallExpression);
+                        if(psiDeclarationStatement != null) {
+                            PsiLocalVariable declaredElement = (PsiLocalVariable) psiDeclarationStatement.getDeclaredElements()[0];
+                            references = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiReferenceExpression.class);
+                            references.removeIf(el -> !( el.getReference().getCanonicalText().equals(declaredElement.getName())));
+                            listReferences.addAll(references);
+                        }
+                        else if (psiMethodCallExpression != null && psiMethodCallExpression.equals(updateSizeMethodCall)){ return true; }
+                        listReferences.remove(0);
+                }
+            }
                 return false;
             }
         };

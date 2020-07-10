@@ -134,7 +134,6 @@ public class TrustedSocketFactory {
 
         SSLContext context = SSLContext.getInstance("TLS");
         context.init(keyManagers, trustManagers, null);
-        SSLSessionContext serverSessionContext = context.getServerSessionContext();
         SSLSocketFactory socketFactory = context.getSocketFactory();
         Socket trustedSocket;
         if (socket == null) {

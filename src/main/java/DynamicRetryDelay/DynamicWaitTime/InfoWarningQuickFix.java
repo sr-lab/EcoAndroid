@@ -21,23 +21,16 @@ public class InfoWarningQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
-        /*
-         *
-         * FIRST PHASE: RETRIEVE INFORMATION FROM THE problemDescriptor + CREATE FACTORY
-         *
-         */
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiElement psiElement = problemDescriptor.getPsiElement();
         PsiFile psiFile = PsiTreeUtil.getParentOfType(psiElement, PsiFile.class);
         PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiElement, PsiMethod.class);
 
-        /*
-         *
-         * SECOND PHASE: CREATE COMMENT THAT WILL SERVE AS AN INFO WARNING
-         *
-         */
         PsiComment comment = factory.createCommentFromText("/* \n "
-                + "* TODO Refactor4Green \n DYNAMIC RETRY DELAY ENERGY PATTERN INFO WARNING \n"
+                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                + "* TODO Refactor4Green \n "
+                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                + "* DYNAMIC RETRY DELAY ENERGY PATTERN INFO WARNING \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "* Another way to implement a mechanism that manages the execution of tasks and their retrying, if said task fails \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -45,7 +38,9 @@ public class InfoWarningQuickFix implements LocalQuickFix {
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "* If you wish to know more about this topic, read the following information:\n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "* https://developer.android.com/topic/libraries/architecture/workmanager/how-to/define-work \n */", psiFile);
+                + "* https://developer.android.com/topic/libraries/architecture/workmanager/how-to/define-work \n "
+                + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                + "*/", psiFile);
         psiMethod.addBefore(comment, psiMethod.getFirstChild());
     }
 }

@@ -1,6 +1,6 @@
-package Cache.SSLSessionCaching;
+package Cache.HTTPsURLConnCacheMechanism;
 
-import Cache.CheckMetadata.CheckMetadataQuickFix;
+import Cache.SSLSessionCaching.SSLSessionCachingQuickFix;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.*;
@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class SSLSessionCachingInspection extends LocalInspectionTool {
+public class HTTPsURLConnCacheMechanismInspection extends LocalInspectionTool {
 
-    private SSLSessionCachingQuickFix sslSessionCachingQuickFix = new SSLSessionCachingQuickFix();
+    private final HTTPsURLConnCacheMechanismQuickFix httpsURLConnCacheMechanismQuickFix = new HTTPsURLConnCacheMechanismQuickFix();
 
     @NotNull
     @Override
@@ -21,27 +21,29 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE = "Refactor4Green: Cache - SSL Session Cached";
+            private final String DESCRIPTION_TEMPLATE_HTPPSURLCONNECTION_CACHE = "Refactor4Green: Cache - SSL Session Cached";
 
 
             @Override
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
                 super.visitMethodCallExpression(expression);
 
-                if(!(expression.getMethodExpression().getReferenceName().equals("init"))) { return; }
+                if(!(expression.getMethodExpression().getReferenceName().equals("openConnection"))) { return; }
 
                 PsiMethod psiMethodResolved = expression.resolveMethod();
-                PsiClass psiSSLContextClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("javax.net.ssl.SSLContext", GlobalSearchScope.allScope(holder.getProject()));
+                PsiClass psiSSLContextClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("java.net.URL", GlobalSearchScope.allScope(holder.getProject()));
                 if(!psiMethodResolved.getContainingClass().equals(psiSSLContextClass)) { return ; }
+
 
                 // TODO check at more levels
                 PsiMethod psiMethod = (PsiMethod) PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
                 Collection<PsiMethodCallExpression> methodCallExpressionsCollection = PsiTreeUtil.findChildrenOfType(psiMethod, PsiMethodCallExpression.class);
-                methodCallExpressionsCollection.removeIf(el -> !(el.getMethodExpression().getReferenceName().contains("setSessionCacheSize")));
+                methodCallExpressionsCollection.removeIf(el ->
+                        !(el.getMethodExpression().getReferenceName().contains("getHeaderFieldDate")));
 
                 if(methodCallExpressionsCollection.size() > 0 ) { return; }
 
-                holder.registerProblem(expression, DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE, sslSessionCachingQuickFix);
+                holder.registerProblem(expression, DESCRIPTION_TEMPLATE_HTPPSURLCONNECTION_CACHE, httpsURLConnCacheMechanismQuickFix);
 
 
 
