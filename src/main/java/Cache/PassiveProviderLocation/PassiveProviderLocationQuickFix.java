@@ -33,7 +33,6 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
         PsiMethodCallExpression psiMethodCallExpression = (PsiMethodCallExpression) problemDescriptor.getPsiElement();
         PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiMethod.class);
         PsiFile psiFile = PsiTreeUtil.getParentOfType(psiMethod.getContainingClass(), PsiFile.class);
-        PsiDirectory psiDirectory = psiFile.getContainingDirectory();
 
         try {
             // mudar o argumento na chamada a funcao
@@ -49,7 +48,7 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
             List<XmlTag> xmlTags = Arrays.asList(subTags);
-            Predicate<XmlTag> xmlTagAccessPredicate = el -> el.getAttributeValue("android:name") == "android.permission.ACCESS_FINE_LOCATION";
+            Predicate<XmlTag> xmlTagAccessPredicate = el -> el.getAttributeValue("android:name").equals("android.permission.ACCESS_FINE_LOCATION");
             int originalSize = xmlTags.size();
             xmlTags.removeIf(xmlTagAccessPredicate);
             if(xmlTags.size() == originalSize) {

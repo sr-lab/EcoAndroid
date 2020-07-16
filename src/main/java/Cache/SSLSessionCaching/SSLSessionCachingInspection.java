@@ -1,6 +1,5 @@
 package Cache.SSLSessionCaching;
 
-import Cache.CheckMetadata.CheckMetadataQuickFix;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.*;
@@ -13,7 +12,7 @@ import java.util.Collection;
 
 public class SSLSessionCachingInspection extends LocalInspectionTool {
 
-    private SSLSessionCachingQuickFix sslSessionCachingQuickFix = new SSLSessionCachingQuickFix();
+    private final SSLSessionCachingQuickFix sslSessionCachingQuickFix = new SSLSessionCachingQuickFix();
 
     @NotNull
     @Override
@@ -38,6 +37,8 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
                 PsiMethod psiMethod = (PsiMethod) PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
                 Collection<PsiMethodCallExpression> methodCallExpressionsCollection = PsiTreeUtil.findChildrenOfType(psiMethod, PsiMethodCallExpression.class);
                 methodCallExpressionsCollection.removeIf(el -> !(el.getMethodExpression().getReferenceName().contains("setSessionCacheSize")));
+                methodCallExpressionsCollection.removeIf(el -> !(el.getArgumentList().getExpressions().length > 0));
+                methodCallExpressionsCollection.removeIf(el -> !(el.getArgumentList().getExpressions()[0].getText().equals("0")));
 
                 if(methodCallExpressionsCollection.size() > 0 ) { return; }
 

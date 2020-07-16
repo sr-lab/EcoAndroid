@@ -4,7 +4,6 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.StringUtils;
@@ -45,22 +44,27 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
 
             while (iterator.hasNext()) {
                 PsiLocalVariable currentLocalVariable = iterator.next();
+                String name = currentLocalVariable.getName();
+
                 //NOTE: CREATE THE VARIABLE THAT WILL STORE THE LAST VALUE
                 PsiCodeBlock declarationsBlock = factory.createCodeBlock();
-                PsiDeclarationStatement declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
-                        + " last" + currentLocalVariable.getName() + " = null;", psiMethod);
+
+                PsiDeclarationStatement declarationStatement;
+                if(currentLocalVariable.getType().equals(PsiType.INT) || currentLocalVariable.getType().equals(PsiType.LONG) || currentLocalVariable.getType().equals(PsiType.FLOAT)) {
+                    declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
+                            + " last" + currentLocalVariable.getName() + " = 0;", psiMethod);
+                    ifStatement += "last" + name + " == " + currentLocalVariable.getInitializer().getText() + " && ";
+                }
+                else {
+                    declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
+                            + " last" + currentLocalVariable.getName() + " = null;", psiMethod);
+                    ifStatement += "last" + name + ".equals(" + currentLocalVariable.getInitializer().getText() + ") && ";
+                }
                 declarationsBlock.add(declarationStatement);
                 declarationsBlock.getLBrace().delete();
                 declarationsBlock.getRBrace().delete();
                 psiClass.addAfter(declarationsBlock, psiClass.getLBrace());
-                String name = currentLocalVariable.getName();
 
-                if(currentLocalVariable.getType().equals(PsiType.INT) || currentLocalVariable.getType().equals(PsiType.LONG) || currentLocalVariable.getType().equals(PsiType.FLOAT)) {
-                    ifStatement += "last" + name + " == " + currentLocalVariable.getInitializer().getText() + " && ";
-                }
-                else {
-                    ifStatement += "last" + name + ".equals(" + currentLocalVariable.getInitializer().getText() + ") && ";
-                }
                 updateStatements.add(factory.createStatementFromText("last" + name + " = " + currentLocalVariable.getInitializer().getText() + ";", psiClass));
 
                 Collection<PsiReferenceExpression> references = PsiTreeUtil.collectElementsOfType(psiMethod, PsiReferenceExpression.class);

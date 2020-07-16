@@ -1,19 +1,15 @@
 package AvoidExtraneousGraphicsAndAnimations;
 
-import Cache.SSLSessionCaching.SSLSessionCachingQuickFix;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-
 public class DirtyRenderingInspection extends LocalInspectionTool {
 
-    private DirtyRenderingQuickFix dirtyRenderingQuickFix = new DirtyRenderingQuickFix();
+    private final DirtyRenderingQuickFix dirtyRenderingQuickFix = new DirtyRenderingQuickFix();
 
     @NotNull
     @Override

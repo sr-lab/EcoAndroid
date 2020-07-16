@@ -2,14 +2,12 @@ package DynamicRetryDelay.CheckNetwork;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.mock.MockPsiDirectory;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -18,8 +16,6 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -76,7 +72,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     "\n" +
                     "               final android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
                     "\n" +
-                    "               final android.content.Intent innerIntent = new Intent(context, Service.class);\n" +
+                    "               final android.content.Intent innerIntent = new Intent(context, " + intentServiceClass.getName() + ".class);\n" +
                     "               final android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, innerIntent, 0);\n" +
                     "\n" +
                     "               android.content.SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);\n" +
@@ -123,7 +119,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
             List<XmlTag> xmlTags = Arrays.asList(subTags);
-            Predicate<XmlTag> xmlTagAccessPredicate = el -> (el.getAttributeValue("android:name") == "android.permission.ACCESS_NETWORK_STATE");
+            Predicate<XmlTag> xmlTagAccessPredicate = el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_NETWORK_STATE"));
             int originalSize = xmlTags.size();
             xmlTags.removeIf(xmlTagAccessPredicate);
             if(xmlTags.size() == originalSize) {

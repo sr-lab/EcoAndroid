@@ -1,6 +1,5 @@
 package Cache.PassiveProviderLocation;
 
-import Cache.SSLSessionCaching.SSLSessionCachingQuickFix;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.*;
@@ -10,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class PassiveProviderLocationInspection extends LocalInspectionTool {
 
-    private PassiveProviderLocationQuickFix passiveProviderLocationQuickFix = new PassiveProviderLocationQuickFix();
+    private final PassiveProviderLocationQuickFix passiveProviderLocationQuickFix = new PassiveProviderLocationQuickFix();
 
     @NotNull
     @Override

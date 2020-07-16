@@ -5,7 +5,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 public class Refactor4GreenAction extends AnAction {

@@ -1,6 +1,5 @@
 package Cache.HTTPsURLConnCacheMechanism;
 
-import Cache.SSLSessionCaching.SSLSessionCachingQuickFix;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.psi.*;
@@ -34,14 +33,17 @@ public class HTTPsURLConnCacheMechanismInspection extends LocalInspectionTool {
                 PsiClass psiSSLContextClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("java.net.URL", GlobalSearchScope.allScope(holder.getProject()));
                 if(!psiMethodResolved.getContainingClass().equals(psiSSLContextClass)) { return ; }
 
-
                 // TODO check at more levels
                 PsiMethod psiMethod = (PsiMethod) PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
                 Collection<PsiMethodCallExpression> methodCallExpressionsCollection = PsiTreeUtil.findChildrenOfType(psiMethod, PsiMethodCallExpression.class);
-                methodCallExpressionsCollection.removeIf(el ->
-                        !(el.getMethodExpression().getReferenceName().contains("getHeaderFieldDate")));
 
+                methodCallExpressionsCollection.removeIf(el -> !(el.getMethodExpression().getReferenceName().contains("getHeaderFieldDate")));
+                methodCallExpressionsCollection.removeIf(el -> !(el.getArgumentList().getExpressions().length > 0));
+                methodCallExpressionsCollection.removeIf(el -> !(el.getArgumentList().getExpressions()[0].getText().equals("\"Last-Modified\"")));
                 if(methodCallExpressionsCollection.size() > 0 ) { return; }
+
+                if(PsiTreeUtil.getParentOfType(expression, PsiReturnStatement.class) != null) { return; }
+                if(PsiTreeUtil.getParentOfType(expression, PsiReferenceExpression.class) != null) { return; }
 
                 holder.registerProblem(expression, DESCRIPTION_TEMPLATE_HTPPSURLCONNECTION_CACHE, httpsURLConnCacheMechanismQuickFix);
 

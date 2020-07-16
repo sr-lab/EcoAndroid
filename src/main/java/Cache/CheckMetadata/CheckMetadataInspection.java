@@ -16,7 +16,7 @@ import java.util.Iterator;
 
 public class CheckMetadataInspection extends LocalInspectionTool {
 
-    private CheckMetadataQuickFix checkMetadataQuickFix;
+    private final CheckMetadataQuickFix  checkMetadataQuickFix = new CheckMetadataQuickFix();
 
     @NotNull
     @Override
@@ -30,11 +30,6 @@ public class CheckMetadataInspection extends LocalInspectionTool {
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
 
-                /*
-                 *
-                 * FIRST PHASE: LOOK FOR THE METHOD onReceive FROM THE CLASS BroadcastReceiver
-                 *
-                 */
                 if(!(method.getName().equals("onReceive")))
                     return;
 
@@ -42,11 +37,6 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                 PsiClass broadcastReceiverClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.content.BroadcastReceiver", GlobalSearchScope.allScope(holder.getProject()));
                 if(!(InheritanceUtil.isInheritorOrSelf(psiClass, broadcastReceiverClass, true))) { return;}
 
-                /*
-                 *
-                 * SECOND PHASE: LOOK FOR THE VARIABLES THAT STORE THE VALUE OF THE intent PARAMETER
-                 *
-                 */
                 Collection<PsiMethodCallExpression> methodsCalls = PsiTreeUtil.collectElementsOfType(method.getBody(), PsiMethodCallExpression.class);
                 Iterator<PsiMethodCallExpression> iterator = methodsCalls.iterator();
                 ArrayList<PsiLocalVariable> intentVariables = new ArrayList<>();
@@ -63,30 +53,38 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                 if(intentVariables.size() == 0)
                     return;
 
-                /*
-                 *
-                 * THIRD PHASE: CHECK IF THE CONTENT RETRIEVED FROM THE intent PARAMETER IS BEING USED IN IF CONDITIONALS
-                 *
-                 */
                 // TODO: AT THIS LEVEL, ONLY CHECKING IF THE VARIABLES ARE USED IN THE IF CONDITION
-                Iterator<PsiLocalVariable> iteratorLocalVariable = intentVariables.iterator();
-                while(iteratorLocalVariable.hasNext()) {
+                for (PsiLocalVariable intentVariable : intentVariables) {
                     boolean isChecked = false;
-                    PsiLocalVariable localVariable = iteratorLocalVariable.next();
-                    Collection<PsiReference> references = ReferencesSearch.search(localVariable).findAll();
+                    Collection<PsiReference> references = ReferencesSearch.search(intentVariable).findAll();
 
-                    Iterator<PsiReference> iterator1 = references.iterator();
-                    while(iterator1.hasNext()){
-                        PsiReference next = iterator1.next();
-                        PsiIfStatement firstParent = (PsiIfStatement) PsiTreeUtil.findFirstParent((PsiElement) next, el -> el instanceof PsiIfStatement);
-                        if(firstParent == null) { continue; }
+                    for (PsiReference ref : references) {
+
+                        PsiReferenceExpression referenceExpression = (PsiReferenceExpression) PsiTreeUtil.findFirstParent((PsiElement) ref, el -> el instanceof PsiReferenceExpression);
+                        if(referenceExpression != null) {
+                            PsiMethod psiInnerMethod = PsiTreeUtil.getParentOfType(referenceExpression, PsiMethodCallExpression.class).resolveMethod();
+                            if(psiInnerMethod != null) {
+                                PsiClass psiInnerClass = psiInnerMethod.getContainingClass();
+                                if(PsiTreeUtil.getParentOfType(referenceExpression, PsiMethodCallExpression.class).getMethodExpression() instanceof PsiReferenceExpression) {
+                                    PsiClass notificationManagerClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.NotificationManager", GlobalSearchScope.allScope(holder.getProject()));
+                                    if(InheritanceUtil.isInheritorOrSelf(psiInnerClass, notificationManagerClass, true)) { return;}
+                                }
+                            }
+                        }
+                        PsiIfStatement firstParent = (PsiIfStatement) PsiTreeUtil.findFirstParent((PsiElement) ref, el -> el instanceof PsiIfStatement);
+                        if (firstParent == null) {
+                            continue;
+                        }
                         // NOTE: COMPARING POSITIONS BETWEEN TEH REFERENCE AND THE CONDITION OF THE IF. IF ITS 0, THEN THE REFERENCE IS IN THE CONDITION
-                        if(PsiUtilBase.compareElementsByPosition(firstParent.getCondition(), (PsiElement) next) == 0) { isChecked = true; }
+                        if (PsiUtilBase.compareElementsByPosition(firstParent.getCondition(), (PsiElement) ref) == 0) {
+                            isChecked = true;
+                        }
+
                     }
-                    if(isChecked)
+                    if (isChecked)
                         return;
                 }
-                checkMetadataQuickFix = new CheckMetadataQuickFix();
+
                 checkMetadataQuickFix.setIntentVariables(intentVariables);
                 holder.registerProblem(method.getNameIdentifier(), DESCRIPTION_TEMPLATE_CHECK_METADATA, checkMetadataQuickFix);
             }

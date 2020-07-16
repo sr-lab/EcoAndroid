@@ -7,8 +7,6 @@ import xlsxwriter
 import pandas as pd
 
 #################### ---------------- GLOBAL VARIABLES ---------------- ####################
-
-
 index = 2
 java = 0
 archived = 0
@@ -53,14 +51,14 @@ def processRepo(repo_name, worksheet):
 	#writing to the output file
 	worksheet.write('A' + str(index), str(repo.full_name))
 	worksheet.write('B' + str(index), str(urlName))
-	worksheet.write('C' + str(index), str(repo.subscribers_count))
-	worksheet.write('D' + str(index), str(repo.stargazers_count))
-	worksheet.write('E' + str(index), str(repo.forks_count))
-	worksheet.write('F' + str(index), str(repo.get_contributors().totalCount))
+	worksheet.write('C' + str(index), repo.subscribers_count)
+	worksheet.write('D' + str(index), repo.stargazers_count)
+	worksheet.write('E' + str(index), repo.forks_count)
+	worksheet.write('F' + str(index), repo.get_contributors().totalCount)
 	worksheet.write('G' + str(index), str(repo.pushed_at))
-	worksheet.write('H' + str(index), str(len(mergedPulls)))
-	worksheet.write('I' + str(index), str(totalClosedPulls))
-	worksheet.write('J' + str(index), str(percentage))
+	worksheet.write('H' + str(index), len(mergedPulls))
+	worksheet.write('I' + str(index), totalClosedPulls)
+	worksheet.write('J' + str(index), percentage)
 
 #################### ---------------- MAIN ---------------- ####################
 
