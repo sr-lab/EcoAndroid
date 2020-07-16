@@ -15,7 +15,7 @@ import java.util.Iterator;
 
 public class CheckLayoutSizeQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "Refactor4Green: Cache Energy Pattern - Checking layout size case";
+    private final String QUICK_FIX_NAME = "Refactor4Green: cache energy pattern - checking layout size case";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

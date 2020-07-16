@@ -6,13 +6,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 
 public class SSLSessionCachingQuickFix implements LocalQuickFix {
     private static final String QUICK_FIX_NAME = "Refactor4Green: Cache - SSL Session Cached";

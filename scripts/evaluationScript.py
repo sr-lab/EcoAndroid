@@ -15,7 +15,6 @@ import re
 #################### ---------------- GLOBAL VARIABLES ---------------- ####################
 maxApps = 20
 index = 2
-ACCESS_TOKEN = 'ACCESS_TOKEN'
 
 #################### ---------------- OPEN XLXS FILE ---------------- ####################
 print('opening xlxs file')
@@ -29,18 +28,19 @@ worksheet = workbook.add_worksheet()
 worksheet.write('A1', 'APPLICATION NAME')
 worksheet.write('B1', 'GITHUB LINK')
 worksheet.write('C1', '#DYNAMICWAITTIME')
-worksheet.write('D1', '#CHECKNETWORK')
-worksheet.write('E1', '#CHECKLAYOUTSIZE')
-worksheet.write('F1', '#CHECKMETADATA')
-worksheet.write('G1', '#SSLSESSIONCACHING')
-worksheet.write('H1', '#PASSIVEPROVIDERLOCATION')
-worksheet.write('I1', '#HTTPSURLCONNCACHEMECHANISM')
-worksheet.write('J1', '#DIRTYRENDERING')
+worksheet.write('D1', '#INFOWARNINGFCM')
+worksheet.write('E1', '#CHECKNETWORK')
+worksheet.write('F1', '#CHECKLAYOUTSIZE')
+worksheet.write('G1', '#CHECKMETADATA')
+worksheet.write('H1', '#SSLSESSIONCACHING')
+worksheet.write('I1', '#PASSIVEPROVIDERLOCATION')
+worksheet.write('J1', '#HTTPSURLCONNCACHEMECHANISM')
+worksheet.write('K1', '#DIRTYRENDERING')
+
 
 #################### ---------------- CLONE REPOSITORY ---------------- ####################
 print('cloning repositories')
-git = Github(ACCESS_TOKEN)
-inspections = ['DynamicWaitTime.xml', 'CheckNetwork.xml', 'CheckLayoutSize.xml', 'CheckMetadata.xml', 
+inspections = ['DynamicWaitTime.xml', 'InfoWarningFCM.xml', 'CheckNetwork.xml', 'CheckLayoutSize.xml', 'CheckMetadata.xml', 
 'SSLSessionCaching.xml','PassiveProviderLocation.xml', 'HTTPsURLConnCacheMechanism.xml', 'DirtyRendering.xml']
 
 i = 0 
@@ -89,9 +89,9 @@ for i in range(len(linkColumn)):
 	 	if(fileExists):
 	 		indexFile = minidom.parse(inspectionFilePath)
 	 		sourceTag = indexFile.getElementsByTagName('problem')
-	 		worksheet.write(currLetter + str(index), str(sourceTag.length))
+	 		worksheet.write(currLetter + str(index), sourceTag.length)
 	 	else:
-	 		worksheet.write(currLetter + str(index), '0')
+	 		worksheet.write(currLetter + str(index), 0)
 	 	currLetter = chr(ord(currLetter) + 1)
 	index = index + 1
 workbook.close()

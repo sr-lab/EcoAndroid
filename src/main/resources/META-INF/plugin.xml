@@ -36,6 +36,16 @@
             enabledByDefault="true"
             level="WARNING"
             implementationClass="DynamicRetryDelay.CheckNetwork.CheckNetworkInspection"/>
+    <!-- PUSH OVER POLL  -->
+    <localInspection
+            language="JAVA"
+            displayName="Refactor4Green: Push Over Poll Energy Pattern - Info Warning FCM"
+            groupPath="Java"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.probable.bugs"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="PushOverPoll.InfoWarningFCMInspection"/>
     <!-- CACHE  -->
     <localInspection
             language="JAVA"

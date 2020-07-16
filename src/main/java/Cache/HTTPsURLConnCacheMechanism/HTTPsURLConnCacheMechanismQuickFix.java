@@ -2,10 +2,8 @@ package Cache.HTTPsURLConnCacheMechanism;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.formatting.Indent;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -29,10 +27,9 @@ public class HTTPsURLConnCacheMechanismQuickFix implements LocalQuickFix {
         PsiClass psiClass = psiMethod.getContainingClass();
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiFile psiFile = psiClass.getContainingFile();
+        PsiStatement psiStatement = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiStatement.class);
 
         try {
-
-
 
             String lastUpdateTimeName = "lastUpdateTime";
             if(!(PsiUtil.isVariableNameUnique(lastUpdateTimeName, psiClass))) {
@@ -56,7 +53,6 @@ public class HTTPsURLConnCacheMechanismQuickFix implements LocalQuickFix {
             PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (lastModified < " + lastUpdateTimeName + " ) \n" +
                     " { \n //TODO: Skip Update \n }  else { \n" + lastUpdateTimeName + "+= lastModified; }", psiClass);
 
-            PsiStatement psiStatement = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiStatement.class);
             psiStatement.getParent().addAfter(ifStatement, psiStatement);
             psiStatement.getParent().addAfter(lastModifiedStatement, psiStatement);
             psiStatement.getParent().addAfter(currentTimeStatement, psiStatement);

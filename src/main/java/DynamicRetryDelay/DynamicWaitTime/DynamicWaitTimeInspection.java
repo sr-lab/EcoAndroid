@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 public class DynamicWaitTimeInspection extends LocalInspectionTool {
 
     private DynamicWaitTimeQuickFix dynamicWaitTimeQuickFix;
-    private InfoWarningQuickFix infoWarningQuickFix = new InfoWarningQuickFix();
+    private final InfoWarningQuickFix infoWarningQuickFix = new InfoWarningQuickFix();
 
     @NotNull
     @Override
