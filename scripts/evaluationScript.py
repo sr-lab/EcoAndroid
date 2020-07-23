@@ -7,14 +7,15 @@ import pygit2
 import pandas as pd
 from time import sleep
 import xlsxwriter
+import openpyxl
 import sys
 import os
 import subprocess
 import re
 
 #################### ---------------- GLOBAL VARIABLES ---------------- ####################
-maxApps = 20
-index = 2
+maxApps = 40
+index = 22
 
 #################### ---------------- OPEN XLXS FILE ---------------- ####################
 print('opening xlxs file')
@@ -23,19 +24,23 @@ linkColumn = data['GITHUB LINK']
 nameColumn = data['APPLICATION NAME']
 
 #################### ---------------- CREATE OUTPUT XLXS FILE ---------------- ####################
-workbook = xlsxwriter.Workbook('evaluationStats.xlsx')
-worksheet = workbook.add_worksheet()
-worksheet.write('A1', 'APPLICATION NAME')
-worksheet.write('B1', 'GITHUB LINK')
-worksheet.write('C1', '#DYNAMICWAITTIME')
-worksheet.write('D1', '#INFOWARNINGFCM')
-worksheet.write('E1', '#CHECKNETWORK')
-worksheet.write('F1', '#CHECKLAYOUTSIZE')
-worksheet.write('G1', '#CHECKMETADATA')
-worksheet.write('H1', '#SSLSESSIONCACHING')
-worksheet.write('I1', '#PASSIVEPROVIDERLOCATION')
-worksheet.write('J1', '#HTTPSURLCONNCACHEMECHANISM')
-worksheet.write('K1', '#DIRTYRENDERING')
+workbook = openpyxl.load_workbook('evaluationStats.xlsx')
+print(workbook.sheetnames)
+
+worksheet = workbook['Apps']
+print(worksheet)
+# worksheet = workbook.add_worksheet()
+# worksheet.write('A1', 'APPLICATION NAME')
+# worksheet.write('B1', 'GITHUB LINK')
+# worksheet.write('C1', '#DYNAMICWAITTIME')
+# worksheet.write('D1', '#INFOWARNINGFCM')
+# worksheet.write('E1', '#CHECKNETWORK')
+# worksheet.write('F1', '#CHECKLAYOUTSIZE')
+# worksheet.write('G1', '#CHECKMETADATA')
+# worksheet.write('H1', '#SSLSESSIONCACHING')
+# worksheet.write('I1', '#PASSIVEPROVIDERLOCATION')
+# worksheet.write('J1', '#HTTPSURLCONNCACHEMECHANISM')
+# worksheet.write('K1', '#DIRTYRENDERING')
 
 
 #################### ---------------- CLONE REPOSITORY ---------------- ####################
@@ -43,8 +48,7 @@ print('cloning repositories')
 inspections = ['DynamicWaitTime.xml', 'InfoWarningFCM.xml', 'CheckNetwork.xml', 'CheckLayoutSize.xml', 'CheckMetadata.xml', 
 'SSLSessionCaching.xml','PassiveProviderLocation.xml', 'HTTPsURLConnCacheMechanism.xml', 'DirtyRendering.xml']
 
-i = 0 
-for i in range(len(linkColumn)):
+for i in range(21, len(linkColumn)):
 	print("index is " + str(i))
 	path = nameColumn.values[i].split('/')[0]
 
@@ -79,8 +83,10 @@ for i in range(len(linkColumn)):
 
 	os.system("date")
 	#write in the output file
-	worksheet.write('A' + str(index), str(nameColumn.values[i]))
-	worksheet.write('B' + str(index), str(linkColumn.values[i]))
+	#worksheet.write('A' + str(index), str(nameColumn.values[i]))
+	#worksheet.write('B' + str(index), str(linkColumn.values[i]))
+	worksheet['A' + str(index)] = str(nameColumn.values[i])
+	worksheet['B' + str(index)] = linkColumn.values[i]
 	currLetter = 'C'
 	for inspection in inspections: 
 	 	inspectionFilePath = path + "/inspectionResults/" + inspection
@@ -89,12 +95,14 @@ for i in range(len(linkColumn)):
 	 	if(fileExists):
 	 		indexFile = minidom.parse(inspectionFilePath)
 	 		sourceTag = indexFile.getElementsByTagName('problem')
-	 		worksheet.write(currLetter + str(index), sourceTag.length)
+	 		#worksheet.write(currLetter + str(index), sourceTag.length)
+	 		worksheet[currLetter + str(index)] = sourceTag.length
 	 	else:
-	 		worksheet.write(currLetter + str(index), 0)
+	 		#worksheet.write(currLetter + str(index), 0)
+	 		worksheet[currLetter + str(index)] = 0
 	 	currLetter = chr(ord(currLetter) + 1)
 	index = index + 1
-workbook.close()
+workbook.save('evaluationStats.xlsx')
 
 
 

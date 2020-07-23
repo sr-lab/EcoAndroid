@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -66,7 +67,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     "\n" +
                     "       @Override\n" +
                     "       public void onReceive(android.content.Context context, android.content.Intent intent) {\n" +
-                    "\n" +
                     "           if (service.checkNetwork()) {\n" +
                     "               NetworkStateReceiver.disable(context);\n" +
                     "\n" +
@@ -83,24 +83,21 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     "               long hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;\n" +
                     "\n" +
                     "                if (autoRefreshEnabled && hoursLong != 0) {\n" +
-                    "\n" +
                     "                   final long alarmTime =  preferences.getLong(\"last_auto_refresh_time\", 0) + hoursLong;\n" +
                     "                   alarmManager.set(AlarmManager.RTC, alarmTime, pendingIntent);\n" +
-                    "                    \n" +
                     "                } else {\n" +
-                    "\n" +
                     "                    alarmManager.cancel(pendingIntent);\n" +
-                    "                }\n" +
                     "            }" +
                     "       }" +
+                    "    }" +
                     "\n" +
-                    "       public static void enable(android.content.Context context) {\n" +
+                    "       public static void enable(Context context) {\n" +
                     "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
                     "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
                     "           packageManager.setComponentEnabledSetting(receiver, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.DONT_KILL_APP);\n" +
                     "       }\n" +
                     "\n" +
-                    "       public static void disable(android.content.Context context) {\n" +
+                    "       public static void disable(Context context) {\n" +
                     "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
                     "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
                     "           packageManager.setComponentEnabledSetting( receiver, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.DONT_KILL_APP);\n" +
@@ -113,15 +110,25 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             javaCodeStyleManager.shortenClassReferences(intentServiceClass);
 
             XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
-            XmlFile xmlFile = (XmlFile) FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project))[0];
-
+            PsiFile[] xmlFiles =  FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project));
+            XmlFile xmlFile = (XmlFile) xmlFiles[0];
+            if(xmlFiles.length > 1) {
+                String filePath = psiFile.getVirtualFile().getPath();
+                double distance = StringUtils.getLevenshteinDistance(xmlFile.getVirtualFile().getPath(), filePath);;
+                for(PsiFile currXmlFile: xmlFiles){
+                    double auxDistance = StringUtils.getLevenshteinDistance(currXmlFile.getVirtualFile().getPath(), filePath);
+                    if(auxDistance < distance ) {
+                        distance = auxDistance;
+                        xmlFile = (XmlFile) currXmlFile;
+                    }
+                }
+            }
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
-            List<XmlTag> xmlTags = Arrays.asList(subTags);
-            Predicate<XmlTag> xmlTagAccessPredicate = el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_NETWORK_STATE"));
+            List<XmlTag> xmlTags = new LinkedList<>(Arrays.asList(subTags));
             int originalSize = xmlTags.size();
-            xmlTags.removeIf(xmlTagAccessPredicate);
+            xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_NETWORK_STATE")));
             if(xmlTags.size() == originalSize) {
                 // nao ha permissao para acesso ainda
                 XmlTag usesPermissionTag = xmlElementFactory.createTagFromText("<uses-permission/>");
@@ -173,7 +180,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
             psiMethod.addBefore(comment, psiMethod.getFirstChild());
-        }
+       }
     }
 
 }
