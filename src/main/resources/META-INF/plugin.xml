@@ -20,7 +20,7 @@
     <!-- DYNAMIC RETRY DELAY  -->
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Switching to a dynamic wait time between resource attempts case"
+            displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Switching to a dynamic wait time between resource attempts"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"

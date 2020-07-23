@@ -91,8 +91,8 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
             psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
 
             PsiComment comment = factory.createCommentFromText("/* \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                   // + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                   // + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Whenever a request is received, checks if anything changes before using the data \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -100,6 +100,7 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiClass.getContainingFile());
             psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            updateStatements.clear();
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))

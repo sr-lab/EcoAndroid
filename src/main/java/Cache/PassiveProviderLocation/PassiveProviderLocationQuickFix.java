@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -42,15 +43,25 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
 
             // adicionar a linha ao ficheiro AndroidManifest.xml
             XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
-            XmlFile xmlFile = (XmlFile) FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project))[0];
-
+            PsiFile[] xmlFiles =  FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project));
+            XmlFile xmlFile = (XmlFile) xmlFiles[0];
+            if(xmlFiles.length > 1) {
+                String filePath = psiFile.getVirtualFile().getPath();
+                double distance = StringUtils.getLevenshteinDistance(xmlFile.getVirtualFile().getPath(), filePath);;
+                for(PsiFile currXmlFile: xmlFiles){
+                    double auxDistance = StringUtils.getLevenshteinDistance(currXmlFile.getVirtualFile().getPath(), filePath);
+                    if(auxDistance < distance ) {
+                        distance = auxDistance;
+                        xmlFile = (XmlFile) currXmlFile;
+                    }
+                }
+            }
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
-            List<XmlTag> xmlTags = Arrays.asList(subTags);
-            Predicate<XmlTag> xmlTagAccessPredicate = el -> el.getAttributeValue("android:name").equals("android.permission.ACCESS_FINE_LOCATION");
+            List<XmlTag> xmlTags = new LinkedList<>(Arrays.asList(subTags));
+            xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_FINE_LOCATION")));
             int originalSize = xmlTags.size();
-            xmlTags.removeIf(xmlTagAccessPredicate);
             if(xmlTags.size() == originalSize) {
                 // nao ha permissao para acesso ainda
                 XmlTag usesPermissionTag = xmlElementFactory.createTagFromText("<uses-permission/>");
