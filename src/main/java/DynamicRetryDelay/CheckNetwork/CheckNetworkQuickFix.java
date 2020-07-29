@@ -4,6 +4,7 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
 import com.intellij.psi.search.FilenameIndex;
@@ -39,19 +40,19 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         PsiFile psiFile = PsiTreeUtil.getParentOfType(intentServiceClass, PsiFile.class);
 
         try {
-            String psiCheckNetworkMethodString =
-                    "boolean checkNetwork() {\n"
+            String psiHasActiveNetworkString =
+                    "protected boolean hasActiveNetwork() {\n"
                     + "     final android.net.ConnectivityManager connManager = (android.net.ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);\n"
                     + "     android.net.Network activeNetwork = connManager.getActiveNetwork();\n"
-                    + "     if(activeNetwork != null) {\n"
-                    + "         return true;\n"
-                    + "     }\n"
-                    + "     return false;\n"
+                    + "     return (activeNetwork != null);\n"
                     + "}";
-            PsiMethod psiCheckNetworkMethod = factory.createMethodFromText(psiCheckNetworkMethodString, null);
-            intentServiceClass.add(psiCheckNetworkMethod);
+            PsiMethod psiHasActiveNetworkMethod = factory.createMethodFromText(psiHasActiveNetworkString, null);
+            PsiComment hasActiveNetworkCommentString = factory.createCommentFromText("//The method hasActiveNetwork() checks whether the network connection is active", psiFile);
+            psiHasActiveNetworkMethod.addBefore(hasActiveNetworkCommentString, psiHasActiveNetworkMethod.getFirstChild());
+            intentServiceClass.add(psiHasActiveNetworkMethod);
 
-            PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (checkNetwork()) { b; } else { NetworkStateReceiver.enable(getApplicationContext()); }", intentServiceClass);
+
+            PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (hasActiveNetwork()) { b; } else { NetworkStateReceiver.enable(getApplicationContext()); }", intentServiceClass);
             ifStatement.getThenBranch().replace(psiMethod.getBody());
             PsiCodeBlock newBody = factory.createCodeBlock();
             newBody.add(ifStatement);
@@ -64,14 +65,12 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     "       private static " + intentServiceClass.getName() + " service;\n" +
                     "\n" +
                     "       public static void setService(" + intentServiceClass.getName() + " newService) { service = newService; }\n" +
-                    "\n" +
                     "       @Override\n" +
                     "       public void onReceive(android.content.Context context, android.content.Intent intent) {\n" +
-                    "           if (service.checkNetwork()) {\n" +
+                    "\n         // If there is an active network connection, this method will \"turn off\" this class and arrange to process the request\n" +
+                    "           if (service.hasActiveNetwork()) {\n" +
                     "               NetworkStateReceiver.disable(context);\n" +
-                    "\n" +
                     "               final android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
-                    "\n" +
                     "               final android.content.Intent innerIntent = new Intent(context, " + intentServiceClass.getName() + ".class);\n" +
                     "               final android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, innerIntent, 0);\n" +
                     "\n" +
@@ -91,12 +90,14 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     "       }" +
                     "    }" +
                     "\n" +
+                    "\n     // Method to  \"turn on\" this class \n" +
                     "       public static void enable(Context context) {\n" +
                     "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
                     "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
                     "           packageManager.setComponentEnabledSetting(receiver, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.DONT_KILL_APP);\n" +
                     "       }\n" +
                     "\n" +
+                    "\n     // Method to  \"turn off\" this class \n" +
                     "       public static void disable(Context context) {\n" +
                     "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
                     "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
@@ -105,6 +106,8 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     "\n} ";
             PsiClass broadcastReceiverClass = factory.createClassFromText(broadcastReceiverString, null);
             intentServiceClass.add(broadcastReceiverClass.getInnerClasses()[0]);
+            PsiComment networkStateReceiverComment = factory.createCommentFromText("// This class is used to, when the connection failes, to check when there is an active connection", psiFile);
+            broadcastReceiverClass.addBefore(networkStateReceiverComment, broadcastReceiverClass.getFirstChild());
             // para fazer imports é assim! - tem que ser sempre com o fully qualified name na string e depois chamar o metodo shortenClassReferences !!
             JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
             javaCodeStyleManager.shortenClassReferences(intentServiceClass);
@@ -171,6 +174,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
                     + "*/", intentServiceClass.getContainingFile());
             psiMethod.addBefore(comment, psiMethod.getFirstChild());
+
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -180,7 +184,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
             psiMethod.addBefore(comment, psiMethod.getFirstChild());
-       }
+        }
     }
-
 }

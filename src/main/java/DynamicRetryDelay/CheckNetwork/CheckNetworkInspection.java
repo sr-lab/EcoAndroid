@@ -4,14 +4,17 @@ import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 public class CheckNetworkInspection extends LocalInspectionTool {
 
@@ -61,10 +64,36 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                         return;
                     }
                 }
+                //TODO - MAKE SURE IF INTERNET IS SUBSCRIBED IN THE ANDROID MANIFEST.XML
+                if(!checkIfInternetIsSubscribed(holder.getProject(), method.getContainingClass().getContainingFile())) {
+                    System.out.println("AQUI");
+                    return; }
                 checkNetworkQuickFix = new CheckNetworkQuickFix();
                 holder.registerProblem(method.getNameIdentifier(), DESCRIPTION_TEMPLATE_CHECK_NETWORK, checkNetworkQuickFix);
             }
         };
+    }
+
+    private boolean checkIfInternetIsSubscribed(Project project, PsiFile psiFile) {
+        PsiFile[] xmlFiles =  FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project));
+        XmlFile xmlFile = (XmlFile) xmlFiles[0];
+        if(xmlFiles.length > 1) {
+            String filePath = psiFile.getVirtualFile().getPath();
+            double distance = StringUtils.getLevenshteinDistance(xmlFile.getVirtualFile().getPath(), filePath);;
+            for(PsiFile currXmlFile: xmlFiles){
+                double auxDistance = StringUtils.getLevenshteinDistance(currXmlFile.getVirtualFile().getPath(), filePath);
+                if(auxDistance < distance ) {
+                    distance = auxDistance;
+                    xmlFile = (XmlFile) currXmlFile;
+                }
+            }
+        }
+        XmlTag rootTag = xmlFile.getRootTag();
+        XmlTag[] subTags = rootTag.findSubTags("uses-permission");
+        List<XmlTag> xmlTags = new LinkedList<>(Arrays.asList(subTags));
+        int originalSize = xmlTags.size();
+        xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.INTERNET")));
+        return xmlTags.size() != originalSize;
     }
 
     private boolean checkIfBodyMethodChecksNetworkConnection(PsiMethodCallExpression currentMethodCall, Project project) {
