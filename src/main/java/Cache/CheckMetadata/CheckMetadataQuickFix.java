@@ -51,12 +51,12 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
 
                 PsiDeclarationStatement declarationStatement;
                 if(currentLocalVariable.getType().equals(PsiType.INT) || currentLocalVariable.getType().equals(PsiType.LONG) || currentLocalVariable.getType().equals(PsiType.FLOAT)) {
-                    declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
+                    declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText("private " + currentLocalVariable.getType().getCanonicalText()
                             + " last" + currentLocalVariable.getName() + " = 0;", psiMethod);
                     ifStatement += "last" + name + " == " + currentLocalVariable.getInitializer().getText() + " && ";
                 }
                 else {
-                    declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText(currentLocalVariable.getType().getCanonicalText()
+                    declarationStatement = (PsiDeclarationStatement) factory.createStatementFromText("private " + currentLocalVariable.getType().getCanonicalText()
                             + " last" + currentLocalVariable.getName() + " = null;", psiMethod);
                     ifStatement += "last" + name + ".equals(" + currentLocalVariable.getInitializer().getText() + ") && ";
                 }
@@ -86,13 +86,13 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
             psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
 
             ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
-            ifStatement += ") { return; } ";
+            ifStatement += ") { // nothing has changed; we can safely return \n return; } ";
             PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
             psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
 
             PsiComment comment = factory.createCommentFromText("/* \n"
-                   // + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                   // + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Whenever a request is received, checks if anything changes before using the data \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
