@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class PassiveProviderLocationQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "Refactor4Green - PASSIVE_PROVIDER";
+    private static final String QUICK_FIX_NAME = "Refactor4Green: Cache - Switching to PASSIVE_PROVIDER";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -60,8 +60,8 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
             List<XmlTag> xmlTags = new LinkedList<>(Arrays.asList(subTags));
-            xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_FINE_LOCATION")));
             int originalSize = xmlTags.size();
+            xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_FINE_LOCATION")));
             if(xmlTags.size() == originalSize) {
                 // nao ha permissao para acesso ainda
                 XmlTag usesPermissionTag = xmlElementFactory.createTagFromText("<uses-permission/>");

@@ -76,7 +76,7 @@
             implementationClass="Cache.SSLSessionCaching.SSLSessionCachingInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Using PASSIVE_PROVIDER instead of NETWORK_PROVIDER"
+            displayName="Refactor4Green: Cache Energy Pattern - Switching to PASSIVE_PROVIDER"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"

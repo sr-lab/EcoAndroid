@@ -42,6 +42,13 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                 ArrayList<PsiLocalVariable> intentVariables = new ArrayList<>();
                 while(iterator.hasNext()) {
                     PsiMethodCallExpression currentMethodCall = iterator.next();
+
+                    // check if there is a NotificationManager call in the method
+                    if(currentMethodCall.resolveMethod() != null) {
+                        PsiClass notificationManagerClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.NotificationManager", GlobalSearchScope.allScope(holder.getProject()));
+                        if(InheritanceUtil.isInheritorOrSelf(currentMethodCall.resolveMethod().getContainingClass(), notificationManagerClass, true)) { return;}
+                    }
+
                     if(currentMethodCall.getMethodExpression().getQualifier() == null)
                         continue;
                     if(currentMethodCall.getMethodExpression().getQualifier().getText().equals("intent")) {
@@ -62,12 +69,17 @@ public class CheckMetadataInspection extends LocalInspectionTool {
 
                         PsiReferenceExpression referenceExpression = (PsiReferenceExpression) PsiTreeUtil.findFirstParent((PsiElement) ref, el -> el instanceof PsiReferenceExpression);
                         if(referenceExpression != null) {
-                            PsiMethod psiInnerMethod = PsiTreeUtil.getParentOfType(referenceExpression, PsiMethodCallExpression.class).resolveMethod();
-                            if(psiInnerMethod != null) {
-                                PsiClass psiInnerClass = psiInnerMethod.getContainingClass();
-                                if(PsiTreeUtil.getParentOfType(referenceExpression, PsiMethodCallExpression.class).getMethodExpression() instanceof PsiReferenceExpression) {
-                                    PsiClass notificationManagerClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.NotificationManager", GlobalSearchScope.allScope(holder.getProject()));
-                                    if(InheritanceUtil.isInheritorOrSelf(psiInnerClass, notificationManagerClass, true)) { return;}
+
+                            // check if the ref is in a method call
+                            PsiMethodCallExpression psiMethodCallExpression = PsiTreeUtil.getParentOfType(referenceExpression, PsiMethodCallExpression.class);
+                            if(psiMethodCallExpression != null) {
+                                PsiReferenceExpression methodExpression = psiMethodCallExpression.getMethodExpression();
+                                if(methodExpression.getQualifierExpression() != null
+                                        && methodExpression.getQualifierExpression().getType() != null
+                                        && methodExpression.getQualifierExpression().getType().getPresentableText().equals("String")
+                                        && methodExpression.getQualifier().getText().startsWith("DownloadManager.")) {
+                                    return;
+
                                 }
                             }
                         }

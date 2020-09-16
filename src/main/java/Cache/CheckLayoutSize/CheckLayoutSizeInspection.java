@@ -27,11 +27,6 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
                 super.visitMethodCallExpression(expression);
 
-                /*
-                 *
-                 *  FIRST PHASE - FIND WHERE THE METHOD SurfaceHolder.setFixedSize( x, y ) OR view.setSizeFromLayout()
-                 *
-                 */
                 String methodCallExpressionString = expression.getMethodExpression().getCanonicalText();
                 String[] methodCallExpressionStringArray = methodCallExpressionString.split("\\.");
 
@@ -48,11 +43,6 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
                     return;
                 }
 
-                /*
-                 *
-                 *  SECOND & THIRD PHASE - GO BACKWARDS TO WHERE THE SIZE IS RETRIEVED AND CHECK IF ITS BEING SEEN IF ITS 0 OR NOT
-                 *
-                 */
                 // get method the call is inserted in
                 PsiMethod psiMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
                 PsiStatement[] statements = psiMethod.getBody().getStatements();

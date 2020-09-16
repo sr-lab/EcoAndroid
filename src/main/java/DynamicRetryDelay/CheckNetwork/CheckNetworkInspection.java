@@ -32,11 +32,6 @@ public class CheckNetworkInspection extends LocalInspectionTool {
             public void visitMethod(PsiMethod method) {
                 super.visitMethod(method);
 
-                /*
-                 *
-                 * FIRST PHASE: LOOK FOR THE onHandleIntent METHOD FROM THE IntentService CLASS
-                 *
-                 */
                 if(!method.getName().equals("onHandleIntent")) // This method is invoked on the worker thread with a request to process.
                     return;
 
@@ -44,11 +39,6 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                 PsiClass serviceClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.IntentService", GlobalSearchScope.allScope(holder.getProject()));
                 if(!(InheritanceUtil.isInheritorOrSelf(psiClass, serviceClass, true))) { return;}
 
-                /*
-                 *
-                 * SECOND PHASE: CHECK IF THE SOMEWHERE IN THE METHOD BODY THERE IS A CALL TO THE METHOD ConnectivityManager.getActiveNetworkInfo()
-                 *
-                 */
                 Collection<PsiMethodCallExpression> methodsCalls = PsiTreeUtil.collectElementsOfType(method.getBody(), PsiMethodCallExpression.class);
                 Iterator<PsiMethodCallExpression> iterator = methodsCalls.iterator();
                 // NOTE: IF THE SIZE IS THE SAME IT MEANS NOTHING WAS REMOVED FROM THE COLLECTION AND THERE IS NO DIRECT CALL TO THE METHOD
@@ -64,10 +54,7 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                         return;
                     }
                 }
-                //TODO - MAKE SURE IF INTERNET IS SUBSCRIBED IN THE ANDROID MANIFEST.XML
-                if(!checkIfInternetIsSubscribed(holder.getProject(), method.getContainingClass().getContainingFile())) {
-                    System.out.println("AQUI");
-                    return; }
+                if(!checkIfInternetIsSubscribed(holder.getProject(), method.getContainingClass().getContainingFile())) { return; }
                 checkNetworkQuickFix = new CheckNetworkQuickFix();
                 holder.registerProblem(method.getNameIdentifier(), DESCRIPTION_TEMPLATE_CHECK_NETWORK, checkNetworkQuickFix);
             }
