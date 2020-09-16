@@ -108,7 +108,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
         while(iterator.hasNext()) {
             PsiAssignmentExpression currentAssignmentExpression = iterator.next();
             if(currentAssignmentExpression.getLExpression().getReference().getCanonicalText().equals(identifier)) {
-                //TODO: ONLY CHANGES IF ITS A LITERAL EXPRESSION. IF ITS DYNAMICALLY COMPUTED, NOTHING CHANGES
+                //NOTE:  ONLY CHANGES IF ITS A LITERAL EXPRESSION. IF ITS DYNAMICALLY COMPUTED, NOTHING CHANGES
                 if(currentAssignmentExpression.getRExpression() instanceof PsiLiteralExpression) {
                     if(PsiUtilBase.compareElementsByPosition(currentAssignmentExpression, methodCallExpression) < 0) {
                         PsiPostfixExpression statement = (PsiPostfixExpression) factory.createExpressionFromText(counterVariableName + "++", null);

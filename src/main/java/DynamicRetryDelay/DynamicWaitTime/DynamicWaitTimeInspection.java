@@ -15,7 +15,7 @@ import java.util.function.Predicate;
 public class DynamicWaitTimeInspection extends LocalInspectionTool {
 
     private DynamicWaitTimeQuickFix dynamicWaitTimeQuickFix;
-    private final InfoWarningQuickFix infoWarningQuickFix = new InfoWarningQuickFix();
+    private final DynamicWaitTimeInfoWarningQuickFix dynamicWaitTimeInfoWarningQuickFix = new DynamicWaitTimeInfoWarningQuickFix();
 
     @NotNull
     @Override
@@ -29,11 +29,6 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
             @Override
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
 
-                /*
-                 *
-                 * FIRST PHASE: CHECK IF THE METHOD CALL IS FOR A THREAD.SLEEP & FIND THE VARIABLE USED TO CALCULATE THE TIME TO SLEEP THE THREAD
-                 *
-                 */
                 if(!(expression.getMethodExpression().getCanonicalText().equals("Thread.sleep")))
                     return;
                 PsiExpression argument =  expression.getArgumentList().getExpressions()[0];
@@ -49,12 +44,6 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                 else
                     timeVariable = (PsiReferenceExpression) argument;
 
-                /*
-                 *
-                 *  SECOND PHASE: CHECK THE WHERE THE VARIABLE COMES FROM: LOCAL VARIABLE OR PARAMETER
-                 *                 OPTION 1: VALUE IS FROM A LOCAL VARIABLE
-                 *
-                 */
                 //NOTE: SINCE ITS CONSTANTLY INSPECTING, IF THE USER SWITCHES FROM LOCAL VARIABLE TO PARAMETER OR VICE VERSA, IT NEEDS TO CLEAN THE COLLECTION IN THE QUICK FIX
                 if(timeVariable.resolve() instanceof PsiLocalVariable) {
                     dynamicWaitTimeQuickFix = new DynamicWaitTimeQuickFix();
@@ -68,16 +57,11 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                     Iterator<PsiAssignmentExpression> iterator = assignmentExpressions.iterator();
                     if(iterator.hasNext()) {
                         dynamicWaitTimeQuickFix.setReference(timeVariable);
-                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix, infoWarningQuickFix);
+                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix, dynamicWaitTimeInfoWarningQuickFix);
                         return;
                     }
                 }
-                /*
-                 *
-                 *  SECOND PHASE: CHECK THE WHERE THE VARIABLE COMES FROM: LOCAL VARIABLE OR PARAMETER
-                 *         OPTION 2: VALUE IS FROM A PARAMETER
-                 *
-                 */
+
                 if(timeVariable.resolve() instanceof PsiParameter) {
                     dynamicWaitTimeQuickFix = new DynamicWaitTimeQuickFix();
                     PsiParameter parameter = (PsiParameter) timeVariable.resolve();
@@ -103,7 +87,7 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                             dynamicWaitTimeQuickFix.setReference(ref);
                     }
                     if(dynamicWaitTimeQuickFix.psiReferenceExpressions.size() > 0)
-                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix, infoWarningQuickFix);
+                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix, dynamicWaitTimeInfoWarningQuickFix);
                     return;
                 }
             }

@@ -86,7 +86,7 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
             psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
 
             ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
-            ifStatement += ") { // nothing has changed; we can safely return \n return; } ";
+            ifStatement += ") { \n // nothing has changed; we can safely return \n return; } ";
             PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
             psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
 

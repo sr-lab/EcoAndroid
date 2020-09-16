@@ -14,8 +14,8 @@ import subprocess
 import re
 
 #################### ---------------- GLOBAL VARIABLES ---------------- ####################
-maxApps = 40
-index = 22
+maxApps = 100
+index = 62
 
 #################### ---------------- OPEN XLXS FILE ---------------- ####################
 print('opening xlxs file')
@@ -48,7 +48,7 @@ print('cloning repositories')
 inspections = ['DynamicWaitTime.xml', 'InfoWarningFCM.xml', 'CheckNetwork.xml', 'CheckLayoutSize.xml', 'CheckMetadata.xml', 
 'SSLSessionCaching.xml','PassiveProviderLocation.xml', 'HTTPsURLConnCacheMechanism.xml', 'DirtyRendering.xml']
 
-for i in range(21, len(linkColumn)):
+for i in range(60, len(linkColumn)):
 	print("index is " + str(i))
 	path = nameColumn.values[i].split('/')[0]
 

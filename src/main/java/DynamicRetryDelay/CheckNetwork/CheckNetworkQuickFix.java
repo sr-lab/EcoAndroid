@@ -39,7 +39,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         PsiClass intentServiceClass = psiMethod.getContainingClass();
         PsiFile psiFile = PsiTreeUtil.getParentOfType(intentServiceClass, PsiFile.class);
 
-        try {
             String psiHasActiveNetworkString =
                     "protected boolean hasActiveNetwork() {\n"
                     + "     final android.net.ConnectivityManager connManager = (android.net.ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);\n"
@@ -52,24 +51,29 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             intentServiceClass.add(psiHasActiveNetworkMethod);
 
 
-            PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (hasActiveNetwork()) { b; } else { NetworkStateReceiver.enable(getApplicationContext()); }", intentServiceClass);
+            PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (hasActiveNetwork()) { b; } else { " +
+                    "NetworkStateReceiver networkStateReceiver = new NetworkStateReceiver();\n" +
+                    "ConnectivityManager connectivityManager = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
+                    "networkStateReceiver.enable(getApplicationContext());\n" +
+                    "networkStateReceiver.setService(this);\n" +
+                    "connectivityManager.registerDefaultNetworkCallback( networkStateReceiver);" +
+                    "}", intentServiceClass);
             ifStatement.getThenBranch().replace(psiMethod.getBody());
             PsiCodeBlock newBody = factory.createCodeBlock();
             newBody.add(ifStatement);
             psiMethod.getBody().replace(newBody);
 
             String broadcastReceiverString =
-                    "public static class NetworkStateReceiver extends android.content.BroadcastReceiver {\n" +
-                    "       private static final String TAG = NetworkStateReceiver.class.getName();\n" +
+                    "public class NetworkStateReceiver extends android.net.ConnectivityManager.NetworkCallback {\n" +
+                    "       private " + intentServiceClass.getName() + " service;\n" +
+                    "       public void setService(" + intentServiceClass.getName() + " newService) { service = newService; }" +
                     "\n" +
-                    "       private static " + intentServiceClass.getName() + " service;\n" +
-                    "\n" +
-                    "       public static void setService(" + intentServiceClass.getName() + " newService) { service = newService; }\n" +
                     "       @Override\n" +
-                    "       public void onReceive(android.content.Context context, android.content.Intent intent) {\n" +
+                    "       public void onAvailable(Network network) {\n" +
                     "\n         // If there is an active network connection, this method will \"turn off\" this class and arrange to process the request\n" +
                     "           if (service.hasActiveNetwork()) {\n" +
-                    "               NetworkStateReceiver.disable(context);\n" +
+                    "               Context context = getApplicationContext();\n" +
+                    "               disable(context);"  +
                     "               final android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
                     "               final android.content.Intent innerIntent = new Intent(context, " + intentServiceClass.getName() + ".class);\n" +
                     "               final android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, innerIntent, 0);\n" +
@@ -91,18 +95,16 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     "    }" +
                     "\n" +
                     "\n     // Method to  \"turn on\" this class \n" +
-                    "       public static void enable(Context context) {\n" +
-                    "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
-                    "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
-                    "           packageManager.setComponentEnabledSetting(receiver, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED, android.content.pm.PackageManager.DONT_KILL_APP);\n" +
+                    "       public void enable(Context context) {\n" +
+                    "           ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
+                    "           connectivityManager.registerDefaultNetworkCallback(this);" +
                     "       }\n" +
-                    "\n" +
-                    "\n     // Method to  \"turn off\" this class \n" +
-                    "       public static void disable(Context context) {\n" +
-                    "           final android.content.pm.PackageManager packageManager = context.getPackageManager();\n" +
-                    "           final android.content.ComponentName receiver = new ComponentName(context, NetworkStateReceiver.class);\n" +
-                    "           packageManager.setComponentEnabledSetting( receiver, android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED, android.content.pm.PackageManager.DONT_KILL_APP);\n" +
-                    "       }" +
+                    "\n"
+                    + "     // Method to  \"turn off\" this class\n" +
+                    "        public void disable(Context context) {\n" +
+                    "            ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
+                    "            connectivityManager.unregisterNetworkCallback(this);\n" +
+                    "       }\n"+
                     "\n} ";
             PsiClass broadcastReceiverClass = factory.createClassFromText(broadcastReceiverString, null);
             intentServiceClass.add(broadcastReceiverClass.getInnerClasses()[0]);
@@ -142,14 +144,9 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
 
             // criar a tag para o receiver
             XmlTag receiverTag = xmlElementFactory.createTagFromText("<receiver/>");
-            receiverTag.setAttribute("android:name",  intentServiceClass.getQualifiedName() + "$NetworkStateReceiver");
+            receiverTag.setAttribute("android:name",  processClassName(intentServiceClass, project) + "$NetworkStateReceiver");
             receiverTag.setAttribute("android:exported", "true");
             receiverTag.setAttribute("android:enabled", "false");
-            XmlTag intentFilterTag = xmlElementFactory.createTagFromText("<intent-filter/>");
-            XmlTag actionTag = xmlElementFactory.createTagFromText("<action/>");
-            actionTag.setAttribute("android:name", "android.net.conn.CONNECTIVITY_CHANGE");
-            intentFilterTag.add(actionTag);
-            receiverTag.add(intentFilterTag);
             XmlTag applicationTag = rootTag.findFirstSubTag("application");
             boolean applicationTagNull = false;
             if(applicationTag == null) {
@@ -175,15 +172,24 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     + "*/", intentServiceClass.getContainingFile());
             psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
-        } catch(Throwable e) {
-            PsiComment comment = factory.createCommentFromText("/* \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN NOT APPLIED \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Something went wrong and the pattern could not be applied! \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+    }
+
+    private String processClassName(PsiClass intentServiceClass, Project project) {
+        String className = intentServiceClass.getQualifiedName();
+        String[] bigClassName = intentServiceClass.getQualifiedName().split("\\." + intentServiceClass.getQualifiedName());
+        if(bigClassName[0].equals(intentServiceClass.getQualifiedName())) { return className; }
+        else {
+            // in the case it's an inner class
+            String[] split = intentServiceClass.getQualifiedName().split("\\.");
+            PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(bigClassName[0],
+                    GlobalSearchScope.allScope(project));
+            for (PsiClass innerClass : psiClass.getInnerClasses()) {
+                if(innerClass.equals(intentServiceClass)) {
+                    className = bigClassName[0] + "$" + split[split.length-1];
+                    return className;
+                }
+            }
         }
+        return className;
     }
 }

@@ -34,10 +34,9 @@ public class CheckLayoutSizeQuickFix implements LocalQuickFix {
 
         try {
             Collection<PsiMethodCallExpression> psiMethodCallExpressions = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiMethodCallExpression.class);
-            psiMethodCallExpressions.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredWidth")));
-            //psiMethodCallExpressions.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredHeight")));
+            psiMethodCallExpressions.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredWidth"))
+            || el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredHeight"));
             Iterator<PsiMethodCallExpression> iterator = psiMethodCallExpressions.iterator();
-            //TODO ITS WRONG
             PsiMethodCallExpression next = iterator.next();
             String[] splittedName = next.getMethodExpression().getCanonicalText().split("\\.");
 

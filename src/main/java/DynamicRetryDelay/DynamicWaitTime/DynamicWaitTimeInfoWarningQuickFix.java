@@ -10,7 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-public class InfoWarningQuickFix implements LocalQuickFix {
+public class DynamicWaitTimeInfoWarningQuickFix implements LocalQuickFix {
 
     private final String QUICK_FIX_NAME = "Refactor4Green: Dynamic Retry Delay Energy Pattern - Information about a new approach to implement it";
 
