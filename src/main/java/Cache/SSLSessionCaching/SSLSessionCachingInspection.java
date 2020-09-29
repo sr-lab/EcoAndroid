@@ -20,7 +20,7 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE = "Refactor4Green: Cache - SSL Session Cached";
+            private final String DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE = "EcoAndroid: Cache - SSL Session Cached";
 
 
             @Override
@@ -43,10 +43,6 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
                 if(methodCallExpressionsCollection.size() > 0 ) { return; }
 
                 holder.registerProblem(expression, DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE, sslSessionCachingQuickFix);
-
-
-
-
             }
         };
     }

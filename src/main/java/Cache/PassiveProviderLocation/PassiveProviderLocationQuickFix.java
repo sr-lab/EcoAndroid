@@ -4,6 +4,7 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.codeStyle.IndentHelper;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class PassiveProviderLocationQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "Refactor4Green: Cache - Switching to PASSIVE_PROVIDER";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - switching to PASSIVE_PROVIDER";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -34,12 +35,61 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
         PsiMethodCallExpression psiMethodCallExpression = (PsiMethodCallExpression) problemDescriptor.getPsiElement();
         PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiMethod.class);
         PsiFile psiFile = PsiTreeUtil.getParentOfType(psiMethod.getContainingClass(), PsiFile.class);
+        PsiClass psiClass = psiMethod.getContainingClass();
 
         try {
-            // mudar o argumento na chamada a funcao
             PsiExpression psiExpression = psiMethodCallExpression.getArgumentList().getExpressions()[0];
-            PsiExpression psiNewExpression = factory.createExpressionFromText("LocationManager.PASSIVE_PROVIDER",null);
-            psiExpression.replace(psiNewExpression);
+
+            PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression) psiExpression;
+            if(psiReferenceExpression.getText().startsWith("LocationManager.")){
+                String locationManagerName = psiMethodCallExpression.getText().split("\\.")[0];
+                PsiStatement psiStatement = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiStatement.class);
+
+                PsiExpression psiNewExpression = factory.createExpressionFromText("lm",null);
+                psiExpression.replace(psiNewExpression);
+                String criteriaString = psiStatement.getText();
+                
+                psiNewExpression = factory.createExpressionFromText("LocationManager.PASSIVE_PROVIDER", null);
+                psiExpression = psiMethodCallExpression.getArgumentList().getExpressions()[0];
+                psiExpression.replace(psiNewExpression);
+                String passiveProviderString = psiStatement.getText();
+
+                String newBlockString = "{ " +
+                        "/* \n " +
+                        " * This next piece of code presents two ways to implement a location manager that spends less energy. \n" +
+                        " * 1 - Switching to PassiveProvider \n" +
+                        " * 2 - Using the criteria class to get the best provider for the needs requested (with the need for POWER_LOW) \n" +
+                        " * The second option has been giving \"priority\". However, the goal is for the programmer to chose the one which fits bets. \n" +
+                        " * If you wish to know more, please read: https://developer.android.com/reference/android/location/LocationManager \n" +
+                        " */ \n" +
+                        "boolean flagEcoAndroid = false; \n}";
+                String ifStatement =
+                        "if(flagEcoAndroid) { \n" +
+                            " Criteria criteria = new Criteria(); \n" +
+                            " criteria.setPowerRequirement(Criteria.POWER_LOW); \n" +
+                            " String lm = " + locationManagerName + ".getBestProvider(criteria, true);\n" +
+                            criteriaString + "\n" +
+                        "} else { \n" +
+                            passiveProviderString + "\n" +
+                        "}";
+
+                PsiCodeBlock newBlock = factory.createCodeBlockFromText(newBlockString, psiFile);
+                newBlock.getLBrace().delete();
+                newBlock.getRBrace().delete();
+                PsiIfStatement psiIfStatement = (PsiIfStatement) factory.createStatementFromText(ifStatement, psiFile);
+                psiStatement.getParent().addAfter(psiIfStatement, psiStatement);
+                psiStatement.replace(newBlock);
+
+                JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
+                javaCodeStyleManager.shortenClassReferences(psiClass);
+            }
+            else {
+
+            }
+
+            // mudar o argumento na chamada a funcao
+            //PsiExpression psiNewExpression = factory.createExpressionFromText("LocationManager.PASSIVE_PROVIDER",null);
+            //psiExpression.replace(psiNewExpression);
 
             // adicionar a linha ao ficheiro AndroidManifest.xml
             XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
@@ -72,25 +122,25 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
 
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* This energy pattern changes the type of LocationManager to \"PASSIVE_PROVIDER\". \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* This change consumes less energy because it doesn't actually initiating a location fix.\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed file \"" + psiFile.getName() + " and xml file \"AndroidManifest.xml\". \n"
+                    + "* Application changed file \"" + psiFile.getName() + "\" and xml file \"AndroidManifest.xml\". \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiMethod.getContainingClass().getContainingFile());
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN NOT APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }
 
 

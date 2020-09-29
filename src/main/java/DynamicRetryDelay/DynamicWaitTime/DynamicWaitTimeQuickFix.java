@@ -19,7 +19,7 @@ import java.util.Iterator;
 public class DynamicWaitTimeQuickFix implements LocalQuickFix {
 
     // NOTE: NAME THAT APPEARS AS WARNINGS TO THE USER
-    private final String QUICK_FIX_NAME = "Refactor4Green: Dynamic Retry Delay Energy Pattern - Switching to a dynamic wait time between resource attempts case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Dynamic Retry Delay Energy Pattern - switching to a dynamic wait time between resource attempts case";
     ArrayList psiReferenceExpressions = new ArrayList();
     private String counterVariableName = "accessAttempts";
 
@@ -78,23 +78,23 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
 
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
+                    + "* EcoAndroid: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Switching the wait time from constant to dynamic \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed file \"" + psiFile.getName() + "\n"
+                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN NOT APPLIED \n"
+                    + "* EcoAndroid: DYNAMIC RETRY DELAY ENERGY PATTERN NOT APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }
 
 

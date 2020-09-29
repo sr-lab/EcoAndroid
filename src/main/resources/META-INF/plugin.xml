@@ -1,12 +1,12 @@
 <idea-plugin>
-  <id>anaribeiro.ist.Refactor4Green</id>
-  <name>Refactor4Green</name>
-  <vendor email="anasofiaribeiro@tecnico.ulisboa.pt"  url="http://www.yourcompany.com">Refactor4Green</vendor>
+  <id>anaribeiro.ist.EcoAndroid</id>
+  <name>EcoAndroid</name>
+  <vendor email="anasofiaribeiro@tecnico.ulisboa.pt"  url="http://www.yourcompany.com">EcoAndroid</vendor>
 
   <description>
-    The Refactor4Green plugin aims at helping developers creating Android mobile applications with lower energy consumption rates.
+    The EcoAndroid plugin aims at helping developers creating Android mobile applications with lower energy consumption rates.
     In order to achieve this goal, the plugin refactors the source code, according to well-known energy patterns.
-    More details about the energy patterns applied can be found in the Refactor4Green github.
+    More details about the energy patterns applied can be found in the EcoAndroid github.
   </description>
 
   <idea-version since-build="141"/>
@@ -20,7 +20,7 @@
     <!-- DYNAMIC RETRY DELAY  -->
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Switching to a dynamic wait time between resource attempts"
+            displayName="EcoAndroid: Dynamic Retry Delay Energy Pattern - switching to a dynamic wait time between resource attempts"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -29,7 +29,7 @@
             implementationClass="DynamicRetryDelay.DynamicWaitTime.DynamicWaitTimeInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Dynamic Retry Delay Energy Pattern - Checking network connection before processing request"
+            displayName="EcoAndroid: Dynamic Retry Delay Energy Pattern - checking network connection before processing request"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -39,7 +39,7 @@
     <!-- PUSH OVER POLL  -->
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Push Over Poll Energy Pattern - Info Warning FCM"
+            displayName="EcoAndroid: Push Over Poll Energy Pattern - info warning about Firebase Cloud Messaging"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -49,7 +49,7 @@
     <!-- CACHE  -->
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Checking values before processing them"
+            displayName="EcoAndroid: Cache Energy Pattern - checking values before processing them"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -58,7 +58,7 @@
             implementationClass="Cache.CheckMetadata.CheckMetadataInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Checking layout size"
+            displayName="EcoAndroid: Cache Energy Pattern - checking layout size"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -67,7 +67,7 @@
             implementationClass="Cache.CheckLayoutSize.CheckLayoutSizeInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - SSL Session caching"
+            displayName="EcoAndroid: Cache Energy Pattern - SSL session caching"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -76,7 +76,7 @@
             implementationClass="Cache.SSLSessionCaching.SSLSessionCachingInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Switching to PASSIVE_PROVIDER"
+            displayName="EcoAndroid: Cache Energy Pattern - switching to PASSIVE_PROVIDER"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -85,7 +85,7 @@
             implementationClass="Cache.PassiveProviderLocation.PassiveProviderLocationInspection"/>
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Cache Energy Pattern - Adding caching mechanism to HTTPsURLConnection"
+            displayName="EcoAndroid: Cache Energy Pattern - adding caching mechanism to HTTPsURLConnection"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
@@ -95,18 +95,28 @@
     <!-- AVOID EXTRANEOUS GRAPHICS AND ANIMATIONS -->
     <localInspection
             language="JAVA"
-            displayName="Refactor4Green: Avoid Extraneous Graphics and Animations Energy Pattern - Only rendering when surface is created or when requested"
+            displayName="EcoAndroid: Avoid Extraneous Graphics and Animations Energy Pattern - only rendering when surface is created or when requested"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
             enabledByDefault="true"
             level="WARNING"
             implementationClass="AvoidExtraneousGraphicsAndAnimations.DirtyRenderingInspection"/>
+    <!-- REDUCE SIZE -->
+    <localInspection
+            language="JAVA"
+            displayName="EcoAndroid: Reduce Size Energy Pattern - gzip compression on HTTP Request"
+            groupPath="Java"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.probable.bugs"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="ReduceSize.GZIPCompressionInspection"/>
   </extensions>
 
   <actions>
-    <action id="Refactor4Green" class="Refactor4GreenAction" text="Refactor4Green"
-            description="Refactor4Green">
+    <action id="EcoAndroid" class="EcoAndroidAction" text="EcoAndroid"
+            description="EcoAndroid">
       <add-to-group group-id="ToolsMenu" anchor="first"/>
     </action>
   </actions>

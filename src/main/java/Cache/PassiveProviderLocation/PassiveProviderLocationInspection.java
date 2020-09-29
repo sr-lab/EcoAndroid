@@ -23,8 +23,8 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER = "Refactor4Green: Cache - Switching to PASSIVE_PROVIDER";
-            private final String DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING = "Refactor4Green: Cache - Possible switch to PASSIVE_PROVIDER";
+            private final String DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER = "EcoAndroid: Cache - Switching to PASSIVE_PROVIDER";
+            private final String DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING = "EcoAndroid: Cache - Possible switch to PASSIVE_PROVIDER";
 
 
             @Override
@@ -59,6 +59,9 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
                             holder.registerProblem(expression, DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING, passiveProviderLocationInfoWarningQuickFix);
                             return;
                         }
+                    }
+                    else if (ifStatement.getCondition() instanceof PsiReferenceExpression && ifStatement.getCondition().getText().equals("flagEcoAndroid")) {
+                        return;
                     }
                 }
                 holder.registerProblem(expression, DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER, passiveProviderLocationQuickFix);

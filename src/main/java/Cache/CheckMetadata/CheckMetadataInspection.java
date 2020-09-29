@@ -24,7 +24,7 @@ public class CheckMetadataInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_CHECK_METADATA = "Refactor4Green: Cache - Check Metadata";
+            private final String DESCRIPTION_TEMPLATE_CHECK_METADATA = "EcoAndroid: Cache - Check Metadata";
 
             @Override
             public void visitMethod(PsiMethod method) {

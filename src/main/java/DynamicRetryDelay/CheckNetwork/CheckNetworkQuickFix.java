@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 
 public class CheckNetworkQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "Refactor4Green: Dynamic Retry Delay Energy Pattern - Checking network connection before processing request case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Dynamic Retry Delay Energy Pattern - checking network connection before processing request case";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -39,12 +39,13 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
         PsiClass intentServiceClass = psiMethod.getContainingClass();
         PsiFile psiFile = PsiTreeUtil.getParentOfType(intentServiceClass, PsiFile.class);
 
+        try {
             String psiHasActiveNetworkString =
                     "protected boolean hasActiveNetwork() {\n"
-                    + "     final android.net.ConnectivityManager connManager = (android.net.ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);\n"
-                    + "     android.net.Network activeNetwork = connManager.getActiveNetwork();\n"
-                    + "     return (activeNetwork != null);\n"
-                    + "}";
+                            + "     final android.net.ConnectivityManager connManager = (android.net.ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);\n"
+                            + "     android.net.Network activeNetwork = connManager.getActiveNetwork();\n"
+                            + "     return (activeNetwork != null);\n"
+                            + "}";
             PsiMethod psiHasActiveNetworkMethod = factory.createMethodFromText(psiHasActiveNetworkString, null);
             PsiComment hasActiveNetworkCommentString = factory.createCommentFromText("//The method hasActiveNetwork() checks whether the network connection is active", psiFile);
             psiHasActiveNetworkMethod.addBefore(hasActiveNetworkCommentString, psiHasActiveNetworkMethod.getFirstChild());
@@ -65,47 +66,47 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
 
             String broadcastReceiverString =
                     "public class NetworkStateReceiver extends android.net.ConnectivityManager.NetworkCallback {\n" +
-                    "       private " + intentServiceClass.getName() + " service;\n" +
-                    "       public void setService(" + intentServiceClass.getName() + " newService) { service = newService; }" +
-                    "\n" +
-                    "       @Override\n" +
-                    "       public void onAvailable(Network network) {\n" +
-                    "\n         // If there is an active network connection, this method will \"turn off\" this class and arrange to process the request\n" +
-                    "           if (service.hasActiveNetwork()) {\n" +
-                    "               Context context = getApplicationContext();\n" +
-                    "               disable(context);"  +
-                    "               final android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
-                    "               final android.content.Intent innerIntent = new Intent(context, " + intentServiceClass.getName() + ".class);\n" +
-                    "               final android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, innerIntent, 0);\n" +
-                    "\n" +
-                    "               android.content.SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);\n" +
-                    "               preferences.edit();\n" +
-                    "               boolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
-                    "\n" +
-                    "               final String hours = preferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
-                    "               long hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;\n" +
-                    "\n" +
-                    "                if (autoRefreshEnabled && hoursLong != 0) {\n" +
-                    "                   final long alarmTime =  preferences.getLong(\"last_auto_refresh_time\", 0) + hoursLong;\n" +
-                    "                   alarmManager.set(AlarmManager.RTC, alarmTime, pendingIntent);\n" +
-                    "                } else {\n" +
-                    "                    alarmManager.cancel(pendingIntent);\n" +
-                    "            }" +
-                    "       }" +
-                    "    }" +
-                    "\n" +
-                    "\n     // Method to  \"turn on\" this class \n" +
-                    "       public void enable(Context context) {\n" +
-                    "           ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
-                    "           connectivityManager.registerDefaultNetworkCallback(this);" +
-                    "       }\n" +
-                    "\n"
-                    + "     // Method to  \"turn off\" this class\n" +
-                    "        public void disable(Context context) {\n" +
-                    "            ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
-                    "            connectivityManager.unregisterNetworkCallback(this);\n" +
-                    "       }\n"+
-                    "\n} ";
+                            "       private " + intentServiceClass.getName() + " service;\n" +
+                            "       public void setService(" + intentServiceClass.getName() + " newService) { service = newService; }" +
+                            "\n" +
+                            "       @Override\n" +
+                            "       public void onAvailable(Network network) {\n" +
+                            "\n         // If there is an active network connection, this method will \"turn off\" this class and arrange to process the request\n" +
+                            "           if (service.hasActiveNetwork()) {\n" +
+                            "               Context context = getApplicationContext();\n" +
+                            "               disable(context);" +
+                            "               final android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
+                            "               final android.content.Intent innerIntent = new Intent(context, " + intentServiceClass.getName() + ".class);\n" +
+                            "               final android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, innerIntent, 0);\n" +
+                            "\n" +
+                            "               android.content.SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);\n" +
+                            "               preferences.edit();\n" +
+                            "               boolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
+                            "\n" +
+                            "               final String hours = preferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
+                            "               long hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;\n" +
+                            "\n" +
+                            "                if (autoRefreshEnabled && hoursLong != 0) {\n" +
+                            "                   final long alarmTime =  preferences.getLong(\"last_auto_refresh_time\", 0) + hoursLong;\n" +
+                            "                   alarmManager.set(AlarmManager.RTC, alarmTime, pendingIntent);\n" +
+                            "                } else {\n" +
+                            "                    alarmManager.cancel(pendingIntent);\n" +
+                            "            }" +
+                            "       }" +
+                            "    }" +
+                            "\n" +
+                            "\n     // Method to  \"turn on\" this class \n" +
+                            "       public void enable(Context context) {\n" +
+                            "           ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
+                            "           connectivityManager.registerDefaultNetworkCallback(this);" +
+                            "       }\n" +
+                            "\n"
+                            + "     // Method to  \"turn off\" this class\n" +
+                            "        public void disable(Context context) {\n" +
+                            "            ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
+                            "            connectivityManager.unregisterNetworkCallback(this);\n" +
+                            "       }\n" +
+                            "\n} ";
             PsiClass broadcastReceiverClass = factory.createClassFromText(broadcastReceiverString, null);
             intentServiceClass.add(broadcastReceiverClass.getInnerClasses()[0]);
             PsiComment networkStateReceiverComment = factory.createCommentFromText("// This class is used to, when the connection failes, to check when there is an active connection", psiFile);
@@ -115,14 +116,15 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             javaCodeStyleManager.shortenClassReferences(intentServiceClass);
 
             XmlElementFactory xmlElementFactory = XmlElementFactory.getInstance(project);
-            PsiFile[] xmlFiles =  FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project));
+            PsiFile[] xmlFiles = FilenameIndex.getFilesByName(project, "AndroidManifest.xml", GlobalSearchScope.projectScope(project));
             XmlFile xmlFile = (XmlFile) xmlFiles[0];
-            if(xmlFiles.length > 1) {
+            if (xmlFiles.length > 1) {
                 String filePath = psiFile.getVirtualFile().getPath();
-                double distance = StringUtils.getLevenshteinDistance(xmlFile.getVirtualFile().getPath(), filePath);;
-                for(PsiFile currXmlFile: xmlFiles){
+                double distance = StringUtils.getLevenshteinDistance(xmlFile.getVirtualFile().getPath(), filePath);
+                ;
+                for (PsiFile currXmlFile : xmlFiles) {
                     double auxDistance = StringUtils.getLevenshteinDistance(currXmlFile.getVirtualFile().getPath(), filePath);
-                    if(auxDistance < distance ) {
+                    if (auxDistance < distance) {
                         distance = auxDistance;
                         xmlFile = (XmlFile) currXmlFile;
                     }
@@ -134,44 +136,56 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
             List<XmlTag> xmlTags = new LinkedList<>(Arrays.asList(subTags));
             int originalSize = xmlTags.size();
             xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_NETWORK_STATE")));
-            if(xmlTags.size() == originalSize) {
+            if (xmlTags.size() == originalSize) {
                 // nao ha permissao para acesso ainda
                 XmlTag usesPermissionTag = xmlElementFactory.createTagFromText("<uses-permission/>");
                 usesPermissionTag.setAttribute("android:name", "android.permission.ACCESS_NETWORK_STATE");
-                if(originalSize > 0) { subTags[0].getParent().addAfter(usesPermissionTag, subTags[0]); }
-                else { rootTag.add(usesPermissionTag); }
+                if (originalSize > 0) {
+                    subTags[0].getParent().addAfter(usesPermissionTag, subTags[0]);
+                } else {
+                    rootTag.add(usesPermissionTag);
+                }
             }
 
             // criar a tag para o receiver
             XmlTag receiverTag = xmlElementFactory.createTagFromText("<receiver/>");
-            receiverTag.setAttribute("android:name",  processClassName(intentServiceClass, project) + "$NetworkStateReceiver");
+            receiverTag.setAttribute("android:name", processClassName(intentServiceClass, project) + "$NetworkStateReceiver");
             receiverTag.setAttribute("android:exported", "true");
             receiverTag.setAttribute("android:enabled", "false");
             XmlTag applicationTag = rootTag.findFirstSubTag("application");
             boolean applicationTagNull = false;
-            if(applicationTag == null) {
+            if (applicationTag == null) {
                 applicationTagNull = true;
                 applicationTag = xmlElementFactory.createTagFromText("<application/>");
             }
             XmlTag firstProvider = applicationTag.findFirstSubTag("provider");
-            if(firstProvider != null)
+            if (firstProvider != null)
                 applicationTag.addBefore(receiverTag, firstProvider);
             else
                 applicationTag.add(receiverTag);
-            if(applicationTagNull)
+            if (applicationTagNull)
                 xmlFile.add(applicationTag);
 
             PsiComment comment = factory.createCommentFromText("/*\n "
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
-                    + "* Refactor4Green: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
+                    + "* EcoAndroid: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
                     + "* Checking the network connection before attempting to answer a request \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
                     + "* Application changed java file \"" + intentServiceClass.getContainingFile().getName() + "\"  and xml file \"AndroidManifest.xml\". \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
                     + "*/", intentServiceClass.getContainingFile());
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
-
+            psiMethod.getParent().addBefore(comment, psiMethod);
+        } catch(Throwable e) {
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* EcoAndroid: DYNAMIC RETRY DELAY ENERGY PATTERN NOT APPLIED \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Something went wrong and the pattern could not be applied! \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    +"*/", psiFile);
+            psiMethod.getParent().addBefore(comment, psiMethod);
+        }
     }
 
     private String processClassName(PsiClass intentServiceClass, Project project) {

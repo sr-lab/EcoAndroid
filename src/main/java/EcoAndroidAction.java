@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-public class Refactor4GreenAction extends AnAction {
+public class EcoAndroidAction extends AnAction {
 
     // method implements the code that executes when an action is invoked by the user.
     @Override

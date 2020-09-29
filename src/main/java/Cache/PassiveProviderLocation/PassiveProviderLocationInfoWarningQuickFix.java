@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class PassiveProviderLocationInfoWarningQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "Refactor4Green: Cache - Possible switch to PASSIVE_PROVIDER";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - Possible switch to PASSIVE_PROVIDER";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -28,7 +28,7 @@ public class PassiveProviderLocationInfoWarningQuickFix implements LocalQuickFix
 
         PsiComment comment = factory.createCommentFromText("/* \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "* TODO Refactor4Green \n "
+                + "* TODO EcoAndroid \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "* CACHE ENERGY PATTERN INFO WARNING \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -43,6 +43,6 @@ public class PassiveProviderLocationInfoWarningQuickFix implements LocalQuickFix
                 + "* https://developer.android.com/reference/android/location/LocationManager#PASSIVE_PROVIDER \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "*/", psiFile);
-        psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        psiMethod.getParent().addBefore(comment, psiMethod);
     }
 }

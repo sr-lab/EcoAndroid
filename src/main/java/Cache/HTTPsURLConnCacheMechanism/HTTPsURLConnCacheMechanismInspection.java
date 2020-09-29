@@ -20,7 +20,7 @@ public class HTTPsURLConnCacheMechanismInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_HTPPSURLCONNECTION_CACHE = "Refactor4Green: Cache - SSL Session Cached";
+            private final String DESCRIPTION_TEMPLATE_HTPPSURLCONNECTION_CACHE = "EcoAndroid: Cache - SSL Session Cached";
 
 
             @Override

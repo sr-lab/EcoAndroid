@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class InfoWarningFCMInspection extends LocalInspectionTool {
 
-    private static final String DESCRIPTION_TEMPLATE_INFOWARNING_FCM_PUSHOVERPOLL = "Refactor4Green: Push Over Poll - Info Warning FCM";
+    private static final String DESCRIPTION_TEMPLATE_INFOWARNING_FCM_PUSHOVERPOLL = "EcoAndroid: Push Over Poll";
     InfoWarningFCMQuickFix infoWarningGCMQuickFix = new InfoWarningFCMQuickFix();
 
     @NotNull
@@ -26,8 +26,6 @@ public class InfoWarningFCMInspection extends LocalInspectionTool {
                 if(!psiMethodResolved.getContainingClass().equals(psiSSLContextClass)) { return ; }
 
                 holder.registerProblem(expression, DESCRIPTION_TEMPLATE_INFOWARNING_FCM_PUSHOVERPOLL, infoWarningGCMQuickFix);
-
-
             }
         };
     }
