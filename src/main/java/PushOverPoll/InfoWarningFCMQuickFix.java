@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class InfoWarningFCMQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "Refactor4Green: Push Over Poll Energy Pattern - Info Warning about Firebase Cloud Messaging";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Push Over Poll Energy Pattern - info warning about Firebase Cloud Messaging";
 
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
@@ -29,7 +29,7 @@ public class InfoWarningFCMQuickFix implements LocalQuickFix {
 
         PsiComment comment = factory.createCommentFromText("/* \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                + "* TODO Refactor4Green \n "
+                + "* TODO EcoAndroid \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "* PUSH OVER POLL ENERGY PATTERN INFO WARNING \n"
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -44,7 +44,7 @@ public class InfoWarningFCMQuickFix implements LocalQuickFix {
                 + "* https://firebase.google.com/docs/cloud-messaging/android/client \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "*/", psiFile);
-        psiMethod.addBefore(comment, psiMethod.getFirstChild());
+        psiMethod.getParent().addBefore(comment, psiMethod);
 
     }
 }

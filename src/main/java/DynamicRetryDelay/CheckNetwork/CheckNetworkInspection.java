@@ -26,7 +26,7 @@ public class CheckNetworkInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_CHECK_NETWORK = "Refactor4Green: Check Network Before Autorefresh";
+            private final String DESCRIPTION_TEMPLATE_CHECK_NETWORK = "EcoAndroid: Check Network Before Dealing With Request";
 
             @Override
             public void visitMethod(PsiMethod method) {

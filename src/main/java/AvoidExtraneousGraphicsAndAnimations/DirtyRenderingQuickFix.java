@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class DirtyRenderingQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "Refactor4Green: Avoid Extraneous Graphics and Animations Energy Pattern - Only rendering when surface is created or when requested";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Avoid Extraneous Graphics and Animations Energy Pattern - only rendering when surface is created or when requested";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -34,23 +34,23 @@ public class DirtyRenderingQuickFix implements LocalQuickFix {
 
             PsiComment comment = factory.createCommentFromText("/* \n "
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: AVOID EXTRANEOUS GRAPHICS AND ANIMATIONS ENERGY PATTERN APPLIED \n"
+                    + "* EcoAndroid: AVOID EXTRANEOUS GRAPHICS AND ANIMATIONS ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Changing rendering mode to one that only renders when it is created or when is it requested by the method \"requestRender()\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\n"
+                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiClass.getContainingFile());
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + "* EcoAndroid:AVOID EXTRANEOUS GRAPHICS AND ANIMATIONS ENERGY PATTERN NOT APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }
 
 

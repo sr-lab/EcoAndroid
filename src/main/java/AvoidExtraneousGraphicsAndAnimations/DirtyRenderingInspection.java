@@ -17,7 +17,7 @@ public class DirtyRenderingInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_DIRTY_RENDERING = "Refactor4Green: Avoid Extraneous Graphics and Animations Energy Pattern - Only rendering when surface is created or when requested";
+            private final String DESCRIPTION_TEMPLATE_DIRTY_RENDERING = "EcoAndroid: Avoid Extraneous Graphics and Animations Energy Pattern";
 
 
             @Override
@@ -34,10 +34,6 @@ public class DirtyRenderingInspection extends LocalInspectionTool {
                 if(!argExpression.getText().equals("GLSurfaceView.RENDERMODE_CONTINUOUSLY")) { return; }
 
                 holder.registerProblem(expression, DESCRIPTION_TEMPLATE_DIRTY_RENDERING, dirtyRenderingQuickFix);
-
-
-
-
             }
         };
     }

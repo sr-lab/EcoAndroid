@@ -15,7 +15,7 @@ import java.util.Iterator;
 
 public class CheckLayoutSizeQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "Refactor4Green: cache energy pattern - checking layout size case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: cache energy pattern - checking layout size case";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -51,23 +51,23 @@ public class CheckLayoutSizeQuickFix implements LocalQuickFix {
 
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Before resetting a view, make sure the view's measures are existent \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\n"
+                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiClass.getContainingFile());
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN NOT APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }
 
 

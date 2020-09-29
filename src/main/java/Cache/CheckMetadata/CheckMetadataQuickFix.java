@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 public class CheckMetadataQuickFix implements LocalQuickFix {
-    private final String QUICK_FIX_NAME = "Refactor4Green: Cache Energy Pattern - Checking values before processing them case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Cache Energy Pattern - checking values before processing them case";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -92,24 +92,24 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
 
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Whenever a request is received, checks if anything changes before using the data \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\n"
+                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiClass.getContainingFile());
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
             updateStatements.clear();
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN NOT APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }
 
     }

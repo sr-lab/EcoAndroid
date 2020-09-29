@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class HTTPsURLConnCacheMechanismQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "Refactor4Green: Cache - SSL Session Cached";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - SSL session cached";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -62,18 +62,18 @@ public class HTTPsURLConnCacheMechanismQuickFix implements LocalQuickFix {
 
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Only process update when something changed. The application inserts annotations in the source code in order for the developer to know where to place the code\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\n"
+                    + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiClass.getContainingFile());
             psiMethod.addBefore(comment, psiMethod.getFirstChild());
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN NOT APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))

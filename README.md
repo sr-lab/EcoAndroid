@@ -1,4 +1,4 @@
-# Refactor4Green
+# EcoAndroid
 An Android Studio Plugin for Reducing Energy Consumption of Java Mobile Applications through Automated Refactoring.
 <br/> 
 The energy patterns the plugin can detect are the following: <br/>
@@ -16,6 +16,8 @@ The energy patterns the plugin can detect are the following: <br/>
    * Creating a *TODO* in the source code for when nothing is different since the last update from an URL connection <br/>
   4. *Avoid Graphics and Animations*, with the following cases:<br/>
    * Switching the rendering mode to *GLSurfaceView.RENDERMODE_WHEN_DIRTY* <br/>
+  5. *Reduce Size*, with the following cases:<br/>
+   * Compressing with gzip before receiving data * <br/>
  
 In order to make the examples more readable and more compact, parts of the source code retrieved from the original applications have either been removed or commented. 
 For every case in every energy pattern, there is an example under a directory with the same name. 

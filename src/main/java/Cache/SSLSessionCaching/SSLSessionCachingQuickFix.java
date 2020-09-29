@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class SSLSessionCachingQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "Refactor4Green: Cache - SSL Session Cached";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - SSL session cached";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -29,17 +29,6 @@ public class SSLSessionCachingQuickFix implements LocalQuickFix {
         PsiFile psiFile = PsiTreeUtil.getParentOfType(psiMethod.getContainingClass(), PsiFile.class);
 
         try {
-            PsiComment comment = factory.createCommentFromText("/* \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Increases cache size in a SSL Session \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed file \"" + psiFile.getName() + " and xml file \"AndroidManifest.xml\". \n"
-                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "*/", psiMethod.getContainingClass().getContainingFile());
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
-
             //get the name of the variable of type SSLContext
             String variableName = psiMethodCallExpression.getMethodExpression().getQualifier().getText();
 
@@ -56,15 +45,26 @@ public class SSLSessionCachingQuickFix implements LocalQuickFix {
 
             JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
             javaCodeStyleManager.shortenClassReferences(psiClass);
+
+            PsiComment comment = factory.createCommentFromText("/* \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* EcoAndroid: CACHE ENERGY PATTERN \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Increases cache size in a SSL Session \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "* Application changed file \"" + psiFile.getName() + "\" and xml file \"AndroidManifest.xml\". \n"
+                    + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
+                    + "*/", psiMethod.getContainingClass().getContainingFile());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Refactor4Green: CACHE ENERGY PATTERN NOT APPLIED \n"
+                    + "* EcoAndroid: CACHE ENERGY PATTERN NOT APPLIED \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.addBefore(comment, psiMethod.getFirstChild());
+            psiMethod.getParent().addBefore(comment, psiMethod);
         }
 
 
