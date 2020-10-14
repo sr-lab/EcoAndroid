@@ -1,4 +1,4 @@
-package Cache.HTTPsURLConnCacheMechanism;
+package Cache.URLCaching;
 
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
@@ -12,7 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
-public class HTTPsURLConnCacheMechanismQuickFix implements LocalQuickFix {
+public class URLCachingQuickFix implements LocalQuickFix {
     private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - SSL session cached";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)

@@ -21,7 +21,7 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_CHECK_SIZE = "REFACTOR 4 GREEN - CHECK LAYOUT SIZE BEFORE RESETTING";
+            private final String DESCRIPTION_TEMPLATE_CHECK_SIZE = "EcoAndroid: Cache [Check layout size before setting]";
 
             @Override
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
