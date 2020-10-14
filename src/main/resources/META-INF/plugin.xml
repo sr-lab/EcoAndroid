@@ -85,13 +85,13 @@
             implementationClass="Cache.PassiveProviderLocation.PassiveProviderLocationInspection"/>
     <localInspection
             language="JAVA"
-            displayName="EcoAndroid: Cache Energy Pattern - adding caching mechanism to HTTPsURLConnection"
+            displayName="EcoAndroid: Cache Energy Pattern - adding caching mechanism to URL Connection"
             groupPath="Java"
             groupBundle="messages.InspectionsBundle"
             groupKey="group.names.probable.bugs"
             enabledByDefault="true"
             level="WARNING"
-            implementationClass="Cache.HTTPsURLConnCacheMechanism.HTTPsURLConnCacheMechanismInspection"/>
+            implementationClass="Cache.URLCaching.URLCachingInspection"/>
     <!-- AVOID EXTRANEOUS GRAPHICS AND ANIMATIONS -->
     <localInspection
             language="JAVA"

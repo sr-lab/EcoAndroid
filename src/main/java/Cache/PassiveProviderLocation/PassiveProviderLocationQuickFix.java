@@ -109,6 +109,7 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
+            System.out.println(subTags.length);
             List<XmlTag> xmlTags = new LinkedList<>(Arrays.asList(subTags));
             int originalSize = xmlTags.size();
             xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_FINE_LOCATION")));
@@ -116,7 +117,7 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
                 // nao ha permissao para acesso ainda
                 XmlTag usesPermissionTag = xmlElementFactory.createTagFromText("<uses-permission/>");
                 usesPermissionTag.setAttribute("android:name", "android.permission.ACCESS_FINE_LOCATION");
-                if(originalSize > 0) { subTags[0].addAfter(usesPermissionTag,rootTag); }
+                if(originalSize > 0) { subTags[0].getParent().addAfter(usesPermissionTag,subTags[0]); }
                 else { rootTag.add(usesPermissionTag); }
             }
 

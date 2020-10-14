@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class InfoWarningFCMInspection extends LocalInspectionTool {
 
-    private static final String DESCRIPTION_TEMPLATE_INFOWARNING_FCM_PUSHOVERPOLL = "EcoAndroid: Push Over Poll";
+    private static final String DESCRIPTION_TEMPLATE_INFOWARNING_FCM_PUSHOVERPOLL = "EcoAndroid: Push Over Poll [InfoWarning about FCM]";
     InfoWarningFCMQuickFix infoWarningGCMQuickFix = new InfoWarningFCMQuickFix();
 
     @NotNull

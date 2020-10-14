@@ -20,7 +20,7 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE = "EcoAndroid: Cache - SSL Session Cached";
+            private final String DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE = "EcoAndroid: Cache [Adding cache mechanism to SSL Session]";
 
 
             @Override

@@ -15,6 +15,7 @@ public class GZIPCompressionQuickFix implements LocalQuickFix {
 
     private final String QUICK_FIX_NAME = "EcoAndroid: Reduce Size Energy Pattern - gzip compression before receiving data";
     protected PsiMethodCallExpression psiGetInputStream = null;
+    protected boolean tryWithResources = false;
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -30,53 +31,101 @@ public class GZIPCompressionQuickFix implements LocalQuickFix {
         PsiFile psiFile = psiClass.getContainingFile();
         PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiElement, PsiMethod.class);
         PsiElementFactory factory = PsiElementFactory.getInstance(project);
-        try {
-            PsiLocalVariable localVariable = PsiTreeUtil.getParentOfType(psiElement, PsiLocalVariable.class);
-            PsiAssignmentExpression assignmentExpression = PsiTreeUtil.getParentOfType(psiElement, PsiAssignmentExpression.class);
-            String name = "";
-            String nameReader = "";
-            String newString = "";
-            if(localVariable != null) {
-                name = localVariable.getNameIdentifier().getText();
-                PsiStatement statement = factory.createStatementFromText(name + ".setRequestProperty(\"Accept-Encoding\", \"gzip\"); \n", psiClass);
-                localVariable.getParent().getParent().addAfter(statement, localVariable.getParent());
+
+         try {
+            // check if there is a variable for openConnection
+            PsiLocalVariable localVariable = null;
+            PsiAssignmentExpression assignmentExpression = null;
+            if(!(psiElement instanceof PsiLocalVariable || psiElement instanceof PsiAssignmentExpression)) {
+                localVariable = PsiTreeUtil.getParentOfType(psiElement, PsiLocalVariable.class);
+                assignmentExpression = PsiTreeUtil.getParentOfType(psiElement, PsiAssignmentExpression.class);
             }
-            else if(assignmentExpression != null) {
-                name = assignmentExpression.getLExpression().getText();
-                PsiStatement statement = factory.createStatementFromText(name + ".setRequestProperty(\"Accept-Encoding\", \"gzip\"); \n", psiClass);
-                assignmentExpression.getParent().getParent().addAfter(statement, assignmentExpression.getParent());
+            if(psiElement instanceof PsiLocalVariable) { localVariable = (PsiLocalVariable) psiElement; }
+            else if(psiElement instanceof PsiAssignmentExpression) { assignmentExpression = (PsiAssignmentExpression) psiElement; }
+            String nameOpenConnection = "";
+            // o openConnection esta numa local variable
+            if(localVariable != null) {
+
+                // é preciso criar a var e adicionar
+                String variableType = localVariable.getType().getPresentableText();
+                if(!(variableType.equals("HttpURLConnection") || variableType.equals("URLConnection")
+                        || variableType.equals("JarURLConnection") || variableType.equals("HttpsURLConnection"))) {
+                    PsiStatement urlConnectionDeclaration = factory.createStatementFromText("java.net.URLConnection  urlConnection = " + psiElement.getText() + ";\n", psiFile);
+                    localVariable.getParent().getParent().addBefore(urlConnectionDeclaration, localVariable.getParent());
+                    PsiExpression urlConnectionParameter = factory.createExpressionFromText("urlConnection", psiFile);
+                    psiElement.replace(urlConnectionParameter);
+                    nameOpenConnection = "urlConnection";
+                    PsiStatement statement = factory.createStatementFromText(nameOpenConnection + ".setRequestProperty(\"Accept-Encoding\", \"gzip\"); \n",
+                            psiClass);
+                    if(tryWithResources) { localVariable.getParent().addBefore(statement, localVariable); }
+                    else { localVariable.getParent().getParent().addBefore(statement, localVariable.getParent()); }
+                }
+                else {
+                    nameOpenConnection = localVariable.getNameIdentifier().getText();
+                    PsiStatement statement = factory.createStatementFromText(nameOpenConnection + ".setRequestProperty(\"Accept-Encoding\", \"gzip\"); \n",
+                            psiClass);
+                    if(tryWithResources) {
+                        PsiTryStatement tryStatement = PsiTreeUtil.getParentOfType(localVariable, PsiTryStatement.class);
+                        tryStatement.getParent().addBefore(statement, tryStatement);
+                    }
+                    else { localVariable.getParent().getParent().addAfter(statement, localVariable.getParent()); }
+                }
+            }
+            else if (assignmentExpression != null) {
+                String variableType = assignmentExpression.getLExpression().getType().getPresentableText();
+                if(!(variableType.equals("HttpURLConnection") || variableType.equals("URLConnection")
+                        || variableType.equals("JarURLConnection") || variableType.equals("HttpsURLConnection"))) {
+                    PsiStatement urlConnectionDeclaration = factory.createStatementFromText(variableType + " " + psiElement.getText() + ";\n", psiFile);
+                    assignmentExpression.getParent().getParent().addBefore(urlConnectionDeclaration, assignmentExpression.getParent());
+                    PsiExpression urlConnectionParameter = factory.createExpressionFromText("urlConnection", psiFile);
+                    psiElement.replace(urlConnectionParameter);
+                    nameOpenConnection = "urlConnection";
+                    PsiStatement statement = factory.createStatementFromText(nameOpenConnection + ".setRequestProperty(\"Accept-Encoding\", \"gzip\"); \n",
+                            psiClass);
+                    assignmentExpression.getParent().addBefore(statement, assignmentExpression);
+                }
+                else {
+                    nameOpenConnection = assignmentExpression.getLExpression().getText();
+                    PsiStatement statement = factory.createStatementFromText(nameOpenConnection + ".setRequestProperty(\"Accept-Encoding\", \"gzip\"); \n",
+                            psiClass);
+                    assignmentExpression.getParent().getParent().addAfter(statement, assignmentExpression.getParent());
+                }
             }
 
-            localVariable = PsiTreeUtil.getParentOfType(psiGetInputStream, PsiLocalVariable.class);
-            assignmentExpression = PsiTreeUtil.getParentOfType(psiGetInputStream, PsiAssignmentExpression.class);
-            if(localVariable != null) {
-                nameReader = localVariable.getNameIdentifier().getText();
-                newString = localVariable.getInitializer().getText();
-                PsiExpression parameter = factory.createExpressionFromText("new java.util.zip.GZIPInputStream(" + psiGetInputStream.getText() + ")", psiClass);
-                psiGetInputStream.replace(parameter);
-                String newString2 = "";
-                newString2 = localVariable.getInitializer().getText();
-                PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (\"gzip\".equals(" + name +".getContentEncoding())) \n" +
-                        " { \n " + nameReader + " = " + newString2 + ";\n }  " +
-                        "else { \n " + nameReader + " = " + newString + ";\n  }", psiClass);
-                PsiStatement reader = factory.createStatementFromText(localVariable.getType().getCanonicalText() + " " + nameReader + " = null; ", psiClass);
-                localVariable.getParent().getParent().addBefore(reader, localVariable.getParent());
-                localVariable.replace(ifStatement);
-
+            localVariable  = null;
+            assignmentExpression = null;
+            if(!(psiGetInputStream instanceof PsiLocalVariable || psiGetInputStream instanceof PsiAssignmentExpression)) {
+                localVariable = PsiTreeUtil.getParentOfType(psiGetInputStream, PsiLocalVariable.class);
+                assignmentExpression = PsiTreeUtil.getParentOfType(psiGetInputStream, PsiAssignmentExpression.class);
             }
-            else if(assignmentExpression != null) {
-                nameReader = assignmentExpression.getLExpression().getText();
-                newString = assignmentExpression.getRExpression().getText();
-                PsiExpression parameter = factory.createExpressionFromText("new java.util.zip.GZIPInputStream(" + psiGetInputStream.getText() + ")", psiClass);
-                psiGetInputStream.replace(parameter);
-                String newString2 = "";
-                newString2 = assignmentExpression.getLExpression().getText();
-                PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (\"gzip\".equals(" + name +".getContentEncoding())) \n" +
-                        " { \n " + nameReader + " = " + newString2 + ";\n }  " +
-                        "else { \n " + nameReader + " = " + newString + ";\n  }", psiClass);
-                PsiStatement reader = factory.createStatementFromText(assignmentExpression.getLExpression().getType().getCanonicalText() + " " + nameReader + " = null; ", psiClass);
-                assignmentExpression.getParent().getParent().addBefore(reader, assignmentExpression.getParent());
-                assignmentExpression.replace(ifStatement);
+            if(psiGetInputStream instanceof PsiLocalVariable) { localVariable = (PsiLocalVariable) psiGetInputStream; }
+            else if(psiGetInputStream instanceof PsiAssignmentExpression) { assignmentExpression = (PsiAssignmentExpression) psiGetInputStream; }
+            String inputStreamString = psiGetInputStream.getText();
+            String variableName = "";
+            if(localVariable != null) {
+                variableName = localVariable.getNameIdentifier().getText();
+                String initializer = localVariable.getInitializer().getText();
+                PsiStatement newLocalVariable = factory.createStatementFromText(localVariable.getType().getCanonicalText() + " " + variableName + ";\n", psiFile);
+                String declarationWithGZIP = initializer.replace(inputStreamString,"new java.util.zip.GZIPInputStream(" + inputStreamString + ")");
+                PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (\"gzip\".equals(" + nameOpenConnection +".getContentEncoding())) \n" +
+                        " { \n " + variableName + " = " + declarationWithGZIP + ";\n }  " +
+                        "else { \n " + variableName + " = " + initializer + ";\n  }", psiClass);
+                if(tryWithResources) {
+                    PsiTryStatement tryStatement = PsiTreeUtil.getParentOfType(localVariable, PsiTryStatement.class);
+                    tryStatement.getParent().addBefore(ifStatement, tryStatement);
+                }
+                else { localVariable.getParent().getParent().addAfter(ifStatement, localVariable.getParent()); }
+                localVariable.replace(newLocalVariable);
+            }
+            else if (assignmentExpression != null )  {
+                variableName = assignmentExpression.getLExpression().getText();
+                String initializer = assignmentExpression.getRExpression().getText();
+                String declarationWithGZIP = initializer.replace(inputStreamString,"new java.util.zip.GZIPInputStream(" + inputStreamString + ")");
+                PsiIfStatement ifStatement = (PsiIfStatement) factory.createStatementFromText("if (\"gzip\".equals(" + nameOpenConnection +".getContentEncoding())) \n" +
+                        " { \n " + variableName + " = " + declarationWithGZIP + ";\n }  " +
+                        "else { \n " + variableName + " = " + initializer + ";\n  }", psiClass);
+                assignmentExpression.getParent().getParent().addAfter(ifStatement, assignmentExpression.getParent());
+                assignmentExpression.delete();
             }
             JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
             javaCodeStyleManager.shortenClassReferences(psiClass);
@@ -89,7 +138,7 @@ public class GZIPCompressionQuickFix implements LocalQuickFix {
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "*/", psiClass.getContainingFile());
+                   + "*/", psiClass.getContainingFile());
             psiMethod.getParent().addBefore(comment, psiMethod);
 
         } catch(Throwable e) {

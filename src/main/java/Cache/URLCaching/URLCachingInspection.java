@@ -1,4 +1,4 @@
-package Cache.HTTPsURLConnCacheMechanism;
+package Cache.URLCaching;
 
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class HTTPsURLConnCacheMechanismInspection extends LocalInspectionTool {
+public class URLCachingInspection extends LocalInspectionTool {
 
-    private final HTTPsURLConnCacheMechanismQuickFix httpsURLConnCacheMechanismQuickFix = new HTTPsURLConnCacheMechanismQuickFix();
+    private final URLCachingQuickFix urlCachingQuickFix = new URLCachingQuickFix();
 
     @NotNull
     @Override
@@ -20,7 +20,7 @@ public class HTTPsURLConnCacheMechanismInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_HTPPSURLCONNECTION_CACHE = "EcoAndroid: Cache - SSL Session Cached";
+            private final String DESCRIPTION_TEMPLATE_URLCACHING = "EcoAndroid: Cache [Adding caching mechanism to URL Connection]";
 
 
             @Override
@@ -45,7 +45,7 @@ public class HTTPsURLConnCacheMechanismInspection extends LocalInspectionTool {
                 if(PsiTreeUtil.getParentOfType(expression, PsiReturnStatement.class) != null) { return; }
                 if(PsiTreeUtil.getParentOfType(expression, PsiReferenceExpression.class) != null) { return; }
 
-                holder.registerProblem(expression, DESCRIPTION_TEMPLATE_HTPPSURLCONNECTION_CACHE, httpsURLConnCacheMechanismQuickFix);
+                holder.registerProblem(expression, DESCRIPTION_TEMPLATE_URLCACHING, urlCachingQuickFix);
 
 
 
