@@ -33,7 +33,7 @@ public class DirtyRenderingInspection extends LocalInspectionTool {
                 PsiExpression argExpression = expression.getArgumentList().getExpressions()[0];
                 if(!argExpression.getText().equals("GLSurfaceView.RENDERMODE_CONTINUOUSLY")) { return; }
 
-                holder.registerProblem(expression, DESCRIPTION_TEMPLATE_DIRTY_RENDERING, dirtyRenderingQuickFix);
+                holder.registerProblem(argExpression, DESCRIPTION_TEMPLATE_DIRTY_RENDERING, dirtyRenderingQuickFix);
             }
         };
     }

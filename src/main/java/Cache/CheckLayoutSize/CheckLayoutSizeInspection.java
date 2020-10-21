@@ -66,18 +66,19 @@ public class CheckLayoutSizeInspection extends LocalInspectionTool {
                     }
                 }
 
-
                 if(isGoingToBeSet) {
                     Collection<PsiMethodCallExpression> methodCalls = PsiTreeUtil.findChildrenOfType(psiMethod.getBody(), PsiMethodCallExpression.class);
-                    methodCalls.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredWidth")));
-                    methodCalls.removeIf(el -> !(el.getMethodExpression().getCanonicalText().split("\\.")[el.getMethodExpression().getCanonicalText().split("\\.").length-1].equals("getMeasuredHeight")));
-
-                            AtomicBoolean isChecked = new AtomicBoolean(false);
-                    methodCalls.forEach( el -> {
-                        if(el.getContext() instanceof PsiBinaryExpression) {
-                            PsiBinaryExpression binaryExpression = (PsiBinaryExpression) el.getContext();
-                            if(binaryExpression.getROperand().getText().equals("0")) {
-                                isChecked.set(true);
+                    AtomicBoolean isChecked = new AtomicBoolean(false);
+                    methodCalls.forEach(el -> {
+                        String[] split = el.getMethodExpression().getCanonicalText().split("\\.");
+                        if(split.length > 0) {
+                            if(split[split.length - 1].equals("getMeasuredWidth") || split[split.length - 1].equals("getMeasuredHeight")) {
+                                    if(el.getContext() instanceof PsiBinaryExpression) {
+                                        PsiBinaryExpression binaryExpression = (PsiBinaryExpression) el.getContext();
+                                        if(binaryExpression.getROperand().getText().equals("0")) {
+                                            isChecked.set(true);
+                                        }
+                                    }
                             }
                         }
                     });

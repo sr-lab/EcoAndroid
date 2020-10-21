@@ -16,12 +16,8 @@ public class MusicPlaybackReceiver extends BroadcastReceiver {
         String artist = intent.getStringExtra("artist");
         String album = intent.getStringExtra("album");
         String track = intent.getStringExtra("track");
-
-
         MusicSpec musicSpec = new MusicSpec();
-
         LOG.info("Current track: " + artist + ", " + album + ", " + track);
-
         musicSpec.artist = artist;
         musicSpec.album = album;
         musicSpec.track = track;
