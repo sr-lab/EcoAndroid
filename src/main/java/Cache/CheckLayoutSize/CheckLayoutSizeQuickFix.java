@@ -40,14 +40,24 @@ public class CheckLayoutSizeQuickFix implements LocalQuickFix {
             PsiMethodCallExpression next = iterator.next();
             String[] splittedName = next.getMethodExpression().getCanonicalText().split("\\.");
 
-            PsiCodeBlock newBody = factory.createCodeBlock();
-            psiMethod.getBody().getLBrace().delete();
-            psiMethod.getBody().getRBrace().delete();
-            PsiStatement statement = factory.createStatementFromText("if (!(" + splittedName[0] + ".getMeasuredWidth() == 0 || " + splittedName[0]
-                            + ".getMeasuredHeight() == 0)) { "+ psiMethod.getBody().getText() + " }",
+            String type = "";
+            PsiType returnType = psiMethod.getReturnType();
+            if (PsiType.INT.equals(returnType) || PsiType.LONG.equals(returnType)) {
+                type = " 0";
+            } else if (PsiType.DOUBLE.equals(returnType) || PsiType.FLOAT.equals(returnType)) {
+                type = " 0.0";
+            } else if (PsiType.BOOLEAN.equals(returnType)) {
+                type = " false";
+            } else if (PsiType.CHAR.equals(returnType)) {
+                type = " \"\"";
+            } else if (PsiType.NULL.equals(returnType)) {
+                type = " null";
+            }
+
+            PsiStatement statement = factory.createStatementFromText("if (" + splittedName[0] + ".getMeasuredWidth() == 0 || " + splittedName[0]
+                            + ".getMeasuredHeight() == 0) { return" + type +  "; }",
                     null);
-            newBody.add(statement);
-            psiMethod.getBody().replace(newBody);
+            psiMethod.getBody().getLBrace().getParent().addAfter(statement, psiMethod.getBody().getLBrace());
 
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))

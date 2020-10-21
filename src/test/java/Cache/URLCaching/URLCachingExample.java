@@ -1,11 +1,11 @@
-package Cache.HTTPsURLConnCacheMechanism;
+package Cache.URLCaching;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class HTTPsURLConnCacheMechanismExample {
+public class URLCachingExample {
     public static void main(String[] args) {
         if (args.length < 2) {
             System.out.println("Syntax: <url> <file>");

@@ -32,13 +32,13 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
 
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
-        PsiMethodCallExpression psiMethodCallExpression = (PsiMethodCallExpression) problemDescriptor.getPsiElement();
-        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiMethod.class);
+        PsiExpression psiExpression = (PsiExpression) problemDescriptor.getPsiElement();
+        PsiMethodCallExpression psiMethodCallExpression = PsiTreeUtil.getParentOfType(psiExpression, PsiMethodCallExpression.class);
+        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiExpression, PsiMethod.class);
         PsiFile psiFile = PsiTreeUtil.getParentOfType(psiMethod.getContainingClass(), PsiFile.class);
         PsiClass psiClass = psiMethod.getContainingClass();
 
         try {
-            PsiExpression psiExpression = psiMethodCallExpression.getArgumentList().getExpressions()[0];
 
             PsiReferenceExpression psiReferenceExpression = (PsiReferenceExpression) psiExpression;
             if(psiReferenceExpression.getText().startsWith("LocationManager.")){
@@ -109,7 +109,6 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
             // criar a tag para a permissao do acess ao estado
             XmlTag rootTag = xmlFile.getRootTag();
             XmlTag[] subTags = rootTag.findSubTags("uses-permission");
-            System.out.println(subTags.length);
             List<XmlTag> xmlTags = new LinkedList<>(Arrays.asList(subTags));
             int originalSize = xmlTags.size();
             xmlTags.removeIf(el -> (el.getAttributeValue("android:name").equals("android.permission.ACCESS_FINE_LOCATION")));

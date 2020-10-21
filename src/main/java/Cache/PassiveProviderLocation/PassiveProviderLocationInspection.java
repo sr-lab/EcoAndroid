@@ -47,7 +47,7 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
 
                 // look for Object.requireNonNull
                 if(checkExplicitWishForProvider(PsiTreeUtil.getParentOfType(expression, PsiMethod.class),expression, parText, false)) {
-                    holder.registerProblem(expression, DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING, passiveProviderLocationInfoWarningQuickFix);
+                    holder.registerProblem(expression.getArgumentList().getExpressions()[0], DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING, passiveProviderLocationInfoWarningQuickFix);
                     return;
                 }
 
@@ -56,7 +56,7 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
                 if(ifStatement != null) {
                     if(ifStatement.getCondition() instanceof PsiMethodCallExpression) {
                         if(checkExplicitWishForProvider(((PsiMethodCallExpression) ifStatement.getCondition()).resolveMethod(),ifStatement.getCondition() ,parText, true)) {
-                            holder.registerProblem(expression, DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING, passiveProviderLocationInfoWarningQuickFix);
+                            holder.registerProblem(expression.getArgumentList().getExpressions()[0], DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING, passiveProviderLocationInfoWarningQuickFix);
                             return;
                         }
                     }
@@ -64,7 +64,7 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
                         return;
                     }
                 }
-                holder.registerProblem(expression, DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER, passiveProviderLocationQuickFix);
+                holder.registerProblem(expression.getArgumentList().getExpressions()[0], DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER, passiveProviderLocationQuickFix);
             }
 
             boolean checkExplicitWishForProvider(PsiMethod psiMethod, PsiElement expression, String parText, boolean flag) {

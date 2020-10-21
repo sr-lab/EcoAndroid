@@ -20,15 +20,13 @@ public class DirtyRenderingQuickFix implements LocalQuickFix {
 
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
-        PsiMethodCallExpression psiMethodCallExpression = (PsiMethodCallExpression) descriptor.getPsiElement();
-        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiMethod.class);
+        PsiExpression argExpression  = (PsiExpression) descriptor.getPsiElement();
+        PsiMethod psiMethod = PsiTreeUtil.getParentOfType(argExpression, PsiMethod.class);
         PsiClass psiClass = psiMethod.getContainingClass();
         PsiElementFactory factory = JavaPsiFacade.getInstance(project).getElementFactory();
         PsiFile psiFile = psiClass.getContainingFile();
 
         try {
-            PsiExpression argExpression = psiMethodCallExpression.getArgumentList().getExpressions()[0];
-
             PsiExpression psiNewExpression = factory.createExpressionFromText("GLSurfaceView.RENDERMODE_WHEN_DIRTY",null);
             argExpression.replace(psiNewExpression);
 
