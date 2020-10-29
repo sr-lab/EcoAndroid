@@ -86,8 +86,20 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
                         if(assignmentExpressions.size() > 0)
                             dynamicWaitTimeQuickFix.setReference(ref);
                     }
-                    if(dynamicWaitTimeQuickFix.psiReferenceExpressions.size() > 0)
+                    if(dynamicWaitTimeQuickFix.psiReferenceExpressions.size() > 0) {
+                        PsiComment[] comments = PsiTreeUtil.getChildrenOfType(PsiTreeUtil.getParentOfType(psiMethod, PsiClass.class), PsiComment.class);
+                        if(comments != null) {
+                            for (PsiComment comment : comments) {
+                                if(comment.getText().startsWith("/*\n             * TODO EcoAndroid")) {
+                                    if(comment.getNextSibling().getNextSibling().equals(psiMethod)) {
+                                        holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
                         holder.registerProblem(timeVariable, DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME, dynamicWaitTimeQuickFix, dynamicWaitTimeInfoWarningQuickFix);
+                    }
                     return;
                 }
             }

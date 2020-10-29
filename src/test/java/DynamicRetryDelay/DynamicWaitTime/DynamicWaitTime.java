@@ -10,6 +10,15 @@ public class DynamicWaitTime {
 
     private void startLongPoll(String polledFile, int backOffSeconds) {
         pollingTask = new Thread () {
+            /*
+             * TODO EcoAndroid
+             * DYNAMIC RETRY DELAY ENERGY PATTERN INFO WARNING
+             * Another way to implement a mechanism that manages the execution of tasks and their retrying, if said task fails
+             * This approach uses the android.work package
+             * If you wish to know more about this topic, read the following information:
+             * https://developer.android.com/topic/libraries/architecture/workmanager/how-to/define-work
+             */
+
             public void run() {
                 long start_time = System.currentTimeMillis();
                 long longpoll_timeout = 480;

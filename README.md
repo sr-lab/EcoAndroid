@@ -27,9 +27,19 @@ If you are interested in changing or exploring the source code of the plugin, fo
 ## EcoAndroid in Practice
 EcoAndroid has been used to improve the energy efficiency of several Android applications. Examples include:
 
+ - [Timetable](https://gitlab.com/asdoi/TimeTable): Cache Energy Pattern([#3](https://gitlab.com/asdoi/TimeTable/-/merge_requests/3))
  - [SecondScreen](https://github.com/farmerbb/SecondScreen): Dynamic Retry Delay and Cache Energy Patterns ([#72](https://github.com/farmerbb/SecondScreen/pull/72))
- - [tracker-control-android](https://github.com/OxfordHCC/tracker-control-android): Reduce Size Energy Pattern ([#130](https://github.com/OxfordHCC/tracker-control-android/pull/130))
+ - [ZimLX](https://github.com/otakuhqz/ZimLX): Cache Energy Pattern ([#85](https://github.com/otakuhqz/ZimLX/pull/85))
+ - [Twire](https://github.com/twireapp/Twire): Cache Energy Pattern ([#111](https://github.com/twireapp/Twire/pull/111))
  - [Taskbar](https://github.com/farmerbb/Taskbar): Cache Energy Pattern ([#138](https://github.com/farmerbb/Taskbar/pull/138))
+ - [Audinaut](https://github.com/nvllsvm/Audinaut): Cache Energy Pattern ([#93](https://github.com/nvllsvm/Audinaut/pull/93))
+ - [Inwallet](https://github.com/btcontract/lnwallet): Cache Energy Pattern ([#26](https://github.com/btcontract/lnwallet/pull/26))
+ - [DownloadNavi](https://github.com/TachibanaGeneralLaboratories/download-navi): Cache Energy Pattern ([#104](https://github.com/TachibanaGeneralLaboratories/download-navi/pull/104))
+ - [Omega](https://github.com/otakuhqz/Omega): Cache Energy Pattern ([#3](https://github.com/otakuhqz/Omega/pull/3))
+ - [Onpc](https://github.com/De7vID/klingon-assistant-android): Reduce Size Energy Pattern ([#90](https://github.com/De7vID/klingon-assistant-android/pull/90))
+ - [tracker-control-android](https://github.com/OxfordHCC/tracker-control-android): Reduce Size Energy Pattern ([#130](https://github.com/OxfordHCC/tracker-control-android/pull/130))
+ - [Vanilla-music-lyrics-search](https://github.com/vanilla-music/vanilla-music-lyrics-search): Reduce Size Energy Pattern ([#14](https://github.com/vanilla-music/vanilla-music-lyrics-search/pull/14))
+ - [DokuwikiAndroid](https://github.com/fabienli/DokuwikiAndroid): Reduce Size Energy Pattern ([#13](https://github.com/fabienli/DokuwikiAndroid/pull/13))
 
 Have you used EcoAndroid to improve your application? Please let us know so that we can add it to the list above!
 
@@ -56,5 +66,6 @@ The energy patterns that are currently detected by EcoAndroid are:
 
   5. *Reduce Size*, with the following case:
       - Compressing with gzip before receiving data
- 
-In order to make the examples more readable and more compact, parts of the source code retrieved from the original applications have either been removed or commented. For every case in every energy pattern, there is an example under a directory with the same name. 
+
+The examples in the folder src/test are retrieved from real-life mobile applications.
+In order to make the files more readable, parts of the original source code are either removed or commented.

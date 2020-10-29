@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class PassiveProviderLocationInfoWarningQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - Possible switch to PASSIVE_PROVIDER";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - possible switch to PASSIVE_PROVIDER";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

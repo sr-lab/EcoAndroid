@@ -45,7 +45,10 @@ public class BaseActivity extends ActionBarActivity {
             }
         };
 
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 60000, 50, locationListener);
+        if(locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 60000, 50, locationListener);
+        }
+
     }
     void updateLocation(Location location){
         currentLocation = location;
