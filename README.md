@@ -1,8 +1,8 @@
 # EcoAndroid
 
-<center>
+<p align="center">
   <img src="logo.png" alt="EcoAndroid logo" />
-</center>
+</p>
 
 EcoAndroid is an [Android Studio](https://developer.android.com/studio) plugin that suggests automated refactorings for reducing energy consumption of Java android applications.
 
