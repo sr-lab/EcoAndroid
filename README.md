@@ -67,5 +67,5 @@ The energy patterns that are currently detected by EcoAndroid are:
   5. *Reduce Size*, with the following case:
       - Compressing with gzip before receiving data
 
-The examples in the folder src/test are retrieved from real-life mobile applications.
+The examples in the folder `src/test` are retrieved from real-life mobile applications.
 In order to make the files more readable, parts of the original source code are either removed or commented.
