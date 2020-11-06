@@ -33,8 +33,7 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
                 PsiClass psiSSLContextClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("javax.net.ssl.SSLContext", GlobalSearchScope.allScope(holder.getProject()));
                 if(!psiMethodResolved.getContainingClass().equals(psiSSLContextClass)) { return ; }
 
-                // TODO check at more levels
-                PsiMethod psiMethod = (PsiMethod) PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
+                PsiMethod psiMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
                 Collection<PsiMethodCallExpression> methodCallExpressionsCollection = PsiTreeUtil.findChildrenOfType(psiMethod, PsiMethodCallExpression.class);
                 methodCallExpressionsCollection.removeIf(el -> !(el.getMethodExpression().getReferenceName().contains("setSessionCacheSize")));
                 methodCallExpressionsCollection.removeIf(el -> !(el.getArgumentList().getExpressions().length > 0));

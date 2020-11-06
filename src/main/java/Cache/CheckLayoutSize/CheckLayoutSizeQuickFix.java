@@ -68,7 +68,7 @@ public class CheckLayoutSizeQuickFix implements LocalQuickFix {
                     + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiClass.getContainingFile());
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -77,7 +77,7 @@ public class CheckLayoutSizeQuickFix implements LocalQuickFix {
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
 
 

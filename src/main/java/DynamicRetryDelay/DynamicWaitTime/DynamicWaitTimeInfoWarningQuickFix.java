@@ -41,6 +41,6 @@ public class DynamicWaitTimeInfoWarningQuickFix implements LocalQuickFix {
                 + "* https://developer.android.com/topic/libraries/architecture/workmanager/how-to/define-work \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "*/", psiFile);
-        psiMethod.getParent().addBefore(comment, psiMethod);
+        psiMethod.addBefore(comment, psiMethod.getFirstChild());
     }
 }

@@ -35,8 +35,7 @@ public class SSLSessionCachingQuickFix implements LocalQuickFix {
             PsiStatement sslSessionContext = factory.createStatementFromText("javax.net.ssl.SSLSessionContext sslSessionContext = " + variableName + ".getServerSessionContext();\n", psiClass);
             PsiStatement sessionCacheSize = factory.createStatementFromText("int sessionCacheSize = sslSessionContext.getSessionCacheSize();\n", psiClass);
             PsiStatement ifStatement = factory.createStatementFromText("if (sessionCacheSize > 0) {\n" +
-                            "\t sslSessionContext.setSessionCacheSize(0); \n }"
-                    , psiClass);
+                            "\t sslSessionContext.setSessionCacheSize(0); \n }", psiClass);
 
             PsiStatement psiStatement = PsiTreeUtil.getParentOfType(psiMethodCallExpression, PsiStatement.class);
             psiStatement.getParent().addAfter(ifStatement, psiStatement);
@@ -52,10 +51,10 @@ public class SSLSessionCachingQuickFix implements LocalQuickFix {
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "* Increases cache size in a SSL Session \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
-                    + "* Application changed file \"" + psiFile.getName() + "\" and xml file \"AndroidManifest.xml\". \n"
+                    + "* Application changed file \"" + psiFile.getName() + "\". \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     + "*/", psiMethod.getContainingClass().getContainingFile());
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -64,7 +63,7 @@ public class SSLSessionCachingQuickFix implements LocalQuickFix {
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
 
 

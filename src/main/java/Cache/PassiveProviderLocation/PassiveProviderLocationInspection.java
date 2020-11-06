@@ -47,13 +47,11 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
 
                 // look for Object.requireNonNull
                 if(checkExplicitWishForProvider(PsiTreeUtil.getParentOfType(expression, PsiMethod.class),expression, parText, false)) {
-                    PsiComment[] comments = PsiTreeUtil.getChildrenOfType(PsiTreeUtil.getParentOfType(expression, PsiClass.class), PsiComment.class);
+                    PsiComment[] comments = PsiTreeUtil.getChildrenOfType(PsiTreeUtil.getParentOfType(expression, PsiMethod.class), PsiComment.class);
                     if(comments != null) {
                         for (PsiComment comment : comments) {
                             if(comment.getText().startsWith("/*\n     * TODO EcoAndroid\n")) {
-                                if(comment.getNextSibling().getNextSibling().equals(PsiTreeUtil.getParentOfType(expression, PsiMethod.class))) {
                                     return;
-                                }
                             }
                         }
                     }
@@ -67,13 +65,11 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
                     if(ifStatement.getCondition() instanceof PsiMethodCallExpression) {
                         if(checkExplicitWishForProvider(((PsiMethodCallExpression) ifStatement.getCondition()).resolveMethod(),ifStatement.getCondition() ,parText, true)) {
                             System.out.println(psiClass);
-                            PsiComment[] comments = PsiTreeUtil.getChildrenOfType(PsiTreeUtil.getParentOfType(expression, PsiClass.class), PsiComment.class);
+                            PsiComment[] comments = PsiTreeUtil.getChildrenOfType(PsiTreeUtil.getParentOfType(expression, PsiMethod.class), PsiComment.class);
                             if(comments != null) {
                                 for (PsiComment comment : comments) {
                                     if(comment.getText().startsWith("/*\n     * TODO EcoAndroid\n")) {
-                                        if(comment.getNextSibling().getNextSibling().equals(PsiTreeUtil.getParentOfType(expression, PsiMethod.class))) {
                                             return;
-                                        }
                                     }
                                 }
                             }

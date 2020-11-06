@@ -44,7 +44,7 @@ public class InfoWarningFCMQuickFix implements LocalQuickFix {
                 + "* https://firebase.google.com/docs/cloud-messaging/android/client \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "*/", psiFile);
-        psiMethod.getParent().addBefore(comment, psiMethod);
+        psiMethod.addBefore(comment, psiMethod.getFirstChild());
 
     }
 }

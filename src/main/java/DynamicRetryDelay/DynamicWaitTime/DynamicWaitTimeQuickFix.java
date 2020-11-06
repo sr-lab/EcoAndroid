@@ -85,7 +85,7 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
                     + "* Application changed java file \"" + psiClass.getContainingFile().getName() + "\"\n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -94,12 +94,9 @@ public class DynamicWaitTimeQuickFix implements LocalQuickFix {
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
-
-
     }
-
 
     private void replaceWithIncrementOfNewVariable(@NotNull PsiMethod psiMethod, @NotNull String identifier,PsiElementFactory factory, @NotNull PsiMethodCallExpression methodCallExpression) {
         Collection<PsiAssignmentExpression> assignmentExpressions = PsiTreeUtil.collectElementsOfType(psiMethod.getBody(), PsiAssignmentExpression.class);

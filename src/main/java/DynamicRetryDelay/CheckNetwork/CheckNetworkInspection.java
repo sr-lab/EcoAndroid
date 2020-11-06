@@ -50,7 +50,7 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                     PsiMethod met = psiClassConnectivyManager.findMethodsByName("getActiveNetwork", true)[0];
                     if(expr.getReference().isReferenceTo(met)) { return; }
                     else if(checkIfBodyMethodChecksNetworkConnection(currentMethodCall, holder.getProject())) {
-                        //TODO: SÓ VERICA UM NIVEL DE METODOS
+                        //NOTE: ONLY CHECKS ONE LEVEL OF METHODS
                         return;
                     }
                 }

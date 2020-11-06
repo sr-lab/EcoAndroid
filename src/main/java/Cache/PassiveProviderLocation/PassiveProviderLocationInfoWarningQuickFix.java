@@ -43,6 +43,6 @@ public class PassiveProviderLocationInfoWarningQuickFix implements LocalQuickFix
                 + "* https://developer.android.com/reference/android/location/LocationManager#PASSIVE_PROVIDER \n "
                 + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                 + "*/", psiFile);
-        psiMethod.getParent().addBefore(comment, psiMethod);
+        psiMethod.addBefore(comment, psiMethod.getFirstChild());
     }
 }

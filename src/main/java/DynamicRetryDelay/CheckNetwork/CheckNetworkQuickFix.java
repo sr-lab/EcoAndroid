@@ -175,7 +175,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     + "* Application changed java file \"" + intentServiceClass.getContainingFile().getName() + "\"  and xml file \"AndroidManifest.xml\". \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
                     + "*/", intentServiceClass.getContainingFile());
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         } catch(Throwable e) {
             PsiComment comment = factory.createCommentFromText("/* \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
@@ -184,7 +184,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     + "* Something went wrong and the pattern could not be applied! \n"
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getNode()))
                     +"*/", psiFile);
-            psiMethod.getParent().addBefore(comment, psiMethod);
+            psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
     }
 

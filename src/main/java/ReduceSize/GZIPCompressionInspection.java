@@ -29,7 +29,6 @@ public class GZIPCompressionInspection extends LocalInspectionTool {
                 super.visitMethodCallExpression(expression);
 
                 PsiMethodCallExpression psiGetInputStream;
-
                 if(!(expression.getMethodExpression().getReferenceName().equals("getInputStream"))) { return; }
 
                 PsiMethod psiMethodResolved = expression.resolveMethod();

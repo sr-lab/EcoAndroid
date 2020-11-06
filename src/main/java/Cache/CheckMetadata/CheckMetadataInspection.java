@@ -60,13 +60,11 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                 if(intentVariables.size() == 0)
                     return;
 
-                // TODO: AT THIS LEVEL, ONLY CHECKING IF THE VARIABLES ARE USED IN THE IF CONDITION
                 for (PsiLocalVariable intentVariable : intentVariables) {
                     boolean isChecked = false;
                     Collection<PsiReference> references = ReferencesSearch.search(intentVariable).findAll();
 
                     for (PsiReference ref : references) {
-
                         PsiReferenceExpression referenceExpression = (PsiReferenceExpression) PsiTreeUtil.findFirstParent((PsiElement) ref, el -> el instanceof PsiReferenceExpression);
                         if(referenceExpression != null) {
 
