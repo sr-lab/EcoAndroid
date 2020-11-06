@@ -14,15 +14,6 @@ public class InfoWarningFCMInspection extends LocalInspectionTool {
 
     private static final String DESCRIPTION_TEMPLATE_INFOWARNING_FCM_PUSHOVERPOLL = "EcoAndroid: Push Over Poll [InfoWarning about FCM]";
     InfoWarningFCMQuickFix infoWarningGCMQuickFix = new InfoWarningFCMQuickFix();
-    /*
-     * TODO EcoAndroid
-     * PUSH OVER POLL ENERGY PATTERN INFO WARNING
-     * An alternative to a polling service is a to use push notifications
-     * One way to implement them is to use Firebase Cloud Messaging
-     * FCM uses an API and works with Android Studio 1.4 or higher with Gradle projects
-     * If you wish to know more about this topic, read the following information:
-     * https://firebase.google.com/docs/cloud-messaging/android/client
-     */
     @NotNull
     @Override
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
