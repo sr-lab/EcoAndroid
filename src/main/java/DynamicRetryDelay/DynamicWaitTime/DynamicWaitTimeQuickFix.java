@@ -19,7 +19,7 @@ import java.util.Iterator;
 public class DynamicWaitTimeQuickFix implements LocalQuickFix {
 
     // NOTE: NAME THAT APPEARS AS WARNINGS TO THE USER
-    private final String QUICK_FIX_NAME = "EcoAndroid: Dynamic Retry Delay Energy Pattern - switching to a dynamic wait time between resource attempts case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Dynamic Retry Delay [Dynamic Wait Time]";
     ArrayList psiReferenceExpressions = new ArrayList();
     private String counterVariableName = "accessAttempts";
 

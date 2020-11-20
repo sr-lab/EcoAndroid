@@ -1,5 +1,4 @@
 #################### ---------------- IMPORTS ---------------- ####################
-
 from xml.dom import minidom
 import xml.etree.ElementTree as ET
 from github import Github
@@ -12,9 +11,7 @@ import sys
 import os
 import subprocess
 import re
-
 from openpyxl import Workbook
-
 
 #################### ---------------- GLOBAL VARIABLES ---------------- ####################
 maxApps = 100
@@ -27,16 +24,8 @@ linkColumn = data['GITHUB LINK']
 nameColumn = data['APPLICATION NAME']
 
 #################### ---------------- CREATE OUTPUT XLXS FILE ---------------- ####################
-#workbook = openpyxl.load_workbook('evaluationStats.xlsx')
-#workbook = Workbook()
-#print(workbook.sheetnames)
-workbook = xlsxwriter.Workbook('evaluationStats2.xlsx')
+workbook = xlsxwriter.Workbook('evaluationStats.xlsx')
 worksheet = workbook.add_worksheet()
-
-#worksheet = workbook['Apps']
-#print(worksheet)
-#worksheet = workbook.add_worksheet()
-#clworksheet = workbook.create_sheet("Apps")
 worksheet.write('A1', 'APPLICATION NAME')
 worksheet.write('B1', 'GITHUB LINK')
 worksheet.write('C1', '#DYNAMICWAITTIME')
@@ -50,8 +39,6 @@ worksheet.write('J1', '#HTTPSURLCONNCACHEMECHANISM')
 worksheet.write('K1', '#DIRTYRENDERING')
 worksheet.write('H1', '#GZIPCOMPRESSION')
 
-
-
 #################### ---------------- CLONE REPOSITORY ---------------- ####################
 print('cloning repositories')
 inspections = ['DynamicWaitTime.xml', 'InfoWarningFCM.xml', 'CheckNetwork.xml', 'CheckLayoutSize.xml', 'CheckMetadata.xml', 
@@ -61,20 +48,18 @@ for i in range(0, len(linkColumn)):
 	print("index is " + str(i))
 	path = nameColumn.values[i].split('/')[0]
 
-	#isdir = os.path.isdir(path)  
-	#if(isdir == False):
-	#	os.mkdir(path)
-	#else:
-	#	path = path + "_new"
-	if(nameColumn.values[i] == "mkulesh/onpc"):
-		path = path  + "_new"
+	isdir = os.path.isdir(path)
+	if(isdir == False):
+		os.mkdir(path)
+	else:
+		path = path + "_new"
 
-	#clone = "git clone " + linkColumn.values[i] + " " + path
+	clone = "git clone " + linkColumn.values[i] + " " + path
 	inspect = "./idea.sh inspect " + path + "/ ProjectDefault.xml " + " " + path + "/inspectionResults/ -v2"
 	closing = "osascript -e 'quit app \"Intellij\"'"
 	number = "ps aux | grep -v grep | grep -ci intellij"
 
-	#os.system(clone)
+	os.system(clone)
 	os.system("rm -rf " + path + "/.idea")
 	os.system("rm -rf " + path + "/inspectionResults")
 	os.system("cp -a .idea/ " + path + "/.idea")
@@ -92,13 +77,10 @@ for i in range(0, len(linkColumn)):
 	except subprocess.CalledProcessError as e:
 	 	#do nothing
 	 	print("done")
-
 	os.system("date")
 	#write in the output file
 	worksheet.write('A' + str(index), str(nameColumn.values[i]))
 	worksheet.write('B' + str(index), str(linkColumn.values[i]))
-	#worksheet['A' + str(index)] = str(nameColumn.values[i])
-	#worksheet['B' + str(index)] = linkColumn.values[i]
 	currLetter = 'C'
 	for inspection in inspections: 
 		print(inspection)
@@ -107,16 +89,12 @@ for i in range(0, len(linkColumn)):
 		if(fileExists):
 	 		indexFile = minidom.parse(inspectionFilePath)
 	 		sourceTag = indexFile.getElementsByTagName('problem')
-	 		#worksheet[currLetter + str(index)] = sourceTag.length
 	 		print(sourceTag.length)
 	 		worksheet.write(currLetter + str(index), sourceTag.length) 
 		else:
-			#worksheet[currLetter + str(index)] = 0
 			worksheet.write(currLetter + str(index), 0)
 		currLetter = chr(ord(currLetter) + 1)
 	index = index + 1
-#workbook.save('evaluationStats.xlsx')
-#workbook.save('evaluationStats2.xlsx')
 workbook.close()
 
 

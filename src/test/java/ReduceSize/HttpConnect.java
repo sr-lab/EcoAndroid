@@ -1,4 +1,4 @@
-package ReduceSize;
+package test.java.ReduceSize;
 
 import java.io.InputStreamReader;
 import java.io.Reader;

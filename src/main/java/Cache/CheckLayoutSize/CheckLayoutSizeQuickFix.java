@@ -15,7 +15,7 @@ import java.util.Iterator;
 
 public class CheckLayoutSizeQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "EcoAndroid: cache energy pattern - checking layout size case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Cache [Check layout size before setting]";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

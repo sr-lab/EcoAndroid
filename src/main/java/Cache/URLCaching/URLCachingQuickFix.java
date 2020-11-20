@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class URLCachingQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - SSL session cached";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Cache [Adding caching mechanism to URL Connection]";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

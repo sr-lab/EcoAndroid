@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GZIPCompressionQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "EcoAndroid: Reduce Size Energy Pattern - gzip compression before receiving data";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Reduce Size [GZIP Compression]";
     protected PsiMethodCallExpression psiGetInputStream = null;
     protected boolean tryWithResources = false;
 

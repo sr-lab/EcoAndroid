@@ -17,7 +17,7 @@ public class DirtyRenderingInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_DIRTY_RENDERING = "EcoAndroid: Avoid Extraneous Graphics and Animations [Switching to Dirty Rendering]";
+            private final String DESCRIPTION_TEMPLATE_DIRTY_RENDERING = "EcoAndroid: Avoid Extraneous Graphics and Animations [Switching to Dirty Rendering] can be applied";
 
 
             @Override

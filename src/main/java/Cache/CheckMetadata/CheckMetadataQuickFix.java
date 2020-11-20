@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 public class CheckMetadataQuickFix implements LocalQuickFix {
-    private final String QUICK_FIX_NAME = "EcoAndroid: Cache Energy Pattern - checking values before processing them case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Cache [Check Metadata]";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

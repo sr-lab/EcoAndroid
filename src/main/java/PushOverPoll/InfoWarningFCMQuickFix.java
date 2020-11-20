@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class InfoWarningFCMQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "EcoAndroid: Push Over Poll Energy Pattern - info warning about Firebase Cloud Messaging";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Push Over Poll [InfoWarning about FCM]";
 
 
     @Nls(capitalization = Nls.Capitalization.Sentence)

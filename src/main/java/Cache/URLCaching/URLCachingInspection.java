@@ -20,7 +20,7 @@ public class URLCachingInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_URLCACHING = "EcoAndroid: Cache [Adding caching mechanism to URL Connection]";
+            private final String DESCRIPTION_TEMPLATE_URLCACHING = "EcoAndroid: Cache [Adding caching mechanism to URL Connection] can be applied";
 
 
             @Override

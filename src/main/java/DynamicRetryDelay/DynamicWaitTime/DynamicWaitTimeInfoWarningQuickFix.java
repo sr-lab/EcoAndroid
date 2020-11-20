@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DynamicWaitTimeInfoWarningQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "EcoAndroid: Dynamic Retry Delay Energy Pattern - information about a new approach to implement it";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Information about applying pattern Dynamic Retry Delay [Dynamic Wait Time]";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

@@ -22,7 +22,7 @@ public class GZIPCompressionInspection extends LocalInspectionTool {
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
         return new JavaElementVisitor() {
 
-            private final String DESCRIPTION_TEMPLATE_REDUCE_SIZE = "EcoAndroid: Reduce Size [GZIP Compression]";
+            private final String DESCRIPTION_TEMPLATE_REDUCE_SIZE = "EcoAndroid: Reduce Size [GZIP Compression] can be applied";
 
             @Override
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {

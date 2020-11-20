@@ -25,7 +25,7 @@ public class DynamicWaitTimeInspection extends LocalInspectionTool {
 
             // the texts that appears when you pass the mouse through it wo/ clicking it
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME = "EcoAndroid: Dynamic Retry Delay [Dynamic Wait Time]";
+            private final String DESCRIPTION_TEMPLATE_DYNAMIC_WAIT_TIME = "EcoAndroid: Dynamic Retry Delay [Dynamic Wait Time] can be applied";
 
             @Override
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {

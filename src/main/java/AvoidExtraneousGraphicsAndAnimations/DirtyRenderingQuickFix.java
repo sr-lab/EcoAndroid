@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 public class DirtyRenderingQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "EcoAndroid: Avoid Extraneous Graphics and Animations Energy Pattern - only rendering when surface is created or when requested";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Avoid Extraneous Graphics and Animations [Switching to Dirty Rendering]";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

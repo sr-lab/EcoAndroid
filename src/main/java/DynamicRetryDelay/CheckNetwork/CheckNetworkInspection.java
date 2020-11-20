@@ -26,7 +26,7 @@ public class CheckNetworkInspection extends LocalInspectionTool {
         return new JavaElementVisitor() {
 
             @NonNls
-            private final String DESCRIPTION_TEMPLATE_CHECK_NETWORK = "EcoAndroid: Dynamic Retry Delay [Check Network Before Dealing With Request]";
+            private final String DESCRIPTION_TEMPLATE_CHECK_NETWORK = "EcoAndroid: Dynamic Retry Delay [Check Network] can be applied";
 
             @Override
             public void visitMethod(PsiMethod method) {

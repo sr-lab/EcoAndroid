@@ -33,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class PassiveProviderLocationQuickFix implements LocalQuickFix {
-    private static final String QUICK_FIX_NAME = "EcoAndroid: Cache - switching to PASSIVE_PROVIDER";
+    private static final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Cache [Switching to PASSIVE_PROVIDER]";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull

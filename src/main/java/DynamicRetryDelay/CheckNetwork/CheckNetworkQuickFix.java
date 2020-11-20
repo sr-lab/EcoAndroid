@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 
 public class CheckNetworkQuickFix implements LocalQuickFix {
 
-    private final String QUICK_FIX_NAME = "EcoAndroid: Dynamic Retry Delay Energy Pattern - checking network connection before processing request case";
+    private final String QUICK_FIX_NAME = "EcoAndroid: Apply pattern Dynamic Retry Delay [Check Network]";
 
     @Nls(capitalization = Nls.Capitalization.Sentence)
     @NotNull
@@ -72,7 +72,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                             "       @Override\n" +
                             "       public void onAvailable(Network network) {\n" +
                             "\n         // If there is an active network connection, this method will \"turn off\" this class and arrange to process the request\n" +
-                            "           if (service.hasActiveNetwork()) {\n" +
+                            "           if (android.os.Build.VERSION.SDK_INT < 24 || service.hasActiveNetwork()) {\n" +
                             "               Context context = getApplicationContext();\n" +
                             "               disable(context);" +
                             "               final android.app.AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);\n" +
@@ -147,25 +147,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                 }
             }
 
-            // criar a tag para o receiver
-            XmlTag receiverTag = xmlElementFactory.createTagFromText("<receiver/>");
-            receiverTag.setAttribute("android:name", processClassName(intentServiceClass, project) + "$NetworkStateReceiver");
-            receiverTag.setAttribute("android:exported", "true");
-            receiverTag.setAttribute("android:enabled", "false");
-            XmlTag applicationTag = rootTag.findFirstSubTag("application");
-            boolean applicationTagNull = false;
-            if (applicationTag == null) {
-                applicationTagNull = true;
-                applicationTag = xmlElementFactory.createTagFromText("<application/>");
-            }
-            XmlTag firstProvider = applicationTag.findFirstSubTag("provider");
-            if (firstProvider != null)
-                applicationTag.addBefore(receiverTag, firstProvider);
-            else
-                applicationTag.add(receiverTag);
-            if (applicationTagNull)
-                xmlFile.add(applicationTag);
-
             PsiComment comment = factory.createCommentFromText("/*\n "
                     + StringUtils.repeat(" ", IndentHelper.getInstance().getIndent(psiFile, psiMethod.getFirstChild().getNode()))
                     + "* EcoAndroid: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED \n"
@@ -186,24 +167,5 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                     +"*/", psiFile);
             psiMethod.addBefore(comment, psiMethod.getFirstChild());
         }
-    }
-
-    private String processClassName(PsiClass intentServiceClass, Project project) {
-        String className = intentServiceClass.getQualifiedName();
-        String[] bigClassName = intentServiceClass.getQualifiedName().split("\\." + intentServiceClass.getQualifiedName());
-        if(bigClassName[0].equals(intentServiceClass.getQualifiedName())) { return className; }
-        else {
-            // in the case it's an inner class
-            String[] split = intentServiceClass.getQualifiedName().split("\\.");
-            PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(bigClassName[0],
-                    GlobalSearchScope.allScope(project));
-            for (PsiClass innerClass : psiClass.getInnerClasses()) {
-                if(innerClass.equals(intentServiceClass)) {
-                    className = bigClassName[0] + "$" + split[split.length-1];
-                    return className;
-                }
-            }
-        }
-        return className;
     }
 }
