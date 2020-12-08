@@ -52,11 +52,12 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                     if(currentMethodCall.getMethodExpression().getQualifier() == null)
                         continue;
                     if(currentMethodCall.getMethodExpression().getQualifier().getText().equals("intent")) {
-                        if(currentMethodCall.getParent() instanceof PsiLocalVariable)
+                        if(!(currentMethodCall.getParent() instanceof PsiIfStatement) && PsiTreeUtil.getParentOfType(currentMethodCall, PsiIfStatement.class) == null && currentMethodCall.getParent() instanceof PsiLocalVariable) {
                             intentVariables.add((PsiLocalVariable) currentMethodCall.getParent());
+                        }
                     }
                 }
-                // NOTE: IF THIS SIZE IS 0 MEANS NOTHING IS RETRIEVED FRMO THE intent PARAMETER
+                // NOTE: IF THIS SIZE IS 0 MEANS NOTHING IS RETRIEVED FROM THE intent PARAMETER
                 if(intentVariables.size() == 0)
                     return;
 

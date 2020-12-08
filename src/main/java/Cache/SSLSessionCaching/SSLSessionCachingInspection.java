@@ -34,7 +34,15 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
                 if(!psiMethodResolved.getContainingClass().equals(psiSSLContextClass)) { return ; }
 
                 PsiMethod psiMethod = PsiTreeUtil.getParentOfType(expression, PsiMethod.class);
-                Collection<PsiMethodCallExpression> methodCallExpressionsCollection = PsiTreeUtil.findChildrenOfType(psiMethod, PsiMethodCallExpression.class);
+                Collection<PsiMethodCallExpression> methodCallExpressionsCollection;
+                if(psiMethod != null) {
+                    methodCallExpressionsCollection = PsiTreeUtil.findChildrenOfType(psiMethod, PsiMethodCallExpression.class);
+                }
+                else {
+                    PsiCodeBlock psiCodeBlock = PsiTreeUtil.getParentOfType(expression, PsiCodeBlock.class);
+                    methodCallExpressionsCollection = PsiTreeUtil.findChildrenOfType(psiCodeBlock, PsiMethodCallExpression.class);
+                }
+
                 methodCallExpressionsCollection.removeIf(el -> !(el.getMethodExpression().getReferenceName().contains("setSessionCacheSize")));
                 methodCallExpressionsCollection.removeIf(el -> !(el.getArgumentList().getExpressions().length > 0));
                 methodCallExpressionsCollection.removeIf(el -> !(el.getArgumentList().getExpressions()[0].getText().equals("0")));
@@ -43,6 +51,7 @@ public class SSLSessionCachingInspection extends LocalInspectionTool {
 
                 holder.registerProblem(expression, DESCRIPTION_TEMPLATE_SSL_SESSION_CACHE, sslSessionCachingQuickFix);
             }
+
         };
     }
 }

@@ -34,7 +34,7 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
     @Override
     public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
         PsiElementFactory factory = PsiElementFactory.getInstance(project);
-        PsiMethod psiMethod = (PsiMethod) ( problemDescriptor.getPsiElement()).getContext();
+        PsiMethod psiMethod = (PsiMethod) (problemDescriptor.getPsiElement()).getContext();
         PsiClass psiClass = psiMethod.getContainingClass();
         PsiFile psiFile = psiClass.getContainingFile();
 
@@ -86,7 +86,7 @@ public class CheckMetadataQuickFix implements LocalQuickFix {
             psiMethod.getBody().addAfter(methodCallStatement, psiMethod.getBody().getLBrace());
 
             ifStatement = ifStatement.substring(0, ifStatement.length() - 4);
-            ifStatement += ") { \n // nothing has changed; we can safely return \n return; } ";
+            ifStatement += ") { \n // EcoAndroid: nothing has changed; we can safely return \n return; } ";
             PsiStatement statementFromText = factory.createStatementFromText(ifStatement, psiClass);
             psiMethod.getBody().addAfter(statementFromText, psiMethod.getBody().getLBrace());
 

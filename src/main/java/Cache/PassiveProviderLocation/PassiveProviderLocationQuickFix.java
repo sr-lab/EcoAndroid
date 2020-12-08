@@ -77,7 +77,7 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
                         "boolean flagEcoAndroid = false; \n}";
                 String ifStatement =
                         "if(flagEcoAndroid) { \n" +
-                            " Criteria criteria = new Criteria(); \n" +
+                            " android.location.Criteria criteria = new Criteria(); \n" +
                             " criteria.setPowerRequirement(Criteria.POWER_LOW); \n" +
                             " String lm = " + locationManagerName + ".getBestProvider(criteria, true);\n" +
                             criteriaString + "\n" +
@@ -94,9 +94,6 @@ public class PassiveProviderLocationQuickFix implements LocalQuickFix {
 
                 JavaCodeStyleManager javaCodeStyleManager = JavaCodeStyleManager.getInstance(project);
                 javaCodeStyleManager.shortenClassReferences(psiClass);
-            }
-            else {
-
             }
 
             // mudar o argumento na chamada a funcao

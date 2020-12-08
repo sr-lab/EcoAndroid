@@ -24,6 +24,12 @@ If you are interested in changing or exploring the source code of the plugin, fo
 2. Open the project in your favourite IDE
 3. Once you made the desired changes, run `gradle runIde`. An IntelliJ IDE with the plugin activated will open.
 
+If you wish to add a new refactoring to the plugin, follow these steps:
+
+1. Add a \<localInspection\> element to the plugin.xml file present in `src/main/resources`, following the specifications in the other inspections
+2. Create a subclass of *com.intellij.codeInspection.LocalInspectionTool* (the one stated in the previous step) in the folder of the corresponding energy pattern
+3. Create a subclass of *com.intellij.codeInspection.LocalQuickFix* to apply the refactoring to the source code
+
 ## EcoAndroid in Practice
 EcoAndroid has been used to improve the energy efficiency of several Android applications. Examples include:
 
@@ -52,20 +58,20 @@ The energy patterns that are currently detected by EcoAndroid are:
       - Checking the network connection before processing a thread
 
   2. *Push over Poll*, with the following case:
-      - Giving information to the developer about the possibility of implementing push notifications through FCM instead of a polling service
+      - Giving information to the developer about the possibility of implementing push notifications through Firebase Cloud Messaging (FCM) instead of a polling service
 
-  3.  *Cache*, with the following cases:
+  3. *Reduce Size*, with the following case:
+      - Asking for the response to be received compressed by the gzip scheme, if possible
+
+  4.  *Cache*, with the following cases:
       - Checking the metadata before reloading information
       - Verifying the size of a view before resetting said view
       - Switching to *LocationManager.PASSIVE_PROVIDER* when invoking the method *requestLocationUpdates* from the class *android.location.LocationManager*
       - Increasing the size of the cache on a SSL Session
       - Creating a *TODO* in the source code for when nothing is different since the last update from an URL connection
 
-  4. *Avoid Graphics and Animations*, with the following case:
+  5. *Avoid Graphics and Animations*, with the following case:
       - Switching the rendering mode to *GLSurfaceView.RENDERMODE_WHEN_DIRTY*
-
-  5. *Reduce Size*, with the following case:
-      - Compressing with gzip before receiving data
 
 The examples in the folder src/test are retrieved from real-life mobile applications.
 In order to make the files more readable, parts of the original source code are either removed or commented.

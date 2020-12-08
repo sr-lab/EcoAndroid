@@ -71,7 +71,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                             "\n" +
                             "       @Override\n" +
                             "       public void onAvailable(Network network) {\n" +
-                            "\n         // If there is an active network connection, this method will \"turn off\" this class and arrange to process the request\n" +
+                            "\n         // EcoAndroid: If there is an active network connection, this method will \"turn off\" this class and arrange to process the request\n" +
                             "           if (android.os.Build.VERSION.SDK_INT < 24 || service.hasActiveNetwork()) {\n" +
                             "               Context context = getApplicationContext();\n" +
                             "               disable(context);" +
@@ -95,13 +95,13 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                             "       }" +
                             "    }" +
                             "\n" +
-                            "\n     // Method to  \"turn on\" this class \n" +
+                            "\n     // EcoAndroid: Method to  \"turn on\" this class \n" +
                             "       public void enable(Context context) {\n" +
                             "           ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
                             "           connectivityManager.registerDefaultNetworkCallback(this);" +
                             "       }\n" +
                             "\n"
-                            + "     // Method to  \"turn off\" this class\n" +
+                            + "     // EcoAndroid: Method to  \"turn off\" this class\n" +
                             "        public void disable(Context context) {\n" +
                             "            ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);\n" +
                             "            connectivityManager.unregisterNetworkCallback(this);\n" +
