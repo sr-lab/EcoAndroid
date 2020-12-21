@@ -1,13 +1,23 @@
 <idea-plugin>
   <id>anaribeiro.ist.EcoAndroid</id>
   <name>EcoAndroid</name>
-  <vendor email="anasofiaribeiro@tecnico.ulisboa.pt"  url="http://www.yourcompany.com">EcoAndroid</vendor>
+  <vendor email="anasofiaribeiro@tecnico.ulisboa.pt">Ana Ribeiro</vendor>
 
-  <description>
-    The EcoAndroid plugin aims at helping developers creating Android mobile applications with lower energy consumption rates.
-    In order to achieve this goal, the plugin refactors the source code, according to well-known energy patterns.
-    More details about the energy patterns applied can be found in the EcoAndroid github.
-  </description>
+  <description><![CDATA[
+<p>Detects and refactors energy-related code-smells on Java source code.
+</br>
+The results from the inspection can be seen as warnings in the source code or can be run manually by the developer. 
+</br>
+</br>
+It supports the detection and correction of the following cases:</p>
+<ul>
+<li>Dynamic Retry Delay: increase the interval between attempts to access a resource, avoiding trying to constantly access a resource that most likely went down.</li>
+<li>Push Over Poll: use push notifications instead of actively querying resources, such as polling.</li>
+<li>Reduce Size: reduce the size of the data being transferred as much as possible, therefore reducing the energy being used in the transfer.</li>
+<li>Cache: store data that is being used frequently, which means a lower energy consumption since it reduces the amount of code executed and a lower number of accesses to retrieve information.</li>
+<li>Avoid Graphics and Animations: displaying graphics and animations are resources with an high energy consumption.reducing this resources as much as possible will save energy.</li>
+</ul>
+]]></description>
 
   <idea-version since-build="141"/>
 
@@ -113,12 +123,5 @@
             level="WARNING"
             implementationClass="ReduceSize.GZIPCompressionInspection"/>
   </extensions>
-
-  <actions>
-    <action id="EcoAndroid" class="EcoAndroidAction" text="EcoAndroid"
-            description="EcoAndroid">
-      <add-to-group group-id="ToolsMenu" anchor="first"/>
-    </action>
-  </actions>
 
 </idea-plugin>

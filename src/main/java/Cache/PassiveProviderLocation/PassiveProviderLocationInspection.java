@@ -45,7 +45,20 @@ public class PassiveProviderLocationInspection extends LocalInspectionTool {
                 String parText = expression.getArgumentList().getExpressions()[0].getText();
                 if(parText.equals("LocationManager.PASSIVE_PROVIDER")) { return; }
 
-                // look for Object.requireNonNull
+                if(!(expression.getMethodExpression().getQualifier().getText().contains("Gps"))
+                        || !(expression.getMethodExpression().getQualifier().getText().contains("Network")) ) {
+                    PsiComment[] comments = PsiTreeUtil.getChildrenOfType(PsiTreeUtil.getParentOfType(expression, PsiMethod.class), PsiComment.class);
+                    if(comments != null) {
+                        for (PsiComment comment : comments) {
+                            if(comment.getText().startsWith("/*\n     * TODO EcoAndroid\n")) {
+                                return;
+                            }
+                        }
+                    }
+                    holder.registerProblem(expression.getArgumentList().getExpressions()[0], DESCRIPTION_TEMPLATE_PASSIVE_PROVIDER_INFO_WARNING, passiveProviderLocationInfoWarningQuickFix);
+                    return;
+                }
+
                 if(checkExplicitWishForProvider(PsiTreeUtil.getParentOfType(expression, PsiMethod.class),expression, parText, false)) {
                     PsiComment[] comments = PsiTreeUtil.getChildrenOfType(PsiTreeUtil.getParentOfType(expression, PsiMethod.class), PsiComment.class);
                     if(comments != null) {

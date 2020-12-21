@@ -49,15 +49,25 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                         if(InheritanceUtil.isInheritorOrSelf(currentMethodCall.resolveMethod().getContainingClass(), notificationManagerClass, true)) { return;}
                     }
 
+                    // check if there is a DownloadManager call in the method
+                    if(currentMethodCall.resolveMethod() != null) {
+                        PsiClass downloadManagerClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.DownloadManager", GlobalSearchScope.allScope(holder.getProject()));
+                        if(InheritanceUtil.isInheritorOrSelf(currentMethodCall.resolveMethod().getContainingClass(), downloadManagerClass, true)) { return;}
+                    }
+
                     if(currentMethodCall.getMethodExpression().getQualifier() == null)
                         continue;
-                    if(currentMethodCall.getMethodExpression().getQualifier().getText().equals("intent")) {
-                        if(!(currentMethodCall.getParent() instanceof PsiIfStatement) && PsiTreeUtil.getParentOfType(currentMethodCall, PsiIfStatement.class) == null && currentMethodCall.getParent() instanceof PsiLocalVariable) {
+                    if(currentMethodCall.getMethodExpression().getQualifier().getText().equals("intent")
+                            && !(currentMethodCall.getMethodExpression().getReferenceName().contains("getAction"))) {
+                        if(!(currentMethodCall.getParent() instanceof PsiIfStatement)
+                                && PsiTreeUtil.getParentOfType(currentMethodCall, PsiIfStatement.class) == null
+                                && currentMethodCall.getParent() instanceof PsiLocalVariable
+                                && !((PsiLocalVariable)(currentMethodCall.getParent())).getName().contains("action")) {
                             intentVariables.add((PsiLocalVariable) currentMethodCall.getParent());
                         }
                     }
                 }
-                // NOTE: IF THIS SIZE IS 0 MEANS NOTHING IS RETRIEVED FROM THE intent PARAMETER
+                // if this size is 0 means nothing is retrieved from the intent parameter
                 if(intentVariables.size() == 0)
                     return;
 
@@ -66,22 +76,6 @@ public class CheckMetadataInspection extends LocalInspectionTool {
                     Collection<PsiReference> references = ReferencesSearch.search(intentVariable).findAll();
 
                     for (PsiReference ref : references) {
-                        PsiReferenceExpression referenceExpression = (PsiReferenceExpression) PsiTreeUtil.findFirstParent((PsiElement) ref, el -> el instanceof PsiReferenceExpression);
-                        if(referenceExpression != null) {
-
-                            // check if the ref is in a method call
-                            PsiMethodCallExpression psiMethodCallExpression = PsiTreeUtil.getParentOfType(referenceExpression, PsiMethodCallExpression.class);
-                            if(psiMethodCallExpression != null) {
-                                PsiReferenceExpression methodExpression = psiMethodCallExpression.getMethodExpression();
-                                if(methodExpression.getQualifierExpression() != null
-                                        && methodExpression.getQualifierExpression().getType() != null
-                                        && methodExpression.getQualifierExpression().getType().getPresentableText().equals("String")
-                                        && methodExpression.getQualifier().getText().startsWith("DownloadManager.")) {
-                                    return;
-
-                                }
-                            }
-                        }
                         PsiIfStatement firstParent = (PsiIfStatement) PsiTreeUtil.findFirstParent((PsiElement) ref, el -> el instanceof PsiIfStatement);
                         if (firstParent == null) {
                             continue;
