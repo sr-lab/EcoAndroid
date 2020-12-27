@@ -1,11 +1,7 @@
 package Cache.SSLSessionCaching;
 
-import android.util.Log;
 import com.sun.xml.internal.messaging.saaj.packaging.mime.MessagingException;
-
-
 import javax.net.ssl.*;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.security.KeyManagementException;

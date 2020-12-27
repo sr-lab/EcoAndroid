@@ -35,6 +35,9 @@ public class CheckNetworkInspection extends LocalInspectionTool {
                 if(!method.getName().equals("onHandleIntent")) // This method is invoked on the worker thread with a request to process.
                     return;
 
+                if(method.getBody().isEmpty())
+                    return;
+
                 PsiClass psiClass = PsiTreeUtil.getParentOfType(method, PsiClass.class);
                 PsiClass serviceClass = JavaPsiFacade.getInstance(holder.getProject()).findClass("android.app.IntentService", GlobalSearchScope.allScope(holder.getProject()));
                 if(!(InheritanceUtil.isInheritorOrSelf(psiClass, serviceClass, true))) { return;}

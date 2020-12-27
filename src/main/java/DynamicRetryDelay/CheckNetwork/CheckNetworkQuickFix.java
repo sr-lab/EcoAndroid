@@ -80,7 +80,6 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                             "               final android.app.PendingIntent pendingIntent = PendingIntent.getService(context, 0, innerIntent, 0);\n" +
                             "\n" +
                             "               android.content.SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);\n" +
-                            "               preferences.edit();\n" +
                             "               boolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
                             "\n" +
                             "               final String hours = preferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +

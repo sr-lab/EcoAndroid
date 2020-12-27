@@ -1,7 +1,7 @@
 <idea-plugin>
   <id>anaribeiro.ist.EcoAndroid</id>
   <name>EcoAndroid</name>
-  <vendor email="anasofiaribeiro@tecnico.ulisboa.pt">Ana Ribeiro</vendor>
+  <vendor email="anasofiaribeiro@tecnico.ulisboa.pt">SR-Lab</vendor>
 
   <description><![CDATA[
 <p>Detects and refactors energy-related code-smells on Java source code.
@@ -19,12 +19,16 @@ It supports the detection and correction of the following cases:</p>
 </ul>
 ]]></description>
 
-  <idea-version since-build="141"/>
+    <!-- Android Studio 4.0+ -->
+    <!-- see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html -->
+  <idea-version since-build="192"/>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
        on how to target different products -->
   <depends>com.intellij.modules.platform</depends>
-  <depends>com.intellij.java</depends>
+  <depends>com.intellij.modules.java</depends>
+  <!--depends>com.intellij.java</depends-->
+  <depends>org.jetbrains.android</depends>
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- DYNAMIC RETRY DELAY  -->

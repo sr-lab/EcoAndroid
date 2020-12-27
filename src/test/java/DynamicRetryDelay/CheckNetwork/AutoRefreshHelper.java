@@ -6,9 +6,6 @@ import android.content.*;
 import android.database.Cursor;
 import android.preference.PreferenceManager;
 import android.util.Log;
-//import org.jamienicol.episodes.RefreshShowUtil;
-//import org.jamienicol.episodes.db.ShowsProvider;
-//import org.jamienicol.episodes.db.ShowsTable;
 
 public class AutoRefreshHelper
         implements SharedPreferences.OnSharedPreferenceChangeListener
@@ -26,12 +23,13 @@ public class AutoRefreshHelper
     private static AutoRefreshHelper instance;
 
     private final Context context;
+    private final SharedPreferences preferences;
 
     public AutoRefreshHelper(Context context) {
         this.context = context;
 
-   //     preferences = PreferenceManager.getDefaultSharedPreferences(context);
-   //     preferences.registerOnSharedPreferenceChangeListener(this);
+        preferences = PreferenceManager.getDefaultSharedPreferences(context);
+        preferences.registerOnSharedPreferenceChangeListener(this);
     }
 
     public static synchronized AutoRefreshHelper getInstance(Context context) {
@@ -60,26 +58,22 @@ public class AutoRefreshHelper
     }
 
     private boolean getAutoRefreshEnabled() {
-       // return preferences.getBoolean(KEY_PREF_AUTO_REFRESH_ENABLED, false);
-        return true;
+       return preferences.getBoolean(KEY_PREF_AUTO_REFRESH_ENABLED, false);
     }
 
     private long getAutoRefreshPeriod() {
-      //  final String hours = preferences.getString(KEY_PREF_AUTO_REFRESH_PERIOD, "0");
-        final String hours  = "";
+        final String hours = preferences.getString(KEY_PREF_AUTO_REFRESH_PERIOD, "0");
 
         // convert hours to milliseconds
         return Long.parseLong(hours) * 60 * 60 * 1000;
     }
 
     private long getPrevAutoRefreshTime() {
-    //    return preferences.getLong(KEY_LAST_AUTO_REFRESH_TIME, 0);
-        return (long) 0.0;
+        return preferences.getLong(KEY_LAST_AUTO_REFRESH_TIME, 0);
     }
 
     private void setPrevAutoRefreshTime(long time) {
-      //  final SharedPreferences.Editor editor = preferences.edit();
-        final SharedPreferences.Editor editor = null;
+        final SharedPreferences.Editor editor = preferences.edit();
         editor.putLong(KEY_LAST_AUTO_REFRESH_TIME, time);
         editor.commit();
     }
