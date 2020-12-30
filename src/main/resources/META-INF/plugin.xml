@@ -4,19 +4,15 @@
   <vendor email="anasofiaribeiro@tecnico.ulisboa.pt">SR-Lab</vendor>
 
   <description><![CDATA[
-<p>Detects and refactors energy-related code-smells on Java source code.
-</br>
-The results from the inspection can be seen as warnings in the source code or can be run manually by the developer. 
-</br>
-</br>
-It supports the detection and correction of the following cases:</p>
+  <p>EcoAndroid suggests automated refactorings for reducing the energy consumption of Java Android applications. It is based on the idea of <i>energy pattern</i> and it has already been used to improve the energy efficiency of dozens of Android applications.</p>
+<p>It currently supports the detection and correction of the following cases:
 <ul>
-<li>Dynamic Retry Delay: increase the interval between attempts to access a resource, avoiding trying to constantly access a resource that most likely went down.</li>
-<li>Push Over Poll: use push notifications instead of actively querying resources, such as polling.</li>
-<li>Reduce Size: reduce the size of the data being transferred as much as possible, therefore reducing the energy being used in the transfer.</li>
-<li>Cache: store data that is being used frequently, which means a lower energy consumption since it reduces the amount of code executed and a lower number of accesses to retrieve information.</li>
-<li>Avoid Graphics and Animations: displaying graphics and animations are resources with an high energy consumption.reducing this resources as much as possible will save energy.</li>
-</ul>
+<li><i>Dynamic Retry Delay</i>: increase the interval between attempts to access a resource, avoiding regular accesses to a resource that most likely went down.</li>
+<li><i>Push Over Poll</i>: use push notifications instead of actively querying resources, such as polling.</li>
+<li><i>Reduce Size</i>: reduce the size of the data being transferred as much as possible, therefore reducing the energy being used in the transfer.</li>
+<li><i>Cache</i>: store data that is being used frequently, which results in a lower energy consumption since it reduces the amount of code executed and the number of accesses to retrieve information.</li>
+<li>Avoid Graphics and Animations: reduce the display of graphics and animations, since the use of this type of resources increases energy consumption.</li>
+</ul></p>
 ]]></description>
 
     <!-- Android Studio 4.0+ -->
