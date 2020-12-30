@@ -9,7 +9,7 @@ repositories {
 }
 
 group 'anaribeiro.ist'
-version '1.0.3'
+version '1.0.3.1'
 sourceCompatibility = 1.8
 
 repositories {

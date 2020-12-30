@@ -10,6 +10,13 @@ public class DynamicWaitTime {
 
     private void startLongPoll(String polledFile, int backOffSeconds) {
         pollingTask = new Thread () {
+            int accessAttempts = 0;
+
+            /*
+             * EcoAndroid: DYNAMIC RETRY DELAY ENERGY PATTERN APPLIED
+             * Switching the wait time from constant to dynamic
+             * Application changed java file "DynamicWaitTime.java"
+             */
             public void run() {
                 long start_time = System.currentTimeMillis();
                 long longpoll_timeout = 480;
@@ -25,12 +32,13 @@ public class DynamicWaitTime {
                 }
                 if(System.currentTimeMillis() - start_time < longpoll_timeout * 1000) {
                     log.info("Longpoll timed out to quick, backing off for 60 seconds");
-                    newBackoffSeconds = 60;
+                    accessAttempts++;
                 }
                 else {
                     log.info("Longpoll IO exception, restarting backing off {} seconds" + 30);
-                    newBackoffSeconds = 30;
+                    accessAttempts++;
                 }
+                newBackoffSeconds = (int) (60.0 * (Math.pow(2.0, (double) accessAttempts) - 1.0));
                 startLongPoll(polledFile, newBackoffSeconds);
             }
         };

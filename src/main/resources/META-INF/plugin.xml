@@ -4,14 +4,14 @@
   <vendor email="anasofiaribeiro@tecnico.ulisboa.pt">SR-Lab</vendor>
 
   <description><![CDATA[
-  <p>EcoAndroid suggests automated refactorings for reducing the energy consumption of Java Android applications. It is based on the idea of <i>energy pattern</i> and it has already been used to improve the energy efficiency of dozens of Android applications.</p>
-<p>It currently supports the detection and correction of the following cases:
+<p>EcoAndroid suggests automated refactorings for reducing the energy consumption of Java Android applications. It is based on the idea of <i>energy pattern</i> and it has already been used to improve the energy efficiency of dozens of Android applications.</p>
+<p><b>It currently supports the detection and correction of the following energy patterns:</b>
 <ul>
 <li><i>Dynamic Retry Delay</i>: increase the interval between attempts to access a resource, avoiding regular accesses to a resource that most likely went down.</li>
 <li><i>Push Over Poll</i>: use push notifications instead of actively querying resources, such as polling.</li>
 <li><i>Reduce Size</i>: reduce the size of the data being transferred as much as possible, therefore reducing the energy being used in the transfer.</li>
 <li><i>Cache</i>: store data that is being used frequently, which results in a lower energy consumption since it reduces the amount of code executed and the number of accesses to retrieve information.</li>
-<li>Avoid Graphics and Animations: reduce the display of graphics and animations, since the use of this type of resources increases energy consumption.</li>
+<li><i>Avoid Graphics and Animations</i>: reduce the display of graphics and animations, since the use of this type of resources increases energy consumption.</li>
 </ul></p>
 ]]></description>
 
