@@ -82,7 +82,7 @@ public class CheckNetworkQuickFix implements LocalQuickFix {
                             "               android.content.SharedPreferences preferences = context.getSharedPreferences(context.getPackageName(), Context.MODE_PRIVATE);\n" +
                             "               boolean autoRefreshEnabled = preferences.getBoolean(\"pref_auto_refresh_enabled\", false);\n" +
                             "\n" +
-                            "               final String hours = preferences.getString(\"pref_auto_refresh_enabled\", \"0\");\n" +
+                            "               final String hours = preferences.getString(\"pref_auto_refresh_period\", \"0\");\n" +
                             "               long hoursLong = Long.parseLong(hours) * 60 * 60 * 1000;\n" +
                             "\n" +
                             "                if (autoRefreshEnabled && hoursLong != 0) {\n" +
