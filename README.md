@@ -75,3 +75,6 @@ The energy patterns that are currently detected by EcoAndroid are:
 
 The examples in the folder src/test are retrieved from real-life mobile applications.
 In order to make the files more readable, parts of the original source code are either removed or commented.
+
+## Resources
+For more information about energy patterns, we recommend Cruz and Abreu's [open catalogue of energy-related patterns in mobile applications](https://tqrg.github.io/energy-patterns/#/).

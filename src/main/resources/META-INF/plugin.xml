@@ -13,6 +13,7 @@
 <li><i>Cache</i>: store data that is being used frequently, which results in a lower energy consumption since it reduces the amount of code executed and the number of accesses to retrieve information.</li>
 <li><i>Avoid Graphics and Animations</i>: reduce the display of graphics and animations, since the use of this type of resources increases energy consumption.</li>
 </ul></p>
+<p>More details about these patterns can be found in <a href="https://tqrg.github.io/energy-patterns/#/">Cruz and Abreu's open catalogue of energy-related patterns in mobile applications</a>.</p>
 ]]></description>
 
     <!-- Android Studio 4.0+ -->
