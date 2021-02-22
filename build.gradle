@@ -4,7 +4,14 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven {
+        url "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-snapshot/"
+    }
+    maven {
+        url "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"
+    }
     google()
 }
 
@@ -12,8 +19,11 @@ group 'anaribeiro.ist'
 version '1.0.3.1'
 sourceCompatibility = 1.8
 
-repositories {
-    mavenCentral()
+dependencies {
+    compile group: 'org.soot-oss', name: 'soot', version: '4.2.1'
+    compile group: 'de.tud.sse', name: 'soot-infoflow', version: '2.8'
+    compile group: 'de.tud.sse', name: 'soot-infoflow-android', version: '2.8'
+    compile group: 'de.tud.sse', name: 'soot-infoflow-cmd', version: '2.8'
 }
 
 intellij {
