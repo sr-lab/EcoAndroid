@@ -123,6 +123,25 @@
             enabledByDefault="true"
             level="WARNING"
             implementationClass="ReduceSize.GZIPCompressionInspection"/>
+
+    <!-- <applicationService serviceImplementation="resourceleaks.AnalysisService"/> -->
+
   </extensions>
+
+  <actions>
+    <action id="resourceleaks.actions.RunResourceLeakDetection" class="resourceleaks.actions.RunResourceLeakDetection" text="Run Resource Leak Detection"
+            description="Testing Actions in IntelliJ">
+      <add-to-group group-id="RunMenu" anchor="first"/>
+    </action>
+  </actions>
+
+
+
+
+
+
+
+        <!-- Copyright 2000-2020 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file. -->
+
 
 </idea-plugin>
