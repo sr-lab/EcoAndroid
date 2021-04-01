@@ -3,22 +3,24 @@ package resourceleaks.actions;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.editor.markup.EffectType;
+import com.intellij.openapi.editor.markup.HighlighterLayer;
+import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.pom.Navigatable;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import resourceleaks.ResourceLeakAnalysisTask;
-import resourceleaks.ui.NotificationProvider;
 
 import javax.swing.*;
+import java.awt.*;
 
 
 public class RunResourceLeakDetection extends AnAction {
@@ -34,18 +36,29 @@ public class RunResourceLeakDetection extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
-        // Using the event, create and show a dialog
         Project project = event.getProject();
-        StringBuilder dlgMsg = new StringBuilder(event.getPresentation().getText() + " Selected!");
-        String dlgTitle = event.getPresentation().getDescription();
-        // If an element is selected in the editor, add info about it.
-        Navigatable nav = event.getData(CommonDataKeys.NAVIGATABLE);
-        ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project));
-        //NotificationProvider.info("Started running resource leak detection");
+        ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project, event));
         Notification notification = new Notification(
                 "Tasks", "EcoAndroid", "Running analysis", NotificationType.INFORMATION);
         Notifications.Bus.notify(notification);
 
+        /*
+        System.out.println("Start highlight");
+        PsiClass psiClass = JavaPsiFacade.getInstance(event.getProject()).findClass("com.ichi2.anki.MyAccount", GlobalSearchScope.allScope(event.getProject()));
+        //HIGHLIGHTING TEST ON PSIELEMENT (IN THIS CASE, MYACCOUNT CLASS)
+        //MUST BE DONE ON UI THREAD, CANT BE DONE ON TASK :(
+        //int lineNum = document.getLineNumber(needHighlightPsiElement.getTextRange().getStartOffset());
+        Color color= new Color(10, 10, 200);
+        final TextAttributes textattributes = new TextAttributes(null, color, null, EffectType.LINE_UNDERSCORE, Font.PLAIN);
+        //final Project project = needHighlightPsiElement.getProject();
+        //final FileEditorManager editorManager = FileEditorManager.getInstance(project);
+        //final Editor editor = editorManager.getSelectedTextEditor();
+        //editor.getMarkupModel().addLineHighlighter(lineNum, HighlighterLayer.CARET_ROW, textattributes);
+
+        //int lineNum = event.getData(PlatformDataKeys.EDITOR).getDocument().getLineNumber(psiClass.getTextRange().getStartOffset());
+        FileEditorManager.getInstance(event.getProject()).getSelectedTextEditor().getMarkupModel().addLineHighlighter(40, HighlighterLayer.CARET_ROW, textattributes);
+        System.out.println("End highlight");
+        */
     }
 
     @Override
@@ -55,3 +68,4 @@ public class RunResourceLeakDetection extends AnAction {
         e.getPresentation().setEnabledAndVisible(project != null);
     }
 }
+

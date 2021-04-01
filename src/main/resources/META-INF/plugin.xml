@@ -124,7 +124,20 @@
             level="WARNING"
             implementationClass="ReduceSize.GZIPCompressionInspection"/>
 
-    <!-- <applicationService serviceImplementation="resourceleaks.AnalysisService"/> -->
+    <localInspection
+            language="JAVA"
+            displayName="EcoAndroid: Resource Leak"
+            groupPath="Java"
+            groupBundle="messages.InspectionsBundle"
+            groupKey="group.names.probable.bugs"
+            enabledByDefault="true"
+            level="WARNING"
+            implementationClass="resourceleaks.ResourceLeakInspection"/>
+
+    <projectService serviceImplementation="resourceleaks.ResultsProcessor"></projectService>
+
+    <codeInsight.lineMarkerProvider language="JAVA"
+                                    implementationClass="resourceleaks.ResourceLeakLineMarker"/>
 
   </extensions>
 
