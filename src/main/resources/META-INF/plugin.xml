@@ -142,8 +142,9 @@
   </extensions>
 
   <actions>
-    <action id="resourceleaks.actions.RunResourceLeakDetection" class="resourceleaks.actions.RunResourceLeakDetection" text="Run Resource Leak Detection"
-            description="Testing Actions in IntelliJ">
+    <action id="resourceleaks.actions.RunResourceLeakDetection" class="resourceleaks.actions.RunResourceLeakDetection"
+            text="Run Resource Leak Detection" description="Resource Leak Analysis"
+            icon="/icons/icon.svg">
       <add-to-group group-id="RunMenu" anchor="first"/>
     </action>
   </actions>

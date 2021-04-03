@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="15px"
+   height="15px"
+   viewBox="0 0 104.94864 105.23777"
+   version="1.1"
+   id="svg377"
+   inkscape:version="1.0.1 (0767f8302a, 2020-10-17)"
+   sodipodi:docname="logo.svg">
+  <defs
+     id="defs371" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="197.79696"
+     inkscape:cy="249.46672"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1428"
+     inkscape:window-height="1016"
+     inkscape:window-x="50"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata374">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-53.499554,-82.161929)">
+    <g
+       fill="#a4c639"
+       id="g17-6-6"
+       transform="matrix(0.26458333,0,0,0.26458333,103.53501,100.5975)"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <use
+         stroke-width="14.4"
+         xlink:href="#b-9-9"
+         stroke="#ffffff"
+         id="use2-7-7"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" />
+      <use
+         xlink:href="#a-3-3"
+         transform="scale(-1,1)"
+         id="use4-5-5"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" />
+      <g
+         id="a-3-3"
+         stroke="#ffffff"
+         stroke-width="7.2">
+        <rect
+           rx="6.5"
+           transform="rotate(29)"
+           height="86"
+           width="13"
+           y="-86"
+           x="14"
+           id="rect6-5-5" />
+        <rect
+           id="c-6-6"
+           rx="24"
+           height="133"
+           width="48"
+           y="41"
+           x="-143" />
+        <use
+           y="97"
+           x="85"
+           xlink:href="#c-6-6"
+           id="use9-2-2"
+           width="100%"
+           height="100%" />
+      </g>
+      <g
+         id="b-9-9">
+        <ellipse
+           cy="41"
+           rx="91"
+           ry="84"
+           id="ellipse12-1-1"
+           cx="0" />
+        <rect
+           rx="22"
+           height="182"
+           width="182"
+           y="20"
+           x="-91"
+           id="rect14-2-2" />
+      </g>
+    </g>
+    <g
+       stroke="#ffffff"
+       stroke-width="7.2"
+       fill="#ffffff"
+       id="g25-7-7"
+       transform="matrix(0.26458333,0,0,0.26458333,103.53501,100.5975)"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <path
+         d="M -95,44.5 H 95"
+         id="path19-0-0" />
+      <circle
+         cx="-42"
+         r="4"
+         id="circle21-9-9"
+         cy="0" />
+      <circle
+         cx="42"
+         r="4"
+         id="circle23-3-3"
+         cy="0" />
+    </g>
+    <path
+       d="m 97.178083,145.32609 c -2.0932,-0.14889 -3.18749,-0.9034 -3.74954,-1.74072 0.10774,-2.03845 0.41984,-4.57738 1.29696,-6.88157 0.50286,-1.31948 1.2165,-2.51399 2.09193,-3.39203 0.95715,-1.04663 1.8416,-1.85196 2.73272,-2.51603 1.758967,-1.30277 3.302097,-1.87029 3.790447,-2.06993 0.49395,-0.19056 1.37961,-0.54876 2.45133,-0.94761 1.06829,-0.36584 2.36226,-0.89527 3.46676,-1.54254 2.26441,-1.23821 4.14131,-2.63549 4.13832,-2.636 0.004,5.3e-4 -2.00295,1.11272 -4.33461,2.0359 -1.17647,0.50151 -2.37848,0.83122 -3.50044,1.09092 -1.10406,0.28398 -2.03655,0.57311 -2.55006,0.77174 -0.9602,0.40088 -6.713077,2.24172 -9.651487,8.41247 -0.66466,1.57613 -1.08151,3.20656 -1.35147,4.73435 -0.66424,-0.37493 -1.49114,-1.1005 -1.71638,-2.44341 -0.39259,-2.33973 -0.17415,-9.36051 6.18808,-13.26059 6.362667,-3.89961 13.466177,-3.1202 16.865697,-4.26391 3.39911,-1.14371 4.75015,-3.74412 4.75015,-3.74412 0,0 -2.83282,26.46893 -20.918407,28.39308 z"
+       id="path134-6-6"
+       style="fill:#ffffff;fill-rule:nonzero;stroke:none;stroke-width:0.466942;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+    <g
+       aria-label="EcoAndroid"
+       id="text305-9-1-5-0-5-3-0"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;line-height:1.25;font-family:KacstDecorative;-inkscape-font-specification:'KacstDecorative Bold';fill:#666666;fill-opacity:1;stroke:none"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"
+       transform="matrix(0.26458333,0,0,0.26458333,-206.28247,49.88506)">
+      <path
+         d="m 1023.0408,510.95917 v 8.75 h -26.84372 q -7.34375,0 -10.84375,-3.46875 -3.5,-3.5 -3.5,-10.4375 v -0.0937 q 0.0312,-5.5625 4.09375,-9.0625 -4.09375,-3.25 -4.09375,-9.125 0,0 0,-0.15625 0.0625,-6.75 3.5625,-10.125 3.53125,-3.40625 10.78125,-3.40625 h 26.84372 v 8.75 h -26.84372 q -2.6875,0 -4.09375,1.09375 -1.375,1.09375 -1.375,3.8125 0,2.71875 1.375,3.8125 1.40625,1.09375 4.09375,1.09375 h 26.84372 v 8.75 h -26.84372 q -2.75,0 -4.125,1.0625 -1.34375,1.03125 -1.34375,3.4375 0,2.90625 1.375,4.125 1.40625,1.1875 4.09375,1.1875 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path300" />
+      <path
+         d="m 1060.1346,510.95917 v 8.75 h -11.6875 q -3.375,0 -6.25,-0.5 -2.875,-0.46875 -5.3125,-1.625 -2.0625,-1.1875 -3.5313,-3.03125 -1.4687,-1.875 -2.3437,-4.84375 -0.875,-3 -0.875,-6.84375 0,-3.875 0.875,-6.84375 0.875,-3 2.3125,-4.84375 1.4375,-1.875 3.5625,-3.0625 2.4375,-1.1875 5.3125,-1.65625 2.875,-0.5 6.25,-0.5 h 11.6875 v 8.75 h -11.6875 q -4.4375,0 -6.8438,1.875 -2.4062,1.875 -2.4062,6.28125 0,4.34375 2.4062,6.21875 2.4063,1.875 6.8438,1.875 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path302" />
+      <path
+         d="m 1084.7283,519.70917 q -19.25,0 -19.25,-16.875 0,-16.875 19.375,-16.875 19.375,0 19.375,16.875 0,16.8125 -19.375,16.875 0,0 -0.125,0 z m 0.125,-8.75 q 10.3125,-0.0312 10.3125,-8.0625 v -0.0937 -0.0625 q 0,-8 -10.3125,-8.03125 -10.3125,0 -10.3125,8.03125 0,0.0625 0,0.0937 0.062,8.125 10.1563,8.125 0.094,0 0.1562,0 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path304" />
+      <path
+         d="m 1146.4471,482.58417 h -13.9375 q -6.0938,0 -9.4375,3.3125 -3.3125,3.3125 -3.3125,10.90625 0,7.5625 3.3125,10.875 3.3437,3.28125 9.4375,3.28125 h 9.8125 v 8.75 l -9.8125,0.0312 h -0.125 q -5.125,0 -9.125,-1.28125 -3.9688,-1.3125 -6.75,-4.03125 -2.7188,-2.71875 -4.1563,-7.1875 -1.4375,-4.5 -1.4375,-10.625 0,-6 1.4375,-10.40625 1.4688,-4.4375 4.1875,-7.09375 2.8125,-2.65625 6.8125,-3.9375 4,-1.34375 9.1563,-1.34375 h 22.7812 v 45.875 h -8.8437 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path306" />
+      <path
+         d="m 1171.2283,500.33417 v 19.375 h -8.75 v -19.84375 q 0,-0.0625 0,-0.0937 0,-6.75 3.9063,-10.28125 3.9375,-3.53125 12.9687,-3.53125 h 0.062 q 9.0938,0 13.0625,3.5625 3.9688,3.5625 4,10.34375 v 19.84375 h -8.75 v -19.375 q -0.031,-2.71875 -1.9375,-4.15625 -1.9062,-1.46875 -6.375,-1.46875 -4.4687,0 -6.3437,1.4375 -1.8438,1.40625 -1.8438,4.09375 0,0.0312 0,0.0937 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path308" />
+      <path
+         d="m 1231.6971,473.83417 h 9.3125 v 45.875 h -20.4375 q -9.375,0 -13.2188,-4.09375 -3.8437,-4.09375 -3.8437,-12.78125 0,-8.6875 3.8437,-12.78125 3.8438,-4.09375 13.2188,-4.09375 h 5.4375 l -0.062,8.75 h -5.375 q -3.75,0 -5.8125,1.875 -2.0625,1.875 -2.0625,6.25 0,4.375 2.0625,6.25 2.0625,1.875 5.875,1.875 h 11.0625 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path310" />
+      <path
+         d="m 1256.3846,503.24042 q 0,0 0,16.46875 h -9.0313 v -16.875 q 0,-16.875 19.375,-16.875 h 6.4375 v 8.75 h -6.4375 q -10.3437,0 -10.3437,8.53125 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path312" />
+      <path
+         d="m 1297.3533,519.70917 q -19.25,0 -19.25,-16.875 0,-16.875 19.375,-16.875 19.375,0 19.375,16.875 0,16.8125 -19.375,16.875 0,0 -0.125,0 z m 0.125,-8.75 q 10.3125,-0.0312 10.3125,-8.0625 v -0.0937 -0.0625 q 0,-8 -10.3125,-8.03125 -10.3125,0 -10.3125,8.03125 0,0.0625 0,0.0937 0.062,8.125 10.1563,8.125 0.094,0 0.1562,0 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path314" />
+      <path
+         d="m 1332.6033,519.70917 h -8.75 v -29.4375 h 8.75 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path316"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         d="m 1369.1971,473.83417 h 9.3125 v 45.875 h -20.4375 q -9.375,0 -13.2188,-4.09375 -3.8437,-4.09375 -3.8437,-12.78125 0,-8.6875 3.8437,-12.78125 3.8438,-4.09375 13.2188,-4.09375 h 5.4375 l -0.062,8.75 h -5.375 q -3.75,0 -5.8125,1.875 -2.0625,1.875 -2.0625,6.25 0,4.375 2.0625,6.25 2.0625,1.875 5.875,1.875 h 11.0625 z"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:64px;font-family:DroidLogo;-inkscape-font-specification:'DroidLogo Bold';fill:#666666"
+         id="path318" />
+    </g>
+    <path
+       d="m 144.92545,178.54444 c -0.31784,-0.0226 -0.48403,-0.13718 -0.56936,-0.26432 0.0161,-0.30952 0.0638,-0.69504 0.19693,-1.04491 0.0764,-0.20035 0.18473,-0.38173 0.31763,-0.51505 0.14534,-0.15892 0.27964,-0.2812 0.41495,-0.38203 0.2671,-0.19782 0.50141,-0.28399 0.57552,-0.31431 0.075,-0.0289 0.2095,-0.0833 0.37224,-0.14389 0.16222,-0.0556 0.3587,-0.13593 0.52642,-0.23422 0.34383,-0.18801 0.62881,-0.40017 0.62838,-0.40025 0,8e-5 -0.30416,0.16896 -0.65823,0.30913 -0.17862,0.0761 -0.36113,0.12622 -0.53149,0.16565 -0.16761,0.0431 -0.30925,0.087 -0.38719,0.11718 -0.14579,0.0609 -1.01934,0.34039 -1.46548,1.27736 -0.10093,0.23933 -0.16425,0.4869 -0.20523,0.71888 -0.10084,-0.0569 -0.22643,-0.16711 -0.26059,-0.37101 -0.0596,-0.35527 -0.0265,-1.42132 0.93956,-2.01351 0.96613,-0.59212 2.04475,-0.47378 2.56093,-0.64744 0.51612,-0.17367 0.72128,-0.56851 0.72128,-0.56851 0,0 -0.43016,4.01908 -3.17627,4.31125 z"
+       id="path134-3-8-2"
+       style="fill:#7fff00;fill-rule:nonzero;stroke:none;stroke-width:0.0709012;stroke-linecap:butt;stroke-linejoin:miter;stroke-dasharray:none"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96" />
+  </g>
+</svg>
