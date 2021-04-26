@@ -35,10 +35,9 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
 
         if (hasResources()) {
             doAnalysis();
-        }
-
-        for (Local resource : results) {
-            setResults.add(resource);
+            for (Local resource : results) {
+                setResults.add(resource);
+            }
         }
     }
 
@@ -55,7 +54,7 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
          * So, to store our results, we directly insert the IN set's contents of return stmts
          * into our result set (simulating an OUT set for return stmts)
          */
-        if (u instanceof ReturnStmt) {
+        if (u instanceof ReturnStmt || u instanceof ReturnVoidStmt) {
             results.union(in);
             return;
         }
