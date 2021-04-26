@@ -1,19 +1,17 @@
 package resourceleaks;
 
-import com.intellij.openapi.components.Service;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.ClassUtil;
 import soot.*;
-import soot.jimple.DefinitionStmt;
-import soot.toolkits.scalar.FlowSet;
-import soot.toolkits.scalar.Pair;
 
 import java.util.*;
 
 public final class ResultsProcessor {
     private final Project project;
+    // TODO account for multiple resources leaked in method
     private Map<String, ResourceLeakInfo> results = new HashMap<String, ResourceLeakInfo>();
 
     public ResultsProcessor(Project project) {
@@ -25,13 +23,12 @@ public final class ResultsProcessor {
      * @param sootMethod SootMethod where the resource was leaked
      * @param possiblePsiMethods array of PsiMethod that possible contain the PSI representation of the
      * <code>sootMethod</code>
-     * @param resourcesLeaked the resources that were leaked, using the analysis representation
      * @return true if the leak was stored, false otherwise
      */
-    public boolean processMethodResults(SootMethod sootMethod, PsiMethod[] possiblePsiMethods, Set<Local> resourcesLeaked) {
+    public boolean processMethodResults(SootMethod sootMethod, PsiMethod[] possiblePsiMethods) {
         for (PsiMethod psiMethod : possiblePsiMethods) {
             if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
-                ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod, resourcesLeaked);
+                ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod);
                 results.put(sootMethod.getName(), info);
                 return true;
             }
@@ -39,17 +36,29 @@ public final class ResultsProcessor {
         return false;
     }
 
-    //TODO TESTING ONLY!!!!!!
-    public boolean processMethodResults(SootMethod sootMethod, PsiMethod[] possiblePsiMethods, FlowSet<Local> resourcesLeaked) {
-        for (PsiMethod psiMethod : possiblePsiMethods) {
-            if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
-                ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod, new HashSet<>());
-                results.put(sootMethod.getName(), info);
-                return true;
+    //under test
+    public boolean processMethodResults(SootMethod sootMethod) {
+        //final boolean[] wasProcessed = new boolean[1];
+        //needed to read PSI tree because we are not in the UI thread
+        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
+            String methodName = sootMethod.getName();
+            String methodClass = sootMethod.getClass().getName();
+            PsiClass psiClass = JavaPsiFacade.getInstance(this.project).findClass(methodClass, GlobalSearchScope.allScope(this.project));
+            PsiMethod[] possiblePsiMethods = psiClass.findMethodsByName(methodName, true);
+            for (PsiMethod psiMethod : possiblePsiMethods) {
+                if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
+                    ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod);
+                    results.put(sootMethod.getName(), info);
+                    //wasProcessed[0] = true;
+                    return true;
+                }
             }
-        }
-        return false;
+            //wasProcessed[0] = false;
+            return false;
+        });
+        //return wasProcessed[0];
     }
+
 
 
     public boolean hasResourceLeaked(SootMethod method) {
@@ -109,7 +118,7 @@ public final class ResultsProcessor {
             PsiParameter psiParameter = (PsiParameter) psiMethodsParamIterator.next();
             PsiType psiParamType = psiParameter.getType();
 
-            //todo fix (use string similarity??)
+            // TODO fix (use string similarity?)
             if (!psiParamType.equalsToText(sootParamType.toString())) {
                 return false;
             }

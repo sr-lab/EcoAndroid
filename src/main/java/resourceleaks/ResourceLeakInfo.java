@@ -13,15 +13,13 @@ public class ResourceLeakInfo {
     private String className;
     private SootMethod sootMethod;
     private PsiMethod psiMethod;
-    private Set<Local> resourcesLeaked;
 
-    public ResourceLeakInfo(SootMethod sootMethod, PsiMethod psiMethod, Set<Local> resourcesLeaked) {
+    public ResourceLeakInfo(SootMethod sootMethod, PsiMethod psiMethod) {
         //we use soot's method info, but this is validated by the results processor
         this.methodName = sootMethod.getName();
         this.className = sootMethod.getDeclaringClass().getName();
         this.sootMethod = sootMethod;
         this.psiMethod = psiMethod;
-        this.resourcesLeaked = new HashSet<Local>(resourcesLeaked);
     }
 
     public String getMethodName() {
