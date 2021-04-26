@@ -2,7 +2,10 @@ package resourceleaks;
 
 public enum Resource {
     CURSOR ("rawQuery", "android.database.sqlite.SQLiteDatabase",
-            "close", "android.database.Cursor");
+            "close", "android.database.Cursor"),
+
+    WAKELOCK ("acquire", "android.os.PowerManager$WakeLock",
+            "release", "android.os.PowerManager$WakeLock");
 
     private final String acquireOp;
     private final String acquireClass;
@@ -38,5 +41,14 @@ public enum Resource {
 
     public boolean isBeingReleased(String releaseOp, String releaseClass) {
         return this.releaseOp.equals(releaseOp) && this.releaseClass.equals(releaseClass);
+    }
+
+    public boolean isBeingDeclared(String acquireClass) {
+        return this.acquireClass.equals(acquireClass);
+    }
+
+    @Override
+    public String toString() {
+        return this.name();
     }
 }
