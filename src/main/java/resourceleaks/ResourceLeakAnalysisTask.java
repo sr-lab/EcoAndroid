@@ -33,7 +33,9 @@ import vasco.DataFlowSolution;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class ResourceLeakAnalysisTask extends Task.Backgroundable {
     private static final Logger logger = Logger.getInstance(ResourceLeakAnalysisTask.class);
@@ -44,8 +46,8 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
     //TODO use intellij platform sdk to retrieve info / ask user
     private static final String androidJar = "/home/ricardo/Android/Sdk/platforms";
     private final static String apkPath3 = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/AnkiDroid/AnkiDroid 3e9ddc7eca/Apk/AnkiDroid 3e9ddc7eca.apk";
-    //private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot 76c4f80e47/Apk/ConnectBot 76c4f80e47.apk";
-    private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot f5d392e3a3/Apk/ConnectBot f5d392e3a3.apk";
+    private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot 76c4f80e47/Apk/ConnectBot 76c4f80e47.apk";
+    //private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot f5d392e3a3/Apk/ConnectBot f5d392e3a3.apk";
 
     public ResourceLeakAnalysisTask(Project p, AnActionEvent e){
         super(p, "Resource Leak Analysis");
@@ -61,93 +63,15 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         indicator.setText("Setting up Soot");
         indicator.setFraction(0.1);
 
-        System.out.println("ANDROID SDK: " + IdeSdks.getInstance().getAndroidSdkPath().getAbsolutePath());
+        Path androidSdkPath = AndroidPlatformLocator.getAndroidPlatformsLocation(p).toAbsolutePath();
+
+        logger.info("Setting up Soot");
+        System.out.println("ANDROID SDK: " + androidSdkPath.toString());
         System.out.println("SDK: " + ProjectRootManager.getInstance(p).getProjectSdkName());
         System.out.println("SDK path: " + ProjectRootManager.getInstance(p).getProjectSdk().getHomePath());
         System.out.println("Root path: " + p.getBasePath());
 
-
-        SootConfigForAndroid sootConfig = new SootConfigForAndroid() {
-            @Override
-            public void setSootOptions(Options options, InfoflowConfiguration config) {
-                //super.setSootOptions(options, config);
-                G.reset();
-
-                //generic options
-                options.v().set_allow_phantom_refs(true);
-                options.v().set_whole_program(true);
-                options.v().set_prepend_classpath(true);
-                options.v().set_app(true);
-                options.v().set_no_bodies_for_excluded(false);
-
-                List<String> includeList = new LinkedList<String>();
-                includeList.add("android.*");
-                includeList.add("android.app.*");
-                includeList.add("android.app.Activity");
-                includeList.add("android.preference.*");
-                includeList.add("android.content.*");
-                options.v().set_include(includeList);
-                options.v().set_include_all(true);
-                options.v().setPhaseOption("wjtp", "use-original-names:true");
-
-                //experimental
-                options.v().set_drop_bodies_after_load(false);
-                //options.v().set_soot_classpath("/home/ricardo/Android/Sdk/platforms/android-30/android.jar");
-
-                //read apk options
-                options.v().set_android_jars(androidJar); // The path to Android Platforms
-                //Options.v().set_force_android_jar(androidJar);
-                options.v().set_src_prec(Options.src_prec_apk); // Determine the input is an APK
-
-                options.v().set_process_dir(Collections.singletonList(connectBot)); // Provide paths to the APK
-                options.v().set_process_multiple_dex(true);  // Inform Dexpler that the APK may have more than one .dex files
-
-                //output options
-                options.v().set_output_format(Options.output_format_none);
-                options.v().set_validate(true);
-
-                //cg gen options
-                options.v().setPhaseOption("cg", "safe-newinstance:true");
-                options.v().setPhaseOption("cg.cha","enabled:false");
-
-                // Enable SPARK call-graph construction
-                options.v().setPhaseOption("cg.spark","enabled:true");
-                options.v().setPhaseOption("cg.spark","verbose:true");
-                options.v().setPhaseOption("cg.spark","on-fly-cg:true");
-                options.v().setPhaseOption("cg.spark", "string-constants:true");
-            }
-        };
-
-        InfoflowAndroidConfiguration infoFlowConfig = new InfoflowAndroidConfiguration();
-        infoFlowConfig.setTaintAnalysisEnabled(false);
-        infoFlowConfig.getAnalysisFileConfig().setTargetAPKFile(connectBot);
-        infoFlowConfig.getAnalysisFileConfig().setAndroidPlatformDir(androidJar);
-        //infoFlowConfig.getAnalysisFileConfig().setAdditionalClasspath("/home/ricardo/Android/Sdk/platforms/android-30/android.jar");
-        infoFlowConfig.setSootIntegrationMode(InfoflowAndroidConfiguration.SootIntegrationMode.UseExistingInstance);
-
-        sootConfig.setSootOptions(Options.v(), infoFlowConfig);
-        SetupApplication application = new SetupApplication(infoFlowConfig);
-        application.setSootConfig(sootConfig);
-
-        //SetupApplication application = new SetupApplication(androidJar, connectBot);
-
-        Scene.v().loadNecessaryClasses();
-
-        //we cannot build the cg with the cg pack
-        //we must build it here so it also creates the entry points (i.e. the dummy main)
-        //this also builds a "better" cg than the pack
-        application.constructCallgraph();
-
-
-        //must be after cg construction
-        SootMethod flowdroidDummyMainMethod = application.getDummyMainMethod();
-        //prevents bug
-        flowdroidDummyMainMethod.setName("main");
-        SootClass flowdroidDummyMainClass = flowdroidDummyMainMethod.getDeclaringClass();
-
-        //set flowdroid dummymain method/class as soot instance's main method/class
-        Scene.v().setEntryPoints(Collections.singletonList(flowdroidDummyMainMethod));
-        Scene.v().setMainClass(flowdroidDummyMainClass);
+        SootSetup.configSootInstance(androidSdkPath.toString(), connectBot);
 
         //debug: check if prev ops went ok
         SootClass dummyMainClass = Scene.v().getMainClass();
@@ -155,13 +79,8 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
 
         InfoflowCFG flowDroidCFG = new InfoflowCFG();
         JimpleBasedInterproceduralCFG icfg= new JimpleBasedInterproceduralCFG();
-        Set<SootClass> entryPointClasses = application.getEntrypointClasses();
+        //Set<SootClass> entryPointClasses = application.getEntrypointClasses();
 
-        /*
-        for (SootClass c : Scene.v().getClasses()) {
-            System.out.println(c.getName());
-        }
-         */
 
         SootClass sc = Scene.v().getSootClass("org.connectbot.ConsoleActivity");
         Options o2 = Options.v();
@@ -221,8 +140,6 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
                         analysis.doAnalysis();
                     }
                 }));
-
-
 
         //PsiElement el = e.getData(LangDataKeys.PSI_ELEMENT);
         //MarkupModel mm = FileEditorManager.getInstance(p)
@@ -310,8 +227,6 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
                 System.out.println("COUNTER " + counter);
             }
         });
-
-
         _stopWatch.stop();
 
         indicator.setText("Finished analysis");
