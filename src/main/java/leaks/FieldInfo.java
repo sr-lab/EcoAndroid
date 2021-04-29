@@ -1,4 +1,4 @@
-package resourceleaks;
+package leaks;
 
 import java.util.Objects;
 

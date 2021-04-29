@@ -1,4 +1,4 @@
-package resourceleaks;
+package leaks;
 
 public enum Resource {
     CURSOR ("rawQuery", "android.database.sqlite.SQLiteDatabase",

@@ -1,21 +1,17 @@
-package resourceleaks.actions;
+package leaks.actions;
 
-import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import resourceleaks.ResourceLeakAnalysisTask;
-import resourceleaks.platform.IdePlatformProvider;
-import resourceleaks.platform.IdeType;
-
-import java.io.File;
+import leaks.ResourceLeakAnalysisTask;
+import leaks.platform.IdePlatformProvider;
+import leaks.platform.IdeType;
 
 public class RunResourceLeakDetection extends AnAction {
     private static final Logger logger = Logger.getInstance(RunResourceLeakDetection.class);

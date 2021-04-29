@@ -1,7 +1,7 @@
 /* Adapted from CogniCrypt for AndroidStudio
  * https://github.com/secure-software-engineering/CogniCrypt-IntelliJ
  */
-package resourceleaks.platform;
+package leaks.platform;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,9 +29,14 @@ public class AndroidPlatformLocator {
             logger.info("Fallback for android sdk path to environment variable");
         }
 
-        Path sdkPath = Paths.get(android_sdk_root);
-        if (android_sdk_root == null || android_sdk_root.equals("") || !sdkPath.toFile().exists())
+        if (android_sdk_root == null) {
             throw new RuntimeException("Environment variable " + ANDROID_SDK + " not found!");
+        }
+
+        Path sdkPath = Paths.get(android_sdk_root);
+        if (android_sdk_root.equals("") || !sdkPath.toFile().exists()) {
+            throw new RuntimeException("Environment variable " + ANDROID_SDK + " not found!");
+        }
         return sdkPath.resolve("platforms");
     }
 }

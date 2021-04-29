@@ -1,4 +1,4 @@
-package resourceleaks;
+package leaks;
 
 import soot.Local;
 import soot.SootMethod;

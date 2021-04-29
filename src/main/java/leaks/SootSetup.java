@@ -1,4 +1,4 @@
-package resourceleaks;
+package leaks;
 
 import org.jetbrains.annotations.NotNull;
 import soot.G;

@@ -1,4 +1,4 @@
-package resourceleaks;
+package leaks;
 
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;

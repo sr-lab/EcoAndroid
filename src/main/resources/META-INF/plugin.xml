@@ -132,17 +132,19 @@
             groupKey="group.names.probable.bugs"
             enabledByDefault="true"
             level="WARNING"
-            implementationClass="resourceleaks.ResourceLeakInspection"/>
+            implementationClass="leaks.ResourceLeakInspection"/>
 
-    <projectService serviceImplementation="resourceleaks.ResultsProcessor"></projectService>
+    <projectService serviceImplementation="leaks.ResultsProcessor"></projectService>
+
+    <projectService serviceImplementation="leaks.platform.IdePlatformProvider"></projectService>
 
     <codeInsight.lineMarkerProvider language="JAVA"
-                                    implementationClass="resourceleaks.ResourceLeakLineMarker"/>
+                                    implementationClass="leaks.ResourceLeakLineMarker"/>
 
   </extensions>
 
   <actions>
-    <action id="resourceleaks.actions.RunResourceLeakDetection" class="resourceleaks.actions.RunResourceLeakDetection"
+    <action id="leaks.actions.RunResourceLeakDetection" class="leaks.actions.RunResourceLeakDetection"
             text="Run Resource Leak Detection" description="Resource Leak Analysis"
             icon="/icons/icon.svg">
       <add-to-group group-id="RunMenu" anchor="first"/>

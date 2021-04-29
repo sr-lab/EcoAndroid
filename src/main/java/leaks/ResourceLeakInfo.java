@@ -1,12 +1,7 @@
-package resourceleaks;
+package leaks;
 
 import com.intellij.psi.PsiMethod;
-import soot.Local;
 import soot.SootMethod;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class ResourceLeakInfo {
     private String methodName;
