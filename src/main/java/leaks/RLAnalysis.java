@@ -45,8 +45,33 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
 
     public Set<Local> getResults() { return setResults; }
 
-    //todo refactor duplicate code into functions
-    protected void flowThrough(FlowSet<Local> in, Unit u, List<FlowSet<Local>> fallOut, List<FlowSet<Local>> branchOut) {
+    /**
+     * Helper function to remove facts from FlowSets
+     * @param setList the List of FlowSet
+     * @param local the element to remove
+     */
+    private void removeFromSets(List<FlowSet<Local>> setList, Local local) {
+        Iterator<FlowSet<Local>> setIt = setList.iterator();
+        while (setIt.hasNext()) {
+            FlowSet<Local> branchSet = setIt.next();
+            branchSet.remove(local);
+        }
+    }
+
+    /**
+     * Helper function to add facts to FlowSets
+     * @param setList the List of FlowSet
+     * @param local the element to add
+     */
+    private void addToSets(List<FlowSet<Local>> setList, Local local) {
+        Iterator<FlowSet<Local>> setIt = setList.iterator();
+        while (setIt.hasNext()) {
+            FlowSet<Local> fallSet = setIt.next();
+            fallSet.add(local);
+        }
+    }
+
+    protected void flowThrough(FlowSet<Local> in, Unit unit, List<FlowSet<Local>> fallOut, List<FlowSet<Local>> branchOut) {
         //System.out.println("falls: " + u.fallsThrough() + " | branches: " + u.branches());
 
         /* Because return stmt ends the control flow, they don't have fallOut nor branchOut sets
@@ -54,7 +79,7 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
          * So, to store our results, we directly insert the IN set's contents of return stmts
          * into our result set (simulating an OUT set for return stmts)
          */
-        if (u instanceof ReturnStmt || u instanceof ReturnVoidStmt) {
+        if (unit instanceof ReturnStmt || unit instanceof ReturnVoidStmt) {
             results.union(in);
             return;
         }
@@ -88,8 +113,8 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
          * We need to have this in mind - branches might require different facts
          * In this case there isn't a resource leak because a check is being done
          */
-        if (u instanceof IfStmt) {
-            IfStmt stmt = (IfStmt) u;
+        if (unit instanceof IfStmt) {
+            IfStmt stmt = (IfStmt) unit;
             ConditionExpr cond = (ConditionExpr) stmt.getCondition();
             Value lhs = cond.getOp1();
 
@@ -104,25 +129,17 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
 
                     if (rhs instanceof NullConstant) {
                         if (condSymbol.equals(" == ")) {
-                            Iterator<FlowSet<Local>> branchOutIt = branchOut.iterator();
-                            while (branchOutIt.hasNext()) {
-                                FlowSet<Local> branchSet = branchOutIt.next();
-                                branchSet.remove(local);
-                            }
+                            removeFromSets(branchOut, local);
                         } else if (condSymbol.equals(" != ")) {
-                            Iterator<FlowSet<Local>> fallOutIt = fallOut.iterator();
-                            while (fallOutIt.hasNext()) {
-                                FlowSet<Local> flowSet = fallOutIt.next();
-                                flowSet.remove(local);
-                            }
+                            removeFromSets(fallOut, local);
                         }
                     }
                 }
             }
-        } //end if stmt check
+        } // end if stmt check
 
-        else if (u instanceof AssignStmt) {
-            AssignStmt stmt = (AssignStmt) u;
+        else if (unit instanceof AssignStmt) {
+            AssignStmt stmt = (AssignStmt) unit;
             Value rhs = stmt.getRightOp();
 
             if (rhs instanceof InvokeExpr) {
@@ -137,31 +154,23 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
                         if (lhs instanceof Local) {
                             Local local = (Local) lhs;
 
-                            if (u.fallsThrough()) {
-                                Iterator<FlowSet<Local>> fallOutIt = fallOut.iterator();
-                                while (fallOutIt.hasNext()) {
-                                    FlowSet<Local> fallSet = fallOutIt.next();
-                                    fallSet.add(local);
-                                }
-                            } if (u.branches()) {
-                                Iterator<FlowSet<Local>> branchOutIt = branchOut.iterator();
-                                while (branchOutIt.hasNext()) {
-                                    FlowSet<Local> branchSet = branchOutIt.next();
-                                    branchSet.add(local);
-                                }
+                            if (unit.fallsThrough()) {
+                                addToSets(fallOut, local);
+                            } if (unit.branches()) {
+                                addToSets(branchOut, local);
                             }
                         }
-                        //only one resource can be acquired in a stmt
+                        // only one resource can be acquired in a stmt
                         break;
                     }
                 }
             }
-        } //end assign stmt check
+        } // end assign stmt check
 
-        //todo if resources can be released in more than one type of stmt, this might increase perf
+        //TODO if resources can be released in more than one type of stmt, this might increase perf
         //if (!in.isEmpty()) {
-        else if (u instanceof InvokeStmt) {
-            InvokeStmt stmt = (InvokeStmt) u;
+        else if (unit instanceof InvokeStmt) {
+            InvokeStmt stmt = (InvokeStmt) unit;
             SootMethod meth = stmt.getInvokeExpr().getMethod();
 
             for (Resource resource : Resource.values()) {
@@ -175,32 +184,22 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
                         if (value2 instanceof Local) {
                             Local local = (Local) value2;
 
-                            //sanity check
-                            //releasing resource only makes sense if it was acquired (= is in IN set)
+                            // sanity check
+                            // releasing resource only makes sense if it was acquired (= is in IN set)
                             if (in.contains(local)) {
-                                if (u.fallsThrough()) {
-                                    Iterator<FlowSet<Local>> fallOutIt = fallOut.iterator();
-                                    while (fallOutIt.hasNext()) {
-                                        FlowSet<Local> fallSet = fallOutIt.next();
-                                        fallSet.remove(local);
-                                    }
-                                } if (u.branches()) {
-                                    Iterator<FlowSet<Local>> branchOutIt = branchOut.iterator();
-                                    while (branchOutIt.hasNext()) {
-                                        FlowSet<Local> branchSet = branchOutIt.next();
-                                        branchSet.remove(local);
-                                    }
+                                if (unit.fallsThrough()) {
+                                    removeFromSets(fallOut, local);
+                                } if (unit.branches()) {
+                                    removeFromSets(branchOut, local);
                                 }
                             }
                         }
                     }
-                    //only one resource can be released in a stmt
+                    // only one resource can be released in a stmt
                     break;
                 }
             }
-        } //end invoke stmt check
-
-        System.out.print("");
+        } // end invoke stmt check
     }
 
     /**
