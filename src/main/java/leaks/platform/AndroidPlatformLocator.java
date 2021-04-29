@@ -1,8 +1,7 @@
 /* Adapted from CogniCrypt for AndroidStudio
  * https://github.com/secure-software-engineering/CogniCrypt-IntelliJ
  */
-
-package resourceleaks;
+package resourceleaks.platform;
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;

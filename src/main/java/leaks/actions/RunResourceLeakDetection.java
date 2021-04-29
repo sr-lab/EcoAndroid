@@ -1,46 +1,44 @@
 package resourceleaks.actions;
 
+import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.markup.EffectType;
-import com.intellij.openapi.editor.markup.HighlighterLayer;
-import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.pom.Navigatable;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import resourceleaks.ResourceLeakAnalysisTask;
+import resourceleaks.platform.IdePlatformProvider;
+import resourceleaks.platform.IdeType;
 
-import javax.swing.*;
-import java.awt.*;
-
+import java.io.File;
 
 public class RunResourceLeakDetection extends AnAction {
     private static final Logger logger = Logger.getInstance(RunResourceLeakDetection.class);
 
-    public RunResourceLeakDetection() {
-        super();
-    }
-
-    public RunResourceLeakDetection(@Nullable String text, @Nullable String description, @Nullable Icon icon) {
-        super(text, description, icon);
-    }
-
     @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
         Project project = event.getProject();
-        ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project, event));
-        Notification notification = new Notification(
-                "Tasks", "EcoAndroid", "Running analysis", NotificationType.INFORMATION);
-        Notifications.Bus.notify(notification);
+
+        IdePlatformProvider idePlatformProvider = ServiceManager.getService(project, IdePlatformProvider.class);
+        IdeType ideType = idePlatformProvider.GetRunningPlatform();
+
+        switch (ideType) {
+            case IntelliJ:
+            case AndroidStudio:
+                ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project, event));
+                Notifications.Bus.notify(new Notification(
+                        "Tasks", "EcoAndroid", "Running analysis", NotificationType.INFORMATION));
+                break;
+            default:
+                Notifications.Bus.notify(new Notification(
+                        "Tasks", "EcoAndroid", "Could not run analysis on the current IDE", NotificationType.ERROR));
+                break;
+        }
 
         /*
         System.out.println("Start highlight");
