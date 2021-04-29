@@ -1,6 +1,5 @@
-package resourceleaks;
+package leaks;
 
-import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Stopwatch;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -16,7 +15,7 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
-import resourceleaks.platform.AndroidPlatformLocator;
+import leaks.platform.AndroidPlatformLocator;
 import soot.*;
 import soot.jimple.infoflow.solver.cfg.InfoflowCFG;
 import soot.jimple.toolkits.callgraph.CallGraph;
@@ -28,7 +27,6 @@ import soot.toolkits.scalar.Pair;
 import soot.util.Chain;
 import vasco.DataFlowSolution;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -57,7 +55,7 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         indicator.setIndeterminate(false);
         indicator.setText("Setting up Soot");
         indicator.setFraction(0.1);
-        
+
         Path androidSdkPath = AndroidPlatformLocator.getAndroidPlatformsLocation(project).toAbsolutePath();
 
         logger.info("Setting up Soot");
@@ -66,52 +64,7 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         System.out.println("SDK path: " + ProjectRootManager.getInstance(project).getProjectSdk().getHomePath());
         System.out.println("Root path: " + project.getBasePath());
 
-        SootSetup.configSootInstance(androidSdkPath.toString(), connectBot);
-
-        //debug: check if prev ops went ok
-        SootClass dummyMainClass = Scene.v().getMainClass();
-        SootMethod dummyMainMethod = Scene.v().getMainMethod();
-
-        InfoflowCFG flowDroidCFG = new InfoflowCFG();
-        JimpleBasedInterproceduralCFG icfg= new JimpleBasedInterproceduralCFG();
-        //Set<SootClass> entryPointClasses = application.getEntrypointClasses();
-
-
-        SootClass sc = Scene.v().getSootClass("org.connectbot.ConsoleActivity");
-        Options o2 = Options.v();
-        CallGraph cg = Scene.v().getCallGraph();
-        Chain<SootClass> scs = Scene.v().getClasses();
-        SootClass appClass = Scene.v().getSootClass("android.app.Activity");
-
-        /*
-        SootMethod entryPoint = application.getDummyMainMethod();
-        Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
-        Options.v().set_main_class(entryPoint.getDeclaringClass().getName());
-        //Options.v().set_main_class(entryPoint.getSignature());
-        //Scene.v().setEntryPoints(Collections.singletonList(entryPoint));
-        */
-/*
-        PackManager.v().getPack("jtp")
-                .add(new Transform("jtp.myTransform", new BodyTransformer() {
-                    protected void internalTransform(Body body, String phase, Map options) {
-
-                        RLAnalysis analysis = new RLAnalysis(new ExceptionalUnitGraph(body));
-
-                        int counter = 0;
-                        SootMethod m = body.getMethod();
-                        if (!analysis.getResults().isEmpty()) {
-                            System.out.println("Leak on " + m.getName());
-                            counter++;
-
-                            ResultsProcessor processor = ServiceManager.getService(p, ResultsProcessor.class);
-                            boolean processed = processor.processMethodResults(m, analysis.getResults());
-                            System.out.println("was processed? " + processed);
-                        }
-                        //System.err.println("intraproc");
-                    }
-                }));
-
- */
+        SootSetup.configSootInstance(androidSdkPath.toString(), apkPath3);
 
         /*
         File file = new File("/home/ricardo/ecoandroid.out");
@@ -124,6 +77,9 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         }
          */
 
+
+
+        /*
         VascoRLAnalysis analysis = new VascoRLAnalysis();
         PackManager.v().getPack("wjtp").add(new Transform("wjtp.vascorl",
                 new SceneTransformer() {
@@ -133,6 +89,30 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
                     }
                 }));
 
+        Set<SootMethod> analysisMethods = analysis.getMethods();
+        DataFlowSolution<Unit,Map<FieldInfo, Pair<Local, Boolean>>> solution = analysis.getMeetOverValidPathsSolution();
+        for (SootMethod method :  analysis.getMethods()) {
+            System.out.println(method);
+            for (Unit unit : method.getActiveBody().getUnits()) {
+                if (method.getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
+                        (method.getName().equals("onStop") || method.getName().equals("onStart") || method.getName().equals("onPause"))) {
+                    System.out.println("----------------------------------------------------------------");
+                    System.out.println(unit);
+                    System.out.println("IN:  " + solution.getValueBefore(unit));
+                    System.out.println("OUT: " + solution.getValueAfter(unit));
+                }
+            }
+            System.out.println("----------------------------------------------------------------");
+        }
+
+        Unit lastUnitMain = Scene.v().getMainMethod().getActiveBody().getUnits().getLast();
+        Map<FieldInfo, Pair<Local, Boolean>> interProcLeaks = solution.getValueAfter(lastUnitMain);
+        ResultsProcessor processor = ServiceManager.getService(project, ResultsProcessor.class);
+        for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : interProcLeaks.entrySet()) {
+
+        }
+
+         */
 
 
         //PsiElement el = e.getData(LangDataKeys.PSI_ELEMENT);
@@ -168,30 +148,20 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         }
         System.out.println("COUNTER " + counter);
  */
-
-        Set<SootMethod> analysisMethods = analysis.getMethods();
-        DataFlowSolution<Unit,Map<FieldInfo, Pair<Local, Boolean>>> solution = analysis.getMeetOverValidPathsSolution();
-        for (SootMethod method :  analysis.getMethods()) {
-            System.out.println(method);
-            for (Unit unit : method.getActiveBody().getUnits()) {
-                if (method.getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
-                        (method.getName().equals("onStop") || method.getName().equals("onStart") || method.getName().equals("onPause"))) {
-                    System.out.println("----------------------------------------------------------------");
-                    System.out.println(unit);
-                    System.out.println("IN:  " + solution.getValueBefore(unit));
-                    System.out.println("OUT: " + solution.getValueAfter(unit));
+        ResultsProcessor processor = ServiceManager.getService(project, ResultsProcessor.class);
+        for (SootClass c : Scene.v().getApplicationClasses()) {
+            for (SootMethod m : c.getMethods()) {
+                if (m.hasActiveBody()) {
+                    UnitGraph graph = new ExceptionalUnitGraph(m.getActiveBody());
+                    RLAnalysis analysis = new RLAnalysis(graph);
+                    if (!analysis.getResults().isEmpty()) {
+                        processor.processMethodResults(m);
+                    }
                 }
             }
-            System.out.println("----------------------------------------------------------------");
         }
 
-        Unit lastUnitMain = Scene.v().getMainMethod().getActiveBody().getUnits().getLast();
-        Map<FieldInfo, Pair<Local, Boolean>> interProcLeaks = solution.getValueAfter(lastUnitMain);
-        ResultsProcessor processor = ServiceManager.getService(project, ResultsProcessor.class);
-        for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : interProcLeaks.entrySet()) {
-
-        }
-
+        /*
         ApplicationManager.getApplication().runReadAction(new Runnable() {
             @Override
             public void run() {
@@ -221,6 +191,8 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
                 System.out.println("COUNTER " + counter);
             }
         });
+
+         */
         _stopWatch.stop();
 
         indicator.setText("Finished analysis");
@@ -230,16 +202,4 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         notification.setImportant(false);
         Notifications.Bus.notify(notification);
     }
-
-    void registerTransformers() {
-        VascoRLAnalysis analysis = new VascoRLAnalysis();
-        PackManager.v().getPack("wjtp").add(new Transform("wjtp.vascorl",
-                new SceneTransformer() {
-                    @Override
-                    protected void internalTransform(String s, Map<String, String> map) {
-                        analysis.doAnalysis();
-                    }
-                }));
-    }
 }
-

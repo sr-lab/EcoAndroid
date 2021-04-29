@@ -1,10 +1,11 @@
-package resourceleaks;
+package leaks;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import kotlinx.coroutines.internal.ProbesSupportKt;
 import soot.*;
 
 import java.util.*;
@@ -13,53 +14,42 @@ public final class ResultsProcessor {
     private final Project project;
     // TODO account for multiple resources leaked in method
     private Map<String, ResourceLeakInfo> results = new HashMap<String, ResourceLeakInfo>();
+    private int numberOfLeaks = 0;
 
     public ResultsProcessor(Project project) {
         this.project = project;
     }
 
+    public void resetResults() {
+        this.results = new HashMap<>();
+        this.numberOfLeaks = 0;
+    }
+
     /**
      * Processes a resource leak information and stores it
      * @param sootMethod SootMethod where the resource was leaked
-     * @param possiblePsiMethods array of PsiMethod that possible contain the PSI representation of the
      * <code>sootMethod</code>
      * @return true if the leak was stored, false otherwise
      */
-    public boolean processMethodResults(SootMethod sootMethod, PsiMethod[] possiblePsiMethods) {
-        for (PsiMethod psiMethod : possiblePsiMethods) {
-            if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
-                ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod);
-                results.put(sootMethod.getName(), info);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    //under test
-    public boolean processMethodResults(SootMethod sootMethod) {
-        //final boolean[] wasProcessed = new boolean[1];
-        //needed to read PSI tree because we are not in the UI thread
-        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
-            String methodName = sootMethod.getName();
-            String methodClass = sootMethod.getClass().getName();
-            PsiClass psiClass = JavaPsiFacade.getInstance(this.project).findClass(methodClass, GlobalSearchScope.allScope(this.project));
-            PsiMethod[] possiblePsiMethods = psiClass.findMethodsByName(methodName, true);
-            for (PsiMethod psiMethod : possiblePsiMethods) {
-                if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
-                    ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod);
-                    results.put(sootMethod.getName(), info);
-                    //wasProcessed[0] = true;
-                    return true;
-                }
-            }
-            //wasProcessed[0] = false;
-            return false;
+    public void processMethodResults(SootMethod sootMethod) {
+        Project project = this.project;
+        ApplicationManager.getApplication().runReadAction(new Runnable() {
+          @Override
+          public void run() {
+              String methodName = sootMethod.getName();
+              String methodClass = sootMethod.getDeclaringClass().getName();
+              PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(methodClass, GlobalSearchScope.allScope(project));
+              PsiMethod[] possiblePsiMethods = psiClass.findMethodsByName(methodName, true);
+              for (PsiMethod psiMethod : possiblePsiMethods) {
+                  if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
+                      ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod);
+                      results.put(sootMethod.getName(), info);
+                      numberOfLeaks++;
+                  }
+              }
+          }
         });
-        //return wasProcessed[0];
     }
-
-
 
     public boolean hasResourceLeaked(SootMethod method) {
         String methodName = method.getName();
