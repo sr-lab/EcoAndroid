@@ -26,7 +26,8 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
     @Override
     public Map<FieldInfo, Pair<Local, Boolean>> normalFlowFunction(Context<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> context, Unit unit,
                                                    Map<FieldInfo, Pair<Local, Boolean>> inValue) {
-        System.out.println("normal:" + context.getMethod().getDeclaringClass().getName());
+        System.out.println("normal:" + context.getMethod().getDeclaringClass().getName()+"."+context.getMethod().getName());
+        System.out.println(unit);
 
         if (context.getMethod().getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
                 (context.getMethod().getName().equals("onStart") || context.getMethod().getName().equals("onStop"))) {
@@ -38,13 +39,13 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
 
 
         if (unit instanceof ReturnStmt || unit instanceof ReturnVoidStmt) {
-            //clean up any tagged resource that was declared but not acquired
+            // Clean up any tagged resource that were declared but not acquired
             for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : out.entrySet()) {
                 if (entry.getValue().getO2() == false) {
                     out.remove(entry.getKey());
                 }
             }
-        } //end check return stmt
+        } // End check return stmt
 
         // $rx = r0.<Resource r> (assignment from InstanceFieldRef to Local)
         else if (unit instanceof AssignStmt) {
@@ -58,14 +59,14 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
                 for (Resource r : Resource.values()) {
                     if (r.isBeingDeclared(field.getType().toString())) {
 
-                        //FIX casts without check
-                        //We create new facts because each node need to have its own info,
-                        //changing it could damage the analysis
+                        // FIX casts without check
+                        // We create new facts because each node needs to have its own info,
+                        // changing it could damage the analysis
                         Pair<Local, Boolean> state;
                         FieldInfo fieldInfo = new FieldInfo(field.getName(), field.getDeclaringClass().getName(), field.getType().toString(), r);
-                        if (inValue.containsKey(fieldInfo)) { //This specific resource has already been seen, keep info about acquired state
+                        if (inValue.containsKey(fieldInfo)) { // This specific resource has already been seen, keep info about acquired state
                             state = new Pair<>((Local) stmt.getLeftOp(), inValue.get(fieldInfo).getO2());
-                        } else { //First time seeing this resource, so it is not yet acquired
+                        } else { // First time seeing this resource, so it is not yet acquired
                             state = new Pair<>((Local) stmt.getLeftOp(), false);
                         }
                         out.put(fieldInfo, state);
@@ -73,11 +74,11 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
                     }
                 }
             }
-        } //end invoke stmt check
+        } // End invoke stmt check
 
-        //Similar to intra-procedural check, but because we don't have branched analysis so
-        //we do a naive check: if there are release operations after an if to see if a resource
-        //is null, we then assume the developer released the resource correctly
+        // Similar to intra-procedural check, but because we don't have branched analysis
+        // we do a naive check: if there are release operations after an 'if' to see if a resource
+        // is null, we then assume the developer released the resource correctly
         else if (unit instanceof IfStmt) {
             IfStmt stmt = (IfStmt) unit;
             ConditionExpr cond = (ConditionExpr) stmt.getCondition();
@@ -94,7 +95,7 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
                     }
                 }
             }
-        } //end if stmt check
+        } // End if stmt check
 
         return out;
     }
@@ -104,16 +105,49 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
             Context<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> context,
             SootMethod calledMethod, Unit unit, Map<FieldInfo, Pair<Local, Boolean>> inValue) {
 
-        System.out.println("callEntry:" + context.getMethod().getDeclaringClass().getName());
+        System.out.println("callEntry:" + context.getMethod().getDeclaringClass().getName()+"."+context.getMethod().getName());
+        System.out.println(unit);
 
         if (context.getMethod().getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
                 (context.getMethod().getName().equals("onStart") || context.getMethod().getName().equals("onStop"))) {
             Map<FieldInfo, Pair<Local, Boolean>> entryValue = context.getEntryValue();
-            System.out.println("");
+            System.out.print("");
+        }
+
+        if (unit.toString().equals("virtualinvoke $r0.<org.connectbot.ConsoleActivity: void onPause()>()")) {
+            if (context.getMethod().getName().equals("dummyMainMethod_org_connectbot_ConsoleActivity")) {
+                System.out.print("");
+            }
         }
 
         Map<FieldInfo, Pair<Local, Boolean>> out = copy(inValue);
+        return out;
+    }
 
+    @Override
+    public Map<FieldInfo, Pair<Local, Boolean>> callExitFlowFunction(
+            Context<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> context, SootMethod calledMethod,
+            Unit unit, Map<FieldInfo, Pair<Local, Boolean>> exitValue) {
+        System.out.println("callExit:" + context.getMethod().getDeclaringClass().getName()+"."+context.getMethod().getName());
+        System.out.println(unit);
+
+        if (context.getMethod().getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
+                (context.getMethod().getName().equals("onPause"))) {
+            Map<FieldInfo, Pair<Local, Boolean>> entryValue = context.getEntryValue();
+            System.out.println("");
+        }
+
+        if (context.getMethod().getName().equals("dummyMainMethod_org_connectbot_ConsoleActivity")) {
+            if (unit.toString().equals("virtualinvoke $r0.<org.connectbot.ConsoleActivity: void onPause()>()")
+            || unit.toString().equals("virtualinvoke $r0.<org.connectbot.ConsoleActivity: void onResume()>()")) {
+                System.out.println("");
+            }
+        }
+
+        Map<FieldInfo, Pair<Local, Boolean>> out = copy(exitValue);
+
+        /*
+        // TODO dar OUT ao que tiver no return do invoke unit
         if (unit instanceof InvokeStmt) {
             InvokeStmt stmt = (InvokeStmt) unit;
             InvokeExpr invokeExpr = stmt.getInvokeExpr();
@@ -121,69 +155,15 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
             if (invokeExpr instanceof VirtualInvokeExpr) {
                 VirtualInvokeExpr virtualInvokeExpr = (VirtualInvokeExpr) invokeExpr;
                 SootMethod invokedMethod = virtualInvokeExpr.getMethod();
-                Value base = virtualInvokeExpr.getBase();
 
-                if (base instanceof Local) {
-                    Local local = (Local) base;
-
-                    for (Resource r : Resource.values()) {
-                        if (r.isBeingAcquired(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
-                            for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : out.entrySet()) {
-                                //FIX "missing" context check, local check might be enough (they are uniquely id)
-                                if (entry.getValue().getO1().equivTo(local)) {
-                                    Pair<Local, Boolean> newState = new Pair<>(local, true);
-                                    out.put(entry.getKey(), newState);
-                                    break;
-                                }
-                            }
-                            break;
-                        } else if (r.isBeingReleased(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
-                            for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : out.entrySet()) {
-                                //FIX "missing" context check, local check might be enough (they are uniquely id)
-                                if (entry.getValue().getO1().equivTo(local)) {
-                                    out.remove(entry.getKey());
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
+                if (invokedMethod.hasActiveBody()) {
+                    Unit returnStmt = invokedMethod.getActiveBody().getUnits().getLast();
+                    out = copy(getMeetOverValidPathsSolution().getValueAfter(unit));
                 }
             }
         }
-        /*
-        // Initialise result to empty map
-        Map<Local, Constant> entryValue = topValue();
-        // Map arguments to parameters
-        InvokeExpr ie = ((Stmt) unit).getInvokeExpr();
-        for (int i = 0; i < ie.getArgCount(); i++) {
-            Value arg = ie.getArg(i);
-            Local param = calledMethod.getActiveBody().getParameterLocal(i);
-            assign(param, arg, inValue, entryValue);
-        }
-        // And instance of the this local
-        if (ie instanceof InstanceInvokeExpr) {
-            Value instance = ((InstanceInvokeExpr) ie).getBase();
-            Local thisLocal = calledMethod.getActiveBody().getThisLocal();
-            assign(thisLocal, instance, inValue, entryValue);
-        }
-        // Return the entry value at the called method
-        return entryValue;
 
          */
-        return out;
-    }
-
-    @Override
-    public Map<FieldInfo, Pair<Local, Boolean>> callExitFlowFunction(Context<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> context, SootMethod calledMethod, Unit unit, Map<FieldInfo, Pair<Local, Boolean>> exitValue) {
-        System.out.println("callExit:" + context.getMethod().getDeclaringClass().getName());
-        if (context.getMethod().getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
-                (context.getMethod().getName().equals("onStart") || context.getMethod().getName().equals("onStop"))) {
-            Map<FieldInfo, Pair<Local, Boolean>> entryValue = context.getEntryValue();
-            System.out.println("");
-        }
-
-        Map<FieldInfo, Pair<Local, Boolean>> out = copy(exitValue);
 
         return out;
 
@@ -203,12 +183,21 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
 
     @Override
     public Map<FieldInfo, Pair<Local, Boolean>> callLocalFlowFunction(
-            Context<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> context, Unit unit, Map<FieldInfo, Pair<Local, Boolean>> inValue) {
-        System.out.println("callLocal:" + context.getMethod().getDeclaringClass().getName());
+            Context<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> context,
+            Unit unit, Map<FieldInfo, Pair<Local, Boolean>> inValue) {
+        System.out.println("callLocal:" + context.getMethod().getDeclaringClass().getName()+"."+context.getMethod().getName());
+        System.out.println(unit);
+
         if (context.getMethod().getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
                 (context.getMethod().getName().equals("onStart") || context.getMethod().getName().equals("onStop"))) {
             Map<FieldInfo, Pair<Local, Boolean>> entryValue = context.getEntryValue();
             System.out.println("");
+        }
+
+        if (context.getMethod().getName().equals("dummyMainMethod_org_connectbot_ConsoleActivity")) {
+            if (unit.toString().equals("virtualinvoke $r0.<org.connectbot.ConsoleActivity: void onPause()>()")) {
+                System.out.println("");
+            }
         }
 
         Map<FieldInfo, Pair<Local, Boolean>> out = copy(inValue);
@@ -224,6 +213,15 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
 
                 if (base instanceof Local) {
                     Local local = (Local) base;
+
+                    if (invokedMethod.getName().matches("onPause|onStart|onStop|onDestroy|onRestart")) {
+                        Unit u = invokedMethod.getActiveBody().getUnits().getLast();
+                        HashMap<FieldInfo, Pair<Local, Boolean>> after =
+                                (HashMap<FieldInfo, Pair<Local, Boolean>>) this.getMeetOverValidPathsSolution().getValueAfter(u);
+                        HashMap<FieldInfo, Pair<Local, Boolean>> before =
+                                (HashMap<FieldInfo, Pair<Local, Boolean>>) this.getMeetOverValidPathsSolution().getValueBefore(u);
+                        out = new HashMap<>(after);
+                    }
 
                     for (Resource r : Resource.values()) {
                         if (r.isBeingAcquired(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
@@ -266,6 +264,7 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
         return out;
     }
 
+    // TODO FIX else return probably cutting off paths
     private boolean existsReleaseOpInIfFlow(Context<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> context,
                                             Unit unit, Resource resource) {
         for (Unit u : context.getControlFlowGraph().getSuccsOf(unit)) {
@@ -304,12 +303,15 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
     @Override
     public Map<FieldInfo, Pair<Local, Boolean>> meet(Map<FieldInfo, Pair<Local, Boolean>> op1, Map<FieldInfo, Pair<Local, Boolean>> op2) {
         Map<FieldInfo, Pair<Local, Boolean>> result;
+        // Add all from one map
         result = new HashMap<FieldInfo, Pair<Local, Boolean>>(op1);
+        // Take care of entries in second map
         for (FieldInfo x : op2.keySet()) {
             if (op1.containsKey(x)) {
                 Pair<Local, Boolean> p1 = op1.get(x);
                 Pair<Local, Boolean> p2 = op2.get(x);
 
+                // The resource is leaked, it is added as leaked
                 if (p2.getO2() == true) {
                     result.put(x, p2);
                 } else {

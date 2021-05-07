@@ -39,6 +39,7 @@ public final class ResultsProcessor {
               String methodName = sootMethod.getName();
               String methodClass = sootMethod.getDeclaringClass().getName();
               PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(methodClass, GlobalSearchScope.allScope(project));
+              if (psiClass == null) return; // TODO Throw exception and handle it with a message box
               PsiMethod[] possiblePsiMethods = psiClass.findMethodsByName(methodName, true);
               for (PsiMethod psiMethod : possiblePsiMethods) {
                   if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {

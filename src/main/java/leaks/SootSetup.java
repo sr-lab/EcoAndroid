@@ -15,8 +15,16 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Utility class used to setup Soot to work alongside FlowDroid
+ */
 public class SootSetup {
 
+    /**
+     * Configures Soot (and FlowDroid)
+     * @param sdkPath path for the Android SDK ((...)/Android/Sdk/platforms/)
+     * @param apkPath path for the APK to be analyzed
+     */
     public static void configSootInstance(String sdkPath, String apkPath) {
         SootConfigForAndroid sootConfig = createSootConfigForAndroid(sdkPath, apkPath);
         InfoflowAndroidConfiguration infoFlowConfig = createInfoflowAndroidConfiguration(sdkPath, apkPath);
@@ -36,13 +44,15 @@ public class SootSetup {
         configAppMain(application);
     }
 
+
     private static void configAppMain(SetupApplication application) {
+        // Prevents bug caused by FlowDroid creating the dummy main
+        // without calling it main, which would cause Soot to not function properly
         SootMethod flowdroidDummyMainMethod = application.getDummyMainMethod();
-        //prevents bug
         flowdroidDummyMainMethod.setName("main");
         SootClass flowdroidDummyMainClass = flowdroidDummyMainMethod.getDeclaringClass();
 
-        //set flowdroid dummymain method/class as Soot instance's main method/class
+        // Set FlowDroid dummy main method/class as Soot instance's main method/class
         Scene.v().setEntryPoints(Collections.singletonList(flowdroidDummyMainMethod));
         Scene.v().setMainClass(flowdroidDummyMainClass);
     }
@@ -51,16 +61,17 @@ public class SootSetup {
         return new SootConfigForAndroid() {
             @Override
             public void setSootOptions(@NotNull Options options, InfoflowConfiguration config) {
-                //super.setSootOptions(options, config);
                 G.reset();
 
-                //generic options
+                // Generic options
                 options.v().set_allow_phantom_refs(true);
                 options.v().set_whole_program(true);
                 options.v().set_prepend_classpath(true);
                 options.v().set_app(true);
                 options.v().set_no_bodies_for_excluded(false);
 
+                // Lib classes to be included for analysis to work with VASCO
+                /*
                 List<String> includeList = new LinkedList<String>();
                 includeList.add("android.*");
                 includeList.add("android.app.*");
@@ -69,14 +80,14 @@ public class SootSetup {
                 includeList.add("android.content.*");
                 options.v().set_include(includeList);
                 options.v().set_include_all(true);
-                options.v().setPhaseOption("wjtp", "use-original-names:true");
+                 */
 
-                //experimental
+                // Experimental
                 options.v().set_drop_bodies_after_load(false);
+                options.v().setPhaseOption("wjtp", "use-original-names:true");
                 //options.v().set_soot_classpath("/home/ricardo/Android/Sdk/platforms/android-30/android.jar");
 
-                //read apk options
-                //options.v().set_android_jars(androidJar); // The path to Android Platforms
+                // Read APK options
                 options.v().set_android_jars(sdkPath); // The path to Android Platforms
                 //Options.v().set_force_android_jar(androidJar);
                 options.v().set_src_prec(Options.src_prec_apk); // Determine the input is an APK
@@ -84,11 +95,10 @@ public class SootSetup {
                 options.v().set_process_dir(Collections.singletonList(apkPath)); // Provide paths to the APK
                 options.v().set_process_multiple_dex(true);  // Inform Dexpler that the APK may have more than one .dex files
 
-                //output options
+                // Output options
                 options.v().set_output_format(Options.output_format_none);
-                options.v().set_validate(true);
 
-                //cg gen options
+                // CG gen options
                 options.v().setPhaseOption("cg", "safe-newinstance:true");
                 options.v().setPhaseOption("cg.cha","enabled:false");
 

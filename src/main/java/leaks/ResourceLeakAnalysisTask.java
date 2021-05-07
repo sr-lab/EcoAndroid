@@ -5,28 +5,25 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.psi.*;
-import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 import leaks.platform.AndroidPlatformLocator;
 import soot.*;
-import soot.jimple.infoflow.solver.cfg.InfoflowCFG;
 import soot.jimple.toolkits.callgraph.CallGraph;
-import soot.jimple.toolkits.ide.icfg.JimpleBasedInterproceduralCFG;
-import soot.options.Options;
+import soot.jimple.toolkits.callgraph.Edge;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.Pair;
 import soot.util.Chain;
 import vasco.DataFlowSolution;
 
+import java.io.File;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -39,8 +36,10 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
     //TODO use intellij platform sdk to retrieve info / ask user
     private static final String androidJar = "/home/ricardo/Android/Sdk/platforms";
     private final static String apkPath3 = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/AnkiDroid/AnkiDroid 3e9ddc7eca/Apk/AnkiDroid 3e9ddc7eca.apk";
-    private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot 76c4f80e47/Apk/ConnectBot 76c4f80e47.apk";
-    //private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot f5d392e3a3/Apk/ConnectBot f5d392e3a3.apk";
+    //buggy
+    //private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot 76c4f80e47/Apk/ConnectBot 76c4f80e47.apk";
+    //fixed
+    private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot f5d392e3a3/Apk/ConnectBot f5d392e3a3.apk";
 
     public ResourceLeakAnalysisTask(Project project, AnActionEvent event){
         super(project, "Resource Leak Analysis");
@@ -64,9 +63,8 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         System.out.println("SDK path: " + ProjectRootManager.getInstance(project).getProjectSdk().getHomePath());
         System.out.println("Root path: " + project.getBasePath());
 
-        SootSetup.configSootInstance(androidSdkPath.toString(), apkPath3);
+        SootSetup.configSootInstance(androidSdkPath.toString(), connectBot);
 
-        /*
         File file = new File("/home/ricardo/ecoandroid.out");
         //Instantiating the PrintStream class
         try {
@@ -75,23 +73,36 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         } catch (Exception e) {
             System.out.println("exception");
         }
-         */
 
+        SootMethod main = Scene.v().getMainMethod();
+        CallGraph cg = Scene.v().getCallGraph();
+        for (SootClass c : Scene.v().getApplicationClasses()) {
+            if (c.getName().equals("org.connectbot.ConsoleActivity")) {
+                for (SootMethod m : c.getMethods()) {
+                    if (m.getName().equals("onPause") || m.getName().equals("onStop")) {
+                        Iterator<Edge> edges = cg.edgesOutOf(m);
+                        while (edges.hasNext()) {
+                            Edge e = edges.next();
+                            System.out.println("");
+                        }
+                    }
+                }
+            }
+        }
 
-
-        /*
-        VascoRLAnalysis analysis = new VascoRLAnalysis();
+        VascoRLAnalysis vascoRLAnalysis = new VascoRLAnalysis();
         PackManager.v().getPack("wjtp").add(new Transform("wjtp.vascorl",
                 new SceneTransformer() {
                     @Override
                     protected void internalTransform(String s, Map<String, String> map) {
-                        analysis.doAnalysis();
+                        vascoRLAnalysis.doAnalysis();
                     }
                 }));
 
-        Set<SootMethod> analysisMethods = analysis.getMethods();
-        DataFlowSolution<Unit,Map<FieldInfo, Pair<Local, Boolean>>> solution = analysis.getMeetOverValidPathsSolution();
-        for (SootMethod method :  analysis.getMethods()) {
+        /*
+        Set<SootMethod> analysisMethods = vascoRLAnalysis.getMethods();
+        DataFlowSolution<Unit,Map<FieldInfo, Pair<Local, Boolean>>> solution = vascoRLAnalysis.getMeetOverValidPathsSolution();
+        for (SootMethod method : analysisMethods) {
             System.out.println(method);
             for (Unit unit : method.getActiveBody().getUnits()) {
                 if (method.getDeclaringClass().getName().equals("org.connectbot.ConsoleActivity") &&
@@ -105,50 +116,37 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
             System.out.println("----------------------------------------------------------------");
         }
 
-        Unit lastUnitMain = Scene.v().getMainMethod().getActiveBody().getUnits().getLast();
-        Map<FieldInfo, Pair<Local, Boolean>> interProcLeaks = solution.getValueAfter(lastUnitMain);
-        ResultsProcessor processor = ServiceManager.getService(project, ResultsProcessor.class);
-        for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : interProcLeaks.entrySet()) {
-
-        }
-
          */
+        ResultsProcessor processor = ServiceManager.getService(project, ResultsProcessor.class);
 
 
-        //PsiElement el = e.getData(LangDataKeys.PSI_ELEMENT);
-        //MarkupModel mm = FileEditorManager.getInstance(p)
 
         indicator.setText("Running Packs");
         indicator.setFraction(0.2);
         PackManager.v().getPack("wjtp").apply();
 
-        indicator.setText("Running intra-procedural analysis");
-        indicator.setFraction(0.5);
-/*
-        int counter = 0;
-        for (SootClass c : Scene.v().getApplicationClasses()) {
-            for (SootMethod m : c.getMethods()) {
-                if (m.hasActiveBody()) {
-                    //if (m.getName().equals("modelIdfromDB")) {
-                    UnitGraph graph = new ExceptionalUnitGraph(m.getActiveBody());
-                    RLAnalysis analysis = new RLAnalysis(graph);
-                    Set<Local> results = analysis.getResults();
-                    if (!results.isEmpty()) {
-                        System.out.println("leak on " + m.getName());
-                        counter++;
-
-                        ResultsProcessor processor = ServiceManager.getService(p, ResultsProcessor.class);
-                        boolean processed = processor.processMethodResults(m, results);
-                        System.out.println("was processed? " + processed);
+        Set<SootMethod> analysisMethods = vascoRLAnalysis.getMethods();
+        DataFlowSolution<Unit,Map<FieldInfo, Pair<Local, Boolean>>> solution = vascoRLAnalysis.getMeetOverValidPathsSolution();
+        for (SootMethod method : analysisMethods) {
+            // Check if a resource is leaked in problematic callbacks
+            // These callbacks are not taken into account by Soot - the activity can be put on hold
+            // after onPause/onStop
+            System.out.println(method);
+            if (method.getName().matches("onStop|onPause")) {
+                Unit returnUnit = method.getActiveBody().getUnits().getLast();
+                HashMap<FieldInfo, Pair<Local, Boolean>> facts =
+                        (HashMap<FieldInfo, Pair<Local, Boolean>>) solution.getValueAfter(returnUnit);
+                for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : facts.entrySet()) {
+                    if (entry.getValue().getO2() == true) {
+                        processor.processMethodResults(method);
                     }
-                    //}
                 }
-
             }
         }
-        System.out.println("COUNTER " + counter);
- */
-        ResultsProcessor processor = ServiceManager.getService(project, ResultsProcessor.class);
+
+        indicator.setText("Running intra-procedural analysis");
+        indicator.setFraction(0.5);
+
         for (SootClass c : Scene.v().getApplicationClasses()) {
             for (SootMethod m : c.getMethods()) {
                 if (m.hasActiveBody()) {
@@ -161,38 +159,6 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
             }
         }
 
-        /*
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
-            @Override
-            public void run() {
-                int counter = 0;
-                for (SootClass c : Scene.v().getApplicationClasses()) {
-                    PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(c.getName(), GlobalSearchScope.allScope(project));
-                    for (SootMethod m : c.getMethods()) {
-                        if (m.hasActiveBody()) {
-                            UnitGraph graph = new ExceptionalUnitGraph(m.getActiveBody());
-                            RLAnalysis analysis = new RLAnalysis(graph);
-
-                            if (!analysis.getResults().isEmpty()) {
-                                System.out.println("leak on " + m.getName());
-                                counter++;
-
-                                //todo refactor this part into results processor
-                                ResultsProcessor processor = ServiceManager.getService(project, ResultsProcessor.class);
-                                PsiMethod[] psiMethods = psiClass.findMethodsByName(m.getName(), true);
-
-                                boolean processed = processor.processMethodResults(m, psiMethods);
-                                System.out.println("was processed? " + processed);
-                            }
-                        }
-
-                    }
-                }
-                System.out.println("COUNTER " + counter);
-            }
-        });
-
-         */
         _stopWatch.stop();
 
         indicator.setText("Finished analysis");
