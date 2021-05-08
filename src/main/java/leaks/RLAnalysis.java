@@ -210,7 +210,7 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
     private boolean hasResources() {
         for (Local local : graph.getBody().getLocals()) {
             for (Resource resource : Resource.values()) {
-                if (local.getType().toString().equals(resource.acquireClass())) {
+                if (local.getType().toString().equals(resource.getType())) {
                     return true;
                 }
             }
