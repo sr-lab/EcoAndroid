@@ -4,32 +4,48 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Representation of a Android resource.
+ */
 public enum Resource {
 
     /**
-     * Representation of the Cursor resource. A Cursor represents the result of a query
-     * to a database.
-     * NOTE:
+     * Representation of the Cursor resource.
+     * A Cursor represents the result of a query to a database.
      */
     CURSOR ( "android.database.Cursor",
-            "rawQuery", "android.database.sqlite.SQLiteDatabase",
+            new String[]{"rawQuery","query"}, "android.database.sqlite.SQLiteDatabase",
             "close", "android.database.Cursor",
-            true, false),
+            true, false), // TODO might be inter-proc too...
 
+    /**
+     * Representation of the (inter-procedural) Wakelock resource.
+     * A Wakelock is used to prevent the device from going to sleep, usually to perform critical operations.
+     */
     WAKELOCK ("android.os.PowerManager$WakeLock",
-            "acquire", "android.os.PowerManager$WakeLock",
+            new String[]{"acquire"}, "android.os.PowerManager$WakeLock",
             "release", "android.os.PowerManager$WakeLock",
             false, true);
 
     private final String type;
-    private final String acquireOp;
+    private final String[] acquireOp;
     private final String acquireClass;
     private final String releaseOp;
     private final String releaseClass;
     private final boolean intraProcedural;
     private final boolean interProcedural;
 
-    Resource(String type, String acquireOp, String acquireClass, String releaseOp, String releaseClass,
+    /**
+     *
+     * @param type Class of the resource
+     * @param acquireOp Array of operations used to release the resource
+     * @param acquireClass Class of the object where the acquire operation is invoked
+     * @param releaseOp Operation used to release the resource
+     * @param releaseClass Class of the object where the release operation is invoked
+     * @param intraProcedural
+     * @param interProcedural
+     */
+    Resource(String type, String[] acquireOp, String acquireClass, String releaseOp, String releaseClass,
              boolean intraProcedural, boolean interProcedural) {
         this.type = type;
         this.acquireOp = acquireOp;
@@ -44,22 +60,6 @@ public enum Resource {
         return type;
     }
 
-    public String acquireOp() {
-        return acquireOp;
-    }
-
-    public String acquireClass() {
-        return acquireClass;
-    }
-
-    public String releaseOp() {
-        return releaseOp;
-    }
-
-    public String releaseClass() {
-        return releaseClass;
-    }
-
     public boolean isIntraProcedural() {
         return intraProcedural;
     }
@@ -69,7 +69,13 @@ public enum Resource {
     }
 
     public boolean isBeingAcquired(String acquireOp, String acquireClass) {
-        return this.acquireOp.equals(acquireOp) && this.acquireClass.equals(acquireClass);
+        boolean acquireOpMatch = false;
+        for (String op : this.acquireOp) {
+            if (acquireOp.equals(acquireOp)) {
+                acquireOpMatch = true;
+            }
+        }
+        return acquireOpMatch && this.acquireClass.equals(acquireClass);
     }
 
     public boolean isBeingReleased(String releaseOp, String releaseClass) {
