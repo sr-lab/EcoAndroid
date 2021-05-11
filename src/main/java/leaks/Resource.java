@@ -71,7 +71,7 @@ public enum Resource {
     public boolean isBeingAcquired(String acquireOp, String acquireClass) {
         boolean acquireOpMatch = false;
         for (String op : this.acquireOp) {
-            if (acquireOp.equals(acquireOp)) {
+            if (acquireOp.equals(op)) {
                 acquireOpMatch = true;
             }
         }
