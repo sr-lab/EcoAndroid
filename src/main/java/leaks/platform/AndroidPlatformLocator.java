@@ -6,6 +6,7 @@ package leaks.platform;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import leaks.ui.MessageBox;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -30,11 +31,13 @@ public class AndroidPlatformLocator {
         }
 
         if (android_sdk_root == null) {
+            MessageBox.Show("Android SDK not found. Go to File | Platform Structure | SDKs to setup the Android SDK");
             throw new RuntimeException("Environment variable " + ANDROID_SDK + " not found!");
         }
 
         Path sdkPath = Paths.get(android_sdk_root);
         if (android_sdk_root.equals("") || !sdkPath.toFile().exists()) {
+            MessageBox.Show("Android SDK not found. Go to File | Platform Structure | SDKs to setup the Android SDK");
             throw new RuntimeException("Environment variable " + ANDROID_SDK + " not found!");
         }
         return sdkPath.resolve("platforms");
