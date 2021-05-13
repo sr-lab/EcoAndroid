@@ -86,28 +86,6 @@ public enum Resource {
         return this.acquireClass.equals(acquireClass);
     }
 
-    public Set<Resource> getIntraProceduralResources() {
-        Set<Resource> intraProceduralResources = new HashSet<>();
-        for (Resource r : Resource.values()) {
-            if (r.isIntraProcedural()) {
-                intraProceduralResources.add(r);
-            }
-        }
-
-        return Collections.unmodifiableSet(intraProceduralResources);
-    }
-
-    public Set<Resource> getInterProceduralResources() {
-        Set<Resource> interProceduralResources = new HashSet<>();
-        for (Resource r : Resource.values()) {
-            if (r.isInterProcedural()) {
-                interProceduralResources.add(r);
-            }
-        }
-
-        return Collections.unmodifiableSet(interProceduralResources);
-    }
-
     @Override
     public String toString() {
         return this.name();
