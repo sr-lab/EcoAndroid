@@ -17,7 +17,7 @@ import java.util.*;
  * A resource is leaked when it is acquired, but never released.
  * Takes into consideration branching when a resource is not acquired (r==null)
  */
-public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
+public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> implements IAnalysis{
     protected final FlowSet<Local> emptySet;
     //the results used during analysis, using Set instead of FlowSet causes bugs
     private final FlowSet<Local> results;
@@ -45,6 +45,8 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
 
     public Set<Local> getResults() { return setResults; }
 
+    public SootMethod getAnalyzedMethod() { return graph.getBody().getMethod();
+    }
     /**
      * Helper function to remove facts from FlowSets
      * @param setList the List of FlowSet
@@ -240,5 +242,9 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> {
     // *** ForwardBranchedFlowAnalysis is fixed.
     protected boolean treatTrapHandlersAsEntries() {
         return true;
+    }
+
+    public void accept(IResultsProcessor resultsProcessor) {
+        resultsProcessor.visit(this);
     }
 }

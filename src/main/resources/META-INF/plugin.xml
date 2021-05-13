@@ -136,6 +136,8 @@
 
     <projectService serviceImplementation="leaks.ResultsProcessor"></projectService>
 
+    <projectService serviceImplementation="leaks.ResultsProvider"></projectService>
+
     <projectService serviceImplementation="leaks.platform.IdePlatformProvider"></projectService>
 
     <codeInsight.lineMarkerProvider language="JAVA"

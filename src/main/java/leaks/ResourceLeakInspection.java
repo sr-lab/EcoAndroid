@@ -18,9 +18,10 @@ public class ResourceLeakInspection extends LocalInspectionTool {
 
             @Override
             public void visitMethod(PsiMethod method) {
-                ResultsProcessor processor = ServiceManager.getService(holder.getProject(), ResultsProcessor.class);
-                if (processor.hasResourceLeaked(method)) {
-                    holder.registerProblem(method, DESCRIPTION);
+                ResultsProvider results = ServiceManager.getService(holder.getProject(), ResultsProvider.class);
+                if (results.hasResourceLeaked(method)) {
+                    PsiIdentifier id = method.getNameIdentifier();
+                    holder.registerProblem(id, DESCRIPTION);
                 }
             }
         };

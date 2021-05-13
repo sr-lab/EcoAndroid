@@ -1,71 +1,107 @@
 package leaks;
 
+import com.intellij.codeInspection.InspectionManager;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
-import kotlinx.coroutines.internal.ProbesSupportKt;
 import soot.*;
+import soot.toolkits.scalar.Pair;
+import vasco.DataFlowSolution;
 
 import java.util.*;
 
-public final class ResultsProcessor {
+public final class ResultsProcessor implements IResultsProcessor {
     private final Project project;
-    // TODO account for multiple resources leaked in method
-    private Map<String, ResourceLeakInfo> results = new HashMap<String, ResourceLeakInfo>();
-    private int numberOfLeaks = 0;
+    private final Set<PsiFile> affectedFiles = new HashSet<>();
+    private final ResultsProvider results;
 
     public ResultsProcessor(Project project) {
         this.project = project;
+        this.results = ServiceManager.getService(project, ResultsProvider.class);
     }
 
-    public void resetResults() {
-        this.results = new HashMap<>();
-        this.numberOfLeaks = 0;
+    public void visit(RLAnalysis analysis) {
+        SootMethod analyzedMethod = analysis.getAnalyzedMethod();
+        Set<Local> analysisResults = analysis.getResults();
+            for (Local local : analysisResults) {
+                for (Resource resource : Resource.values()) {
+                    if (resource.isIntraProcedural() &&
+                            resource.getType().equals(local.getType().toString())) {
+                        Optional<ResourceLeak> leak = processMethodResults(analyzedMethod, resource);
+                        leak.ifPresent(results::addResult);
+                        break;
+                    }
+                }
+            }
+    }
+
+    public void visit(VascoRLAnalysis analysis) {
+        Set<SootMethod> analysisMethods = analysis.getMethods();
+        DataFlowSolution<Unit,Map<FieldInfo, Pair<Local, Boolean>>> solution = analysis.getMeetOverValidPathsSolution();
+        for (SootMethod method : analysisMethods) {
+            // Check if a resource is leaked in problematic callbacks
+            // These callbacks are not taken into account by Soot's CG -
+            // the activity can terminate unexpectedly, creating a resource leak
+            if (method.getName().matches("onStop|onPause")) {
+                Unit returnUnit = method.getActiveBody().getUnits().getLast();
+                HashMap<FieldInfo, Pair<Local, Boolean>> facts =
+                        (HashMap<FieldInfo, Pair<Local, Boolean>>) solution.getValueAfter(returnUnit);
+                for (Map.Entry<FieldInfo, Pair<Local, Boolean>> entry : facts.entrySet()) {
+                    if (entry.getValue().getO2() == true) {
+                        Optional<ResourceLeak> leak = processMethodResults(method, entry.getKey().getResource());
+                        leak.ifPresent(results::addResult);
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Processes a resource leak information and stores it
      * @param sootMethod SootMethod where the resource was leaked
      * <code>sootMethod</code>
-     * @return true if the leak was stored, false otherwise
+     * @param leakedResource Resource that was leaked
+     * @return Optional of a ResourceLeak, with a ResourceLeak if the leak was successfully stored
      */
-    public void processMethodResults(SootMethod sootMethod) {
+    private Optional<ResourceLeak> processMethodResults(SootMethod sootMethod, Resource leakedResource) {
         Project project = this.project;
-        ApplicationManager.getApplication().runReadAction(new Runnable() {
-          @Override
-          public void run() {
-              String methodName = sootMethod.getName();
-              String methodClass = sootMethod.getDeclaringClass().getName();
-              PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(methodClass, GlobalSearchScope.allScope(project));
-              if (psiClass == null) return; // TODO Throw exception and handle it with a message box
-              PsiMethod[] possiblePsiMethods = psiClass.findMethodsByName(methodName, true);
-              for (PsiMethod psiMethod : possiblePsiMethods) {
-                  if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
-                      ResourceLeakInfo info = new ResourceLeakInfo(sootMethod, psiMethod);
-                      results.put(sootMethod.getName(), info);
-                      numberOfLeaks++;
-                  }
-              }
-          }
+        return ApplicationManager.getApplication().runReadAction((Computable<Optional<ResourceLeak>>) () -> {
+            ResourceLeak leak = null;
+
+            String methodClass = sootMethod.getDeclaringClass().getName();
+            if (methodClass.startsWith("android.")) {
+                return Optional.empty();
+            }
+
+            PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(methodClass, GlobalSearchScope.allScope(project));
+            if (psiClass == null) {
+                return Optional.empty();
+            }
+
+            String methodName = sootMethod.getName();
+            PsiMethod[] possiblePsiMethods = psiClass.findMethodsByName(methodName, true);
+            for (PsiMethod psiMethod : possiblePsiMethods) {
+                if (areSootPsiMethodsEquivalent(sootMethod, psiMethod)) {
+                    leak = new ResourceLeak(sootMethod, psiMethod, leakedResource);
+                    return Optional.of(leak);
+                }
+            }
+            affectedFiles.add(psiClass.getContainingFile());
+
+            return Optional.ofNullable(leak);
         });
     }
 
-    public boolean hasResourceLeaked(SootMethod method) {
-        String methodName = method.getName();
-        if (results.containsKey(methodName)) {
-            return results.get(methodName).getSootMethod().equals(method);
+    // Under testing
+    public void runCodeInspection() {
+        ResourceLeakInspection inspection = new ResourceLeakInspection();
+        InspectionManager inspectionManager = InspectionManager.getInstance(project);
+        for (PsiFile file : affectedFiles) {
+            inspection.checkFile(file, inspectionManager, true);
         }
-        return false;
-    }
-
-    public boolean hasResourceLeaked(PsiMethod method) {
-        String methodName = method.getName();
-        if (results.containsKey(methodName)) {
-            return results.get(methodName).getPsiMethod().equals(method);
-        }
-        return false;
     }
 
     /**
@@ -74,7 +110,7 @@ public final class ResultsProcessor {
      * @param psiMethod
      * @return true if the <code>psiMethod</code> is the PSI representation of the <code>sootMethod</code>
      */
-    public boolean areSootPsiMethodsEquivalent(SootMethod sootMethod, PsiMethod psiMethod) {
+    private boolean areSootPsiMethodsEquivalent(SootMethod sootMethod, PsiMethod psiMethod) {
         String sootMethodName = sootMethod.getName();
         String psiMethodName = psiMethod.getName();
         if (!sootMethodName.equals(psiMethodName)) {
@@ -96,8 +132,8 @@ public final class ResultsProcessor {
         }
         System.out.println("(d) passed #type test");
 
-        Iterator sootMethodParamTypeIterator = sootMethod.getParameterTypes().iterator();
-        Iterator psiMethodsParamIterator = Arrays.stream(psiMethod.getParameterList().getParameters()).iterator();
+        Iterator<Type> sootMethodParamTypeIterator = sootMethod.getParameterTypes().iterator();
+        Iterator<PsiParameter> psiMethodsParamIterator = Arrays.stream(psiMethod.getParameterList().getParameters()).iterator();
 
         /* For a soot and psi method to be equal, their name, class, and param types need to be the same
          * (this is because of java overloading)
@@ -105,8 +141,8 @@ public final class ResultsProcessor {
          * (e.g. java.lang.Class vs java.lang.Class<T>) -> TODO not yet accounted!!!!
          */
         while (sootMethodParamTypeIterator.hasNext() && psiMethodsParamIterator.hasNext()) {
-            Type sootParamType = (Type) sootMethodParamTypeIterator.next();
-            PsiParameter psiParameter = (PsiParameter) psiMethodsParamIterator.next();
+            Type sootParamType = sootMethodParamTypeIterator.next();
+            PsiParameter psiParameter = psiMethodsParamIterator.next();
             PsiType psiParamType = psiParameter.getType();
 
             // TODO fix (use string similarity?)

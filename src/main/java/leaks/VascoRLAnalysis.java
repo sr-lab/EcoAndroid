@@ -14,7 +14,9 @@ import vasco.soot.DefaultJimpleRepresentation;
 /**
  * An inter-procedural resource leak analysis.
  */
-public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> {
+public class VascoRLAnalysis
+        extends ForwardInterProceduralAnalysis<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>>
+        implements IAnalysis {
 
     public VascoRLAnalysis() {
         super();
@@ -342,5 +344,9 @@ public class VascoRLAnalysis extends ForwardInterProceduralAnalysis<SootMethod, 
         return DefaultJimpleRepresentation.v();
     }
 
+    @Override
+    public void accept(IResultsProcessor resultsProcessor) {
+        resultsProcessor.visit(this);
+    }
 }
 
