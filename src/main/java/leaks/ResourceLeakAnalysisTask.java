@@ -1,6 +1,7 @@
 package leaks;
 
 import com.google.common.base.Stopwatch;
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -77,15 +78,17 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
 
         registerTransformers();
 
-        indicator.setText("Running intra-analysis");
+        indicator.setText("Running intra-procedural analysis");
         indicator.setFraction(0.4);
         runIntraProceduralAnalysis();
 
-        indicator.setText("Running inter-analysis");
+        indicator.setText("Running inter-procedural analysis");
         indicator.setFraction(0.6);
         runInterProceduralAnalysis();
 
         _stopWatch.stop();
+
+        DaemonCodeAnalyzer.getInstance(project).restart();
 
         File resultsFileRefactor = new File("/home/ricardo/resultsRefactor/" + project.getName() + ".out");
         try {
