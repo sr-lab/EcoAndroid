@@ -16,6 +16,7 @@ public enum Resource {
     CURSOR ( "android.database.Cursor",
             new String[]{"rawQuery","query"}, "android.database.sqlite.SQLiteDatabase",
             "close", "android.database.Cursor",
+            "TODO",
             true, false), // TODO might be inter-proc too...
 
     /**
@@ -25,6 +26,7 @@ public enum Resource {
     WAKELOCK ("android.os.PowerManager$WakeLock",
             new String[]{"acquire"}, "android.os.PowerManager$WakeLock",
             "release", "android.os.PowerManager$WakeLock",
+            "isHeld",
             false, true);
 
     private final String type;
@@ -32,6 +34,7 @@ public enum Resource {
     private final String acquireClass;
     private final String releaseOp;
     private final String releaseClass;
+    private final String heldCheckOp;
     private final boolean intraProcedural;
     private final boolean interProcedural;
 
@@ -46,12 +49,13 @@ public enum Resource {
      * @param interProcedural
      */
     Resource(String type, String[] acquireOp, String acquireClass, String releaseOp, String releaseClass,
-             boolean intraProcedural, boolean interProcedural) {
+             String heldCheckOp, boolean intraProcedural, boolean interProcedural) {
         this.type = type;
         this.acquireOp = acquireOp;
         this.acquireClass = acquireClass;
         this.releaseOp = releaseOp;
         this.releaseClass = releaseClass;
+        this.heldCheckOp = heldCheckOp;
         this.intraProcedural = intraProcedural;
         this.interProcedural = interProcedural;
     }
@@ -89,5 +93,9 @@ public enum Resource {
     @Override
     public String toString() {
         return this.name();
+    }
+
+    public boolean isCheckedIfItsHeld(String type, String heldCheckOp) {
+        return this.type.equals(type) && this.heldCheckOp.equals(heldCheckOp);
     }
 }
