@@ -16,7 +16,7 @@ public enum Resource {
     CURSOR ( "android.database.Cursor",
             new String[]{"rawQuery","query"}, "android.database.sqlite.SQLiteDatabase",
             "close", "android.database.Cursor",
-            "TODO",
+            "isClosed",
             true, false), // TODO might be inter-proc too...
 
     /**
