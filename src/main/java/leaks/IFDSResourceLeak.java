@@ -67,10 +67,10 @@ public class IFDSResourceLeak
                                     InvokeStmt invokeStmt = (InvokeStmt) succ;
                                     InvokeExpr invokeExpr = invokeStmt.getInvokeExpr();
 
-                                    if (invokeExpr instanceof VirtualInvokeExpr) {
-                                        VirtualInvokeExpr virtualInvokeExpr = (VirtualInvokeExpr) invokeExpr;
-                                        SootMethod invokedMethod = virtualInvokeExpr.getMethod();
-                                        Value base = virtualInvokeExpr.getBase();
+                                    if (invokeExpr instanceof InstanceInvokeExpr) {
+                                        InstanceInvokeExpr instanceInvokeExpr = (InstanceInvokeExpr) invokeExpr;
+                                        SootMethod invokedMethod = instanceInvokeExpr.getMethod();
+                                        Value base = instanceInvokeExpr.getBase();
 
                                         if (base instanceof Local) {
                                             Local local = (Local) base;
@@ -324,20 +324,36 @@ public class IFDSResourceLeak
                     AssignStmt stmt = (AssignStmt) callSite;
                     Value rhs = stmt.getRightOp();
 
-                    if (rhs instanceof VirtualInvokeExpr) {
-                        VirtualInvokeExpr invokeExpr = (VirtualInvokeExpr) rhs;
+                    if (rhs instanceof InstanceInvokeExpr) {
+                        InstanceInvokeExpr invokeExpr = (InstanceInvokeExpr) rhs;
                         SootMethod invokedMethod = invokeExpr.getMethod();
 
                         if (stmt.getLeftOp() instanceof Local) {
                             Local lhs = (Local) stmt.getLeftOp();
 
-                            for (Resource r : Resource.values()) {
-                                if (r.isBeingAcquired(invokedMethod.getName(), invokedMethod.getDeclaringClass().toString())) {
-                                    return new FlowFunction<Pair<ResourceInfo, Local>>() {
-                                        @Override
-                                        public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
-                                            SootMethod debug = icfg.getMethodOf(callSite);
+                            return new FlowFunction<Pair<ResourceInfo, Local>>() {
+                                @Override
+                                public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
+                                    SootMethod debug = icfg.getMethodOf(callSite);
 
+                                    // Special case for dealing with facts where resources are passed by ref
+                                    // TODO comment
+                                    final List<Value> args = invokeExpr.getArgs();
+                                    final List<Local> localArguments = new ArrayList<>(args.size());
+                                    for (Value v : args) {
+                                        if (v instanceof Local) {
+                                            localArguments.add((Local) v);
+                                        } else {
+                                            localArguments.add(null);
+                                        }
+                                    }
+
+                                    if (localArguments.contains(source.getO2())) {
+                                        return Collections.emptySet();
+                                    }
+
+                                    for (Resource r : Resource.values()) {
+                                        if (r.isBeingAcquired(invokedMethod.getName(), invokedMethod.getDeclaringClass().toString())) {
                                             if (equalsZeroValue(source)) {
                                                 SootMethod callSiteMethod = icfg.getMethodOf(callSite);
                                                 SootClass callSiteClass = callSiteMethod.getDeclaringClass();
@@ -348,43 +364,59 @@ public class IFDSResourceLeak
                                                 res.add(fact);
                                                 return res;
                                                 //return Collections.singleton(source);
-                                            } else {
-                                                return Collections.singleton(source);
                                             }
                                         }
-                                    };
+                                    }
+                                    return Collections.singleton(source);
                                 }
-                            }
+                            };
                         }
                     }
                 } else if (callSite instanceof InvokeStmt) {
                     InvokeStmt invokeStmt = (InvokeStmt) callSite;
                     SootMethod invokedMethod = invokeStmt.getInvokeExpr().getMethod();
 
-                    for (Resource r : Resource.values()) {
-                        if (r.isBeingReleased(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
+                    // TODO verificar se chamada envolve recursos
 
-                            if (invokeStmt.getInvokeExpr() instanceof InterfaceInvokeExpr) {
-                                InterfaceInvokeExpr expr = (InterfaceInvokeExpr) invokeStmt.getInvokeExpr() ;
-                                Value value = expr.getBase();
+                    return new FlowFunction<Pair<ResourceInfo, Local>>() {
+                        @Override
+                        public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
+                            if (invokeStmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+                                InstanceInvokeExpr invokeExpr = (InstanceInvokeExpr) invokeStmt.getInvokeExpr() ;
+                                Value value = invokeExpr.getBase();
 
-                                if (value instanceof Local) {
-                                    Local local = (Local) value;
+                                // Special case for dealing with facts where resources are passed by ref
+                                // TODO comment
+                                final List<Value> args = invokeExpr.getArgs();
+                                final List<Local> localArguments = new ArrayList<>(args.size());
+                                for (Value v : args) {
+                                    if (v instanceof Local) {
+                                        localArguments.add((Local) v);
+                                    } else {
+                                        localArguments.add(null);
+                                    }
+                                }
 
-                                    return new FlowFunction<Pair<ResourceInfo, Local>>() {
-                                        @Override
-                                        public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
+                                if (localArguments.contains(source.getO2())) {
+                                    return Collections.emptySet();
+                                }
+
+                                for (Resource r : Resource.values()) {
+                                    if (r.isBeingReleased(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
+                                        if (value instanceof Local) {
+                                            Local local = (Local) value;
+
                                             if (source.getO2().equivTo(local)) {
                                                 return Collections.emptySet();
-                                            } else {
-                                                return Collections.singleton(source);
                                             }
                                         }
-                                    };
+                                    }
                                 }
                             }
+
+                            return Collections.singleton(source);
                         }
-                    }
+                    };
                 }
 
                 return Identity.v();
