@@ -137,6 +137,7 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
             System.out.println("exception");
         }
 
+
         MessageBox.Show("Resource leak detection complete. Go to Analyze | Code Inspections and" +
                 "perform an inspection to see the results");
 
@@ -177,6 +178,11 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         PackManager.v().getPack("wjtp").add(new Transform("wjtp.ifdsrl", new SceneTransformer() {
             @Override
             protected void internalTransform(String s, Map<String, String> map) {
+                IFDSRLAnalysis analysis = new IFDSRLAnalysis();
+                analysis.doAnalysis();
+                analysis.accept(ServiceManager.getService(project, ResultsProcessor.class));
+
+                /*
                 JimpleBasedInterproceduralCFG icfg = new JimpleBasedInterproceduralCFG();
 
                 IFDSTabulationProblem<Unit, Pair<ResourceInfo, Local>,
@@ -186,6 +192,7 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
                 IFDSSolver<Unit, Pair<ResourceInfo, Local>,SootMethod, InterproceduralCFG<Unit, SootMethod>> solver;
                 solver = new IFDSSolver<Unit, Pair<ResourceInfo, Local>, SootMethod,InterproceduralCFG<Unit, SootMethod>>(problem);
 
+                solver.solve();
                 for (SootClass c : Scene.v().getApplicationClasses()) {
                     for (SootMethod m : c.getMethods()) {
                         if (m.hasActiveBody()) {
@@ -199,6 +206,9 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
                         }
                     }
                 }
+                 */
+
+
             }
         }));
 

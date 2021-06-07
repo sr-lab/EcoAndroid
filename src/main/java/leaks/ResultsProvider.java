@@ -18,7 +18,6 @@ public class ResultsProvider {
     }
 
     public boolean hasResourceLeaked(PsiMethod method) {
-        String methodName = method.getName();
         for (ResourceLeak leak : results) {
             if (leak.getPsiMethod().isEquivalentTo(method)) {
                 return true;

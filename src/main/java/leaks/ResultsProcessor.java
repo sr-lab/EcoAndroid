@@ -1,5 +1,6 @@
 package leaks;
 
+import com.android.tools.r8.code.ReturnVoid;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
@@ -8,6 +9,8 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import soot.*;
+import soot.jimple.ReturnStmt;
+import soot.jimple.ReturnVoidStmt;
 import soot.toolkits.scalar.Pair;
 import vasco.DataFlowSolution;
 
@@ -53,6 +56,59 @@ public final class ResultsProcessor implements IResultsProcessor {
                     if (entry.getValue().getO2() == true) {
                         Optional<ResourceLeak> leak = processMethodResults(method, entry.getKey().getResource());
                         leak.ifPresent(results::addResult);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void visit(AllInOneRLAnalysis analysis) {
+        Set<SootMethod> analysisMethods = analysis.getMethods();
+        DataFlowSolution<Unit,Map<ResourceInfo, FactState>> solution = analysis.getMeetOverValidPathsSolution();
+        for (SootMethod method : analysisMethods) {
+            // Check if a resource is leaked in problematic callbacks
+            // These callbacks are not taken into account by Soot's CG:
+            // the activity can terminate unexpectedly in these, creating a resource leak
+            if (method.getName().matches("onStop|onPause")) {
+                Unit returnUnit = method.getActiveBody().getUnits().getLast();
+                HashMap<ResourceInfo, FactState> facts =
+                        (HashMap<ResourceInfo, FactState>) solution.getValueAfter(returnUnit);
+                for (Map.Entry<ResourceInfo, FactState> entry : facts.entrySet()) {
+                    if (entry.getValue().isAcquired()) {
+                        Optional<ResourceLeak> leak = processMethodResults(entry.getKey().getDeclaringMethod(), entry.getKey().getResource());
+                        leak.ifPresent(results::addResult);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void visit(IFDSRLAnalysis analysis) {
+        for (SootClass c : Scene.v().getApplicationClasses()) {
+            for (SootMethod m : c.getMethods()) {
+                if (m.hasActiveBody()) {
+                    for (Unit stmt : m.getActiveBody().getUnits()) {
+                        if (stmt instanceof ReturnStmt || stmt instanceof ReturnVoidStmt) {
+                            Set<Pair<ResourceInfo, Set<Local>>> res = analysis.getResultsAtStmt(stmt);
+                            for (Pair<ResourceInfo, Set<Local>> fact : res) {
+                                // TODO and cases where we have class members but we are not in an activity??
+                                if (fact.getO1().isClassMember() && m.getName().matches("onStop|onPause")) {
+                                    Optional<ResourceLeak> leak = processMethodResults(fact.getO1().getDeclaringMethod(), fact.getO1().getResource());
+                                    if (leak.isPresent()) {
+                                        results.addResult(leak.get());
+                                    }
+                                } else {
+                                    Optional<ResourceLeak> leak = processMethodResults(fact.getO1().getDeclaringMethod(), fact.getO1().getResource());
+                                    if (leak.isPresent()) {
+                                        if (leak.get().getSootMethod().equals(m)) {
+                                            results.addResult(leak.get());
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

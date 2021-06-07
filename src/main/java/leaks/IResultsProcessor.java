@@ -1,6 +1,8 @@
 package leaks;
 
 public interface IResultsProcessor {
-    public void visit(RLAnalysis analysis);
-    public void visit(VascoRLAnalysis analysis);
+    void visit(RLAnalysis analysis);
+    void visit(VascoRLAnalysis analysis);
+    void visit(AllInOneRLAnalysis allInOneRLAnalysis);
+    void visit(IFDSRLAnalysis ifdsrlAnalysis);
 }
