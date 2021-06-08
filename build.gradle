@@ -38,3 +38,11 @@ intellij {
     intellij.updateSinceUntilBuild false
 }
 
+task standalone (type: JavaExec, dependsOn: classes){
+    if(project.hasProperty('appArgs')){
+        args(appArgs.split(','))
+    }
+    description = "EcoAndroid Resource Leak Standalone"
+    main = "leaks.standalone.StandaloneRL"
+    classpath = sourceSets.main.runtimeClasspath
+}
