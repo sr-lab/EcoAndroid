@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.intellij' version '0.4.18'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots"
+    }
+    maven {
+        url "https://soot-build.cs.uni-paderborn.de/nexus/repository/soot-release/"
+    }
+    google()
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+group 'anaribeiro.ist'
+version '1.0.3.1'
+
+dependencies {
+    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.30'
+    implementation group: 'org.soot-oss', name: 'soot', version: '4.2.1'
+    implementation group: 'de.tud.sse', name: 'soot-infoflow', version: '2.8'
+    implementation group: 'de.tud.sse', name: 'soot-infoflow-android', version: '2.8'
+    implementation group: 'de.tud.sse', name: 'soot-infoflow-cmd', version: '2.8'
+    implementation group: 'de.upb.cs.swt', name: 'heros', version: '1.1.0'
+    implementation name: 'vasco-1.1-SNAPSHOT'
+}
+
+intellij {
+    version '2019.3.4'
+    plugins 'java', 'android'
+    intellij.updateSinceUntilBuild false
+}
+
+task standalone (type: JavaExec, dependsOn: classes){
+    if(project.hasProperty('appArgs')){
+        args(appArgs.split(','))
+    }
+    description = "EcoAndroid Resource Leak Standalone"
+    main = "leaks.standalone.StandaloneRL"
+    classpath = sourceSets.main.runtimeClasspath
+}
