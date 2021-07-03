@@ -1,5 +1,7 @@
 package leaks;
 
+import leaks.results.IAnalysisVisitor;
+import leaks.results.IResults;
 import soot.Local;
 import soot.SootMethod;
 import soot.Unit;
@@ -244,7 +246,8 @@ public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> impl
         return true;
     }
 
-    public void accept(IResultsProcessor resultsProcessor) {
-        resultsProcessor.visit(this);
+    @Override
+    public void accept(IAnalysisVisitor visitor, IResults storage) {
+        visitor.visit(this, storage);
     }
 }

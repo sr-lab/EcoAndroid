@@ -1,9 +1,8 @@
-package leaks.standalone;
+package leaks;
 
-import leaks.IFDSRLAnalysis;
-import leaks.RLAnalysis;
-import leaks.Resource;
-import leaks.SootSetup;
+import leaks.*;
+import leaks.results.AnalysisVisitor;
+import leaks.results.ResultsStandalone;
 import soot.*;
 import soot.jimple.AssignStmt;
 import soot.toolkits.graph.ExceptionalUnitGraph;
@@ -20,20 +19,19 @@ import java.util.concurrent.*;
 public class StandaloneRL {
 
     public static void main(String[] args) {
-        if (args.length >= 2) {
+        if (args.length >= 3) {
             System.out.println("Running analysis");
-            runAnalysis(args[0], args[1]);
+            runAnalysis(args[0], args[1], args[2]);
         } else {
-            System.out.println("Missing arguments: sdkPath apkPath");
+            System.out.println("Missing arguments: sdkPath apkPath outputFolder");
         }
     }
 
-    private static void runAnalysis(String sdkPath, String apkPath) {
-
+    private static void runAnalysis(String sdkPath, String apkPath, String outputFolder) {
         String apkFileName = apkPath.substring(apkPath.lastIndexOf("/")+1);
         String apkName = apkFileName.substring(0, apkFileName.indexOf("."));
 
-        File file = new File("/home/ricardo/batch/" + apkName + ".out");
+        File file = new File(outputFolder + apkName + ".out");
         try {
             PrintStream stream = new PrintStream(file);
             System.setOut(stream);
@@ -49,7 +47,6 @@ public class StandaloneRL {
         long startSetup = System.nanoTime();
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Integer> future = executor.submit(new Callable() {
-
             public Integer call() throws Exception {
                 SootSetup.configSootInstance(sdkPath, apkPath);
                 return 0;
@@ -57,7 +54,7 @@ public class StandaloneRL {
             }
         });
         try {
-            future.get(5, TimeUnit.MINUTES); //timeout is in 2 seconds
+            future.get(5, TimeUnit.MINUTES); // Timeout setup in 5 minutes
         } catch (TimeoutException | InterruptedException | ExecutionException e) {
             System.out.println("Failed! Soot setup timed out.");
             return;
@@ -87,12 +84,12 @@ public class StandaloneRL {
 
         System.out.println(setupDuration + "," + intraProcDuration + "," + interProcDuration + "," + totalDuration);
 
-        writeResultsToFile(apkName);
+        writeResultsToFile(apkName, outputFolder);
     }
 
-    private static void writeResultsToFile(String apkName) {
+    private static void writeResultsToFile(String apkName, String outputFolder) {
         try {
-            Results.getInstance().toCSV(apkName);
+            ResultsStandalone.getInstance().toCSV(apkName, outputFolder);
         } catch (IOException e) {
             System.out.println("Failed writing results to file!");
         }
@@ -120,7 +117,7 @@ public class StandaloneRL {
             protected void internalTransform(String s, Map<String, String> map) {
                 IFDSRLAnalysis analysis = new IFDSRLAnalysis();
                 analysis.doAnalysis(true);
-                analysis.accept(Results.getInstance());
+                analysis.accept(AnalysisVisitor.getInstance(), ResultsStandalone.getInstance());
             }
         }));
 
@@ -133,7 +130,7 @@ public class StandaloneRL {
                 RLAnalysis analysis = new RLAnalysis(graph);
 
                 if (!analysis.getResults().isEmpty()) {
-                    analysis.accept(Results.getInstance());
+                    analysis.accept(AnalysisVisitor.getInstance(), ResultsStandalone.getInstance());
                 }
             }
         }));

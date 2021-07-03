@@ -1,7 +1,8 @@
 package leaks;
 
-import java.util.Set;
+import leaks.results.IAnalysisVisitor;
+import leaks.results.IResults;
 
 public interface IAnalysis {
-    public void accept(IResultsProcessor resultsProcessor);
+    void accept(IAnalysisVisitor visitor, IResults storage);
 }

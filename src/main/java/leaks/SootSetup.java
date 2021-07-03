@@ -68,10 +68,10 @@ public class SootSetup {
                 options.v().set_whole_program(true);
                 options.v().set_prepend_classpath(true);
                 options.v().set_app(true);
-                options.v().set_no_bodies_for_excluded(false);
+                options.v().set_no_bodies_for_excluded(true);
 
                 // Lib classes to be included for analysis to work with VASCO
-                /*
+                
                 List<String> includeList = new LinkedList<String>();
                 includeList.add("android.*");
                 includeList.add("android.app.*");
@@ -80,11 +80,17 @@ public class SootSetup {
                 includeList.add("android.content.*");
                 options.v().set_include(includeList);
                 options.v().set_include_all(true);
-                 */
 
+/*
+                List<String> excludeList = new LinkedList<String>();
+                excludeList.add("android.*");
+                options.set_exclude(excludeList);
+
+ */
                 // Experimental
                 options.v().set_drop_bodies_after_load(false);
-                options.v().setPhaseOption("wjtp", "use-original-names:true");
+                //options.v().setPhaseOption("jb", "use-original-names:true");
+                options.v().set_keep_line_number(true);
                 //options.v().set_soot_classpath("/home/ricardo/Android/Sdk/platforms/android-30/android.jar");
 
                 // Read APK options
@@ -97,6 +103,9 @@ public class SootSetup {
 
                 // Output options
                 options.v().set_output_format(Options.output_format_none);
+                //options.v().set_output_format(options.output_format_dex);
+                //options.v().set_force_overwrite(true);
+                //options.v().set_validate(true);
 
                 // CG gen options
                 options.v().setPhaseOption("cg", "safe-newinstance:true");

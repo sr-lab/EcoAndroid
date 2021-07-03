@@ -4,24 +4,29 @@ import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.psi.*;
-import org.jetbrains.annotations.NonNls;
+import leaks.results.Leak;
+import leaks.results.ResultsIntellij;
 import org.jetbrains.annotations.NotNull;
 
 public class ResourceLeakInspection extends LocalInspectionTool {
-
     @NotNull
     @Override
     public PsiElementVisitor buildVisitor(@NotNull ProblemsHolder holder, boolean isOnTheFly) {
         return new JavaElementVisitor() {
-            @NonNls
-            private final String DESCRIPTION = "EcoAndroid: Resource Leak";
-
             @Override
             public void visitMethod(PsiMethod method) {
-                ResultsProvider results = ServiceManager.getService(holder.getProject(), ResultsProvider.class);
-                if (results.hasResourceLeaked(method)) {
+                ResultsIntellij results = ServiceManager.getService(holder.getProject(), ResultsIntellij.class);
+
+                if (results.hasLeak(method)) {
                     PsiIdentifier id = method.getNameIdentifier();
-                    holder.registerProblem(id, DESCRIPTION);
+                    for (Leak l : results.getLeaks(method)) {
+                        String description = "EcoAndroid: Leaked " +
+                                l.getResource() +
+                                " declared on " +
+                                l.getDeclaredClassName() + "." +
+                                l.getDeclaredMethodName();
+                        holder.registerProblem(id, description);
+                    }
                 }
             }
         };

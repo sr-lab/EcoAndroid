@@ -134,11 +134,9 @@
             level="WARNING"
             implementationClass="leaks.ResourceLeakInspection"/>
 
-    <projectService serviceImplementation="leaks.ResultsProcessor"></projectService>
-
-    <projectService serviceImplementation="leaks.ResultsProvider"></projectService>
-
     <projectService serviceImplementation="leaks.platform.IdePlatformProvider"></projectService>
+
+    <projectService serviceImplementation="leaks.results.ResultsIntellij"></projectService>
 
     <codeInsight.lineMarkerProvider language="JAVA"
                                     implementationClass="leaks.ResourceLeakLineMarker"/>

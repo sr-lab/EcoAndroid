@@ -15,20 +15,25 @@ import com.intellij.openapi.roots.ProjectRootManager;
 import heros.IFDSTabulationProblem;
 import heros.InterproceduralCFG;
 import heros.solver.IFDSSolver;
+import leaks.results.AnalysisVisitor;
+import leaks.results.ResultsIntellij;
 import leaks.ui.MessageBox;
 import org.jetbrains.annotations.NotNull;
 import leaks.platform.AndroidPlatformLocator;
 import soot.*;
+import soot.jimple.AssignStmt;
 import soot.jimple.toolkits.ide.icfg.JimpleBasedInterproceduralCFG;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.Pair;
+import soot.util.Chain;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class ResourceLeakAnalysisTask extends Task.Backgroundable {
     private static final Logger logger = Logger.getInstance(ResourceLeakAnalysisTask.class);
@@ -55,7 +60,11 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-        _stopWatch.start();
+
+        ResultsIntellij results = ServiceManager.getService(project, ResultsIntellij.class);
+        results.clearAll();
+
+        long startTime = System.nanoTime();
         indicator.setIndeterminate(false);
         indicator.setText("Setting up Soot");
         indicator.setFraction(0.1);
@@ -71,7 +80,6 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         SootSetup.configSootInstance(androidSdkPath.toString(), ankidroid);
 
         File file = new File("/home/ricardo/ecoandroid.out");
-        //Instantiating the PrintStream class
         try {
             PrintStream stream = new PrintStream(file);
             System.setOut(stream);
@@ -79,39 +87,7 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
             System.out.println("exception");
         }
 
-        //AnySoft Cursor release in method call
-        /*
-        SootClass sc = Scene.v().getSootClass("com.menny.android.anysoftkeyboard.dictionary.ContactsDictionary");
-        SootMethod sm1 = sc.getMethodByName("loadDictionaryAsync");
-        Body b1 = sm1.retrieveActiveBody();
-        SootMethod sm2 = sc.getMethodByName("addWords");
-        Body b2 = sm2.retrieveActiveBody();
-        String localname = b1.getLocals().getFirst().getName();
-
-         */
-
-
-        SootClass sc = Scene.v().getSootClass("com.ichi2.anki.Deck");
-        SootMethod sm = sc.getMethodByName("getBool");
-        SootMethod sm2 = sc.getMethodByName("rebuildNewCount");
-
-
-        /*
-        SootClass sc = Scene.v().getSootClass("org.connectbot.ConsoleActivity");
-        SootMethod m = sc.getMethodByName("onPause");
-        SootMethod m2 = sc.getMethodByName("onResume");
-        Body b = m.retrieveActiveBody();
-        Chain<Local> locals = b.getLocals();
-        UnitPatchingChain units = b.getUnits();
-        List<ValueBox> defuse = b.getUseAndDefBoxes();
-        List<ValueBox> def = b.getDefBoxes();
-        Chain<SootClass> scs = Scene.v().getApplicationClasses();
-
-         */
-
-
-        ResultsProvider results = ServiceManager.getService(project, ResultsProvider.class);
-        results.clearResults();
+        processJimpleForAliasing();
 
         registerTransformers();
 
@@ -123,26 +99,16 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
         indicator.setFraction(0.6);
         runInterProceduralAnalysis();
 
-        _stopWatch.stop();
+        long endTime = System.nanoTime();
+        long totalDuration = TimeUnit.SECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
 
         DaemonCodeAnalyzer.getInstance(project).restart();
-
-        File resultsFileRefactor = new File("/home/ricardo/resultsRefactor/" + project.getName() + ".out");
-        try {
-            FileWriter writer = new FileWriter(resultsFileRefactor);
-            writer.write(results.toCSV());
-            writer.flush();
-            writer.close();
-        } catch (Exception e) {
-            System.out.println("exception");
-        }
-
 
         MessageBox.Show("Resource leak detection complete. Go to Analyze | Code Inspections and" +
                 "perform an inspection to see the results");
 
         Notification notification = new Notification(
-                "Tasks", "EcoAndroid", "Analysis ended", NotificationType.INFORMATION);
+                "Tasks", "EcoAndroid", "Analysis ended, took" + totalDuration + "s", NotificationType.INFORMATION);
         notification.setImportant(false);
         Notifications.Bus.notify(notification);
     }
@@ -163,52 +129,12 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
     }
 
     private void registerTransformers() {
-        /*
-        PackManager.v().getPack("wjtp").add(new Transform("wjtp.rl", new SceneTransformer() {
-            @Override
-            protected void internalTransform(String s, Map<String, String> map) {
-                VascoRLAnalysis analysis = new VascoRLAnalysis();
-                analysis.doAnalysis();
-                analysis.accept(ServiceManager.getService(project, ResultsProcessor.class));
-            }
-        }));
-
-         */
-
         PackManager.v().getPack("wjtp").add(new Transform("wjtp.ifdsrl", new SceneTransformer() {
             @Override
             protected void internalTransform(String s, Map<String, String> map) {
                 IFDSRLAnalysis analysis = new IFDSRLAnalysis();
-                analysis.doAnalysis();
-                analysis.accept(ServiceManager.getService(project, ResultsProcessor.class));
-
-                /*
-                JimpleBasedInterproceduralCFG icfg = new JimpleBasedInterproceduralCFG();
-
-                IFDSTabulationProblem<Unit, Pair<ResourceInfo, Local>,
-                        SootMethod,
-                        InterproceduralCFG<Unit, SootMethod>> problem = new IFDSResourceLeak(icfg);
-
-                IFDSSolver<Unit, Pair<ResourceInfo, Local>,SootMethod, InterproceduralCFG<Unit, SootMethod>> solver;
-                solver = new IFDSSolver<Unit, Pair<ResourceInfo, Local>, SootMethod,InterproceduralCFG<Unit, SootMethod>>(problem);
-
-                solver.solve();
-                for (SootClass c : Scene.v().getApplicationClasses()) {
-                    for (SootMethod m : c.getMethods()) {
-                        if (m.hasActiveBody()) {
-                            System.out.println("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-                            System.out.println(m.getName() + " | " + c.getName());
-                            for (Unit stmt : m.getActiveBody().getUnits()) {
-                                System.out.print(stmt+"\n   |-- ");
-                                Set<Pair<ResourceInfo, Local>> res = solver.ifdsResultsAt(stmt);
-                                System.out.println(res);
-                            }
-                        }
-                    }
-                }
-                 */
-
-
+                analysis.doAnalysis(true);
+                analysis.accept(AnalysisVisitor.getInstance(), ServiceManager.getService(project, ResultsIntellij.class));
             }
         }));
 
@@ -221,9 +147,68 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
 
             // Process analysis' results
             if (!analysis.getResults().isEmpty()) {
-                analysis.accept(ServiceManager.getService(project, ResultsProcessor.class));
+                analysis.accept(AnalysisVisitor.getInstance(), ServiceManager.getService(project, ResultsIntellij.class));
             }
             }
         }));
+    }
+
+    private void processJimpleForAliasing() {
+        int idCounter = 0;
+        for (SootClass c : Scene.v().getApplicationClasses()) {
+            List<SootMethod> methods = c.getMethods();
+            for (SootMethod m : methods) {
+                if (m.hasActiveBody()) {
+                    Body body = m.retrieveActiveBody();
+                    Chain<Local> locals = body.getLocals();
+                    UnitPatchingChain units = body.getUnits();
+
+                    if (methodHasResources(m)) {
+                        // Steps to instrument Jimple to mitigate aliasing:
+                        // - search for assign stmt (rx = ry) where both rx and ry are resources of the same type
+                        // - change their name to RESOURCE_ID so that our analysis knows they represent the same resource
+                        // - change the locals' name in every occurrence
+                        for (Unit unit : units) {
+                            if (unit instanceof AssignStmt) {
+                                AssignStmt stmt = (AssignStmt) unit;
+
+                                if (stmt.getLeftOp() instanceof Local && stmt.getRightOp() instanceof Local) {
+                                    Local leftLocal = (Local) stmt.getLeftOp();
+                                    Local rightLocal = (Local) stmt.getRightOp();
+                                    String leftLocalType = leftLocal.getType().toString();
+                                    String rightLocalType = rightLocal.getType().toString();
+
+                                    for (Resource r : Resource.values()) {
+                                        if (r.getType().equals(leftLocalType) && leftLocalType.equals(rightLocalType)) {
+                                            for (Local l : locals) {
+                                                if (l.equivTo(leftLocal) || l.equivTo(rightLocal)) {
+                                                    l.setName("RESOURCE_" + idCounter);
+                                                }
+                                            }
+                                            idCounter++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    m.getActiveBody().validate();
+                }
+            }
+            c.validate();
+        }
+    }
+
+    private boolean methodHasResources(SootMethod m) {
+        Body body = m.getActiveBody();
+        Chain<Local> locals = body.getLocals();
+        for (Local l : locals) {
+            for (Resource r : Resource.values()) {
+                if (r.getType().equals(l.getType().toString())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
