@@ -43,6 +43,6 @@ task standalone (type: JavaExec, dependsOn: classes){
         args(appArgs.split(','))
     }
     description = "EcoAndroid Resource Leak Standalone"
-    main = "leaks.standalone.StandaloneRL"
+    main = "leaks.StandaloneRL"
     classpath = sourceSets.main.runtimeClasspath
 }
