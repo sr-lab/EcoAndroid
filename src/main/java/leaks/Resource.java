@@ -16,7 +16,7 @@ public enum Resource {
     CURSOR ( "android.database.Cursor",
             new String[]{"rawQuery","query"}, "android.database.sqlite.SQLiteDatabase",
             "close", "android.database.Cursor",
-            "isClosed",
+            "isClosed", "",
             true, false), // TODO might be inter-proc too...
 
     /**
@@ -26,7 +26,7 @@ public enum Resource {
     WAKELOCK ("android.os.PowerManager$WakeLock",
             new String[]{"acquire"}, "android.os.PowerManager$WakeLock",
             "release", "android.os.PowerManager$WakeLock",
-            "isHeld",
+            "isHeld", "onPause",
             false, true);
 
     private final String type;
@@ -35,6 +35,7 @@ public enum Resource {
     private final String releaseOp;
     private final String releaseClass;
     private final String heldCheckOp;
+    private final String placeToRelease;
     private final boolean intraProcedural;
     private final boolean interProcedural;
 
@@ -45,17 +46,20 @@ public enum Resource {
      * @param acquireClass Class of the object where the acquire operation is invoked
      * @param releaseOp Operation used to release the resource
      * @param releaseClass Class of the object where the release operation is invoked
+     * @param heldCheckOp Operation used to check if resource is acquired
+     * @param placeToRelease Suggested callback to release the (inter-procedural) resource
      * @param intraProcedural
      * @param interProcedural
      */
     Resource(String type, String[] acquireOp, String acquireClass, String releaseOp, String releaseClass,
-             String heldCheckOp, boolean intraProcedural, boolean interProcedural) {
+             String heldCheckOp, String placeToRelease, boolean intraProcedural, boolean interProcedural) {
         this.type = type;
         this.acquireOp = acquireOp;
         this.acquireClass = acquireClass;
         this.releaseOp = releaseOp;
         this.releaseClass = releaseClass;
         this.heldCheckOp = heldCheckOp;
+        this.placeToRelease = placeToRelease;
         this.intraProcedural = intraProcedural;
         this.interProcedural = interProcedural;
     }
@@ -97,5 +101,9 @@ public enum Resource {
 
     public boolean isCheckedIfItsHeld(String type, String heldCheckOp) {
         return this.type.equals(type) && this.heldCheckOp.equals(heldCheckOp);
+    }
+
+    public String getPlaceToRelease() {
+        return placeToRelease;
     }
 }

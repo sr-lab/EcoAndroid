@@ -41,26 +41,26 @@ public class AnalysisVisitor implements IAnalysisVisitor{
     @Override
     public void visit(IFDSRLAnalysis analysis, IResults results) {
         JimpleBasedInterproceduralCFG icfg = new JimpleBasedInterproceduralCFG();
-        Map<SootMethod, Unit> possibleLeaksLocation = collectPossibleLeaksLocation(analysis);
-        Map<SootMethod, Unit> leaksLocation = processPossibleLeaks(possibleLeaksLocation, icfg, analysis);
-        for (Map.Entry<SootMethod, Unit> entry : leaksLocation.entrySet()) {
-            Set<Pair<ResourceInfo, Local>> facts = analysis.getResultsAtStmt(entry.getValue());
+        Map<Unit, SootMethod> possibleLeaksLocation = collectPossibleLeaksLocation(analysis);
+        Map<Unit, SootMethod> leaksLocation = processPossibleLeaks(possibleLeaksLocation, icfg, analysis);
+        for (Map.Entry<Unit, SootMethod> entry : leaksLocation.entrySet()) {
+            Set<Pair<ResourceInfo, Local>> facts = analysis.getResultsAtStmt(entry.getKey());
             for (Pair<ResourceInfo, Local> fact : facts) {
-                Leak leak = new Leak(fact.getO1().getResource(), entry.getKey(),
+                Leak leak = new Leak(fact.getO1().getResource(), entry.getValue(),
                         fact.getO1().getDeclaringMethod(), entry.getValue().getJavaSourceStartLineNumber());
                 results.add(leak, IResults.AnalysisType.INTER);
             }
         }
     }
 
-    private Map<SootMethod, Unit> collectPossibleLeaksLocation(IFDSRLAnalysis analysis) {
-        // TODO and cases where we have class members but we are not in an activity??
-        Map<SootMethod, Unit> out = new HashMap<>();
+    private Map<Unit, SootMethod> collectPossibleLeaksLocation(IFDSRLAnalysis analysis) {
+        Map<Unit, SootMethod> out = new HashMap<>();
         for (SootClass c : Scene.v().getApplicationClasses()) {
             for (SootMethod m : c.getMethods()) {
                 if (m.hasActiveBody()) {
                     for (Unit stmt : m.getActiveBody().getUnits()) {
                         Set<Pair<ResourceInfo, Local>> res = analysis.getResultsAtStmt(stmt);
+
                         if (stmt instanceof ReturnStmt) {
                             ReturnStmt returnStmt = (ReturnStmt) stmt;
 
@@ -73,15 +73,15 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                                     // we ignore this case. If there is indeed a leak on this resource, it will be
                                     // caught in a later return stmt
                                     if (fact.getO1().isClassMember() && m.getName().matches("onStop|onPause")
-                                            || !equalLocals(local, fact.getO2())) {
-                                        out.put(m, stmt);
+                                            || !equalLocals(local, fact.getO2()) && !fact.getO1().isClassMember()) {
+                                        out.put(stmt, m);
                                     }
                                 }
                             }
                         } else if (stmt instanceof ReturnVoidStmt) {
                             for (Pair<ResourceInfo, Local> fact : res) {
                                 if (fact.getO1().isClassMember() && m.getName().matches("onStop|onPause")) {
-                                    out.put(m, stmt);
+                                    out.put(stmt, m);
                                 }
                             }
                         }
@@ -92,38 +92,52 @@ public class AnalysisVisitor implements IAnalysisVisitor{
         return out;
     }
 
-    private Map<SootMethod, Unit> processPossibleLeaks(Map<SootMethod, Unit> possibleLeaksLocation,
-                                               JimpleBasedInterproceduralCFG icfg, IFDSRLAnalysis analysis) {
+    private Map<Unit, SootMethod> processPossibleLeaks(Map<Unit, SootMethod> possibleLeaksLocation,
+                                                       JimpleBasedInterproceduralCFG icfg, IFDSRLAnalysis analysis) {
 
-        Map<SootMethod, Unit> leaksLocation = new HashMap<>(possibleLeaksLocation);
-        List<SootMethod> locationsToRemove = new ArrayList<>();
+        Map<Unit, SootMethod> leaksLocation = new HashMap<>(possibleLeaksLocation);
+        List<Unit> locationsToRemove = new ArrayList<>();
 
-        for (Map.Entry<SootMethod, Unit> entry : possibleLeaksLocation.entrySet()) {
-            for (Pair<ResourceInfo, Local> fact : analysis.getResultsAtStmt(entry.getValue())) {
-                boolean leakedInCallerMethod = false;
-                Collection<Unit> callers = icfg.getCallersOf(entry.getKey());
-                List<Boolean> callersUseResource = new ArrayList<>();
-                for (Unit caller : callers) {
-                    SootMethod callerMethod = icfg.getMethodOf(caller);
-                    boolean callerUsesResource = methodUsesResource(callerMethod, fact.getO1(), analysis);
-                    callersUseResource.add(callerUsesResource);
-                    if (possibleLeaksLocation.containsKey(callerMethod) && callerUsesResource) {
-                        for (Pair<ResourceInfo, Local> callerFact : analysis.getResultsAtStmt(possibleLeaksLocation.get(callerMethod))) {
-                            if (callerFact.getO1().equals(fact.getO1())) {
-                                leakedInCallerMethod = true;
-                            }
-                        }
-                    }
-                }
-                if (!leakedInCallerMethod && callersUseResource.stream().anyMatch(b -> b)) {
-                    //leaksLocation.remove(entry.getKey());
-                    locationsToRemove.add(entry.getKey());
-                }
+        for (Map.Entry<Unit, SootMethod> entry : possibleLeaksLocation.entrySet()) {
+            Unit leakedUnit = entry.getKey();
+            SootMethod leakedMethod = entry.getValue();
+
+            for (Pair<ResourceInfo, Local> fact : analysis.getResultsAtStmt(leakedUnit)) {
+                 // Handle class-member resources
+                 if (fact.getO1().isClassMember()) {
+                     // For a class-member resource to be leaked: the resource must have been leaked in its suggested
+                     // place to release and the resource has to be leaked in the same class where it was acquired
+                     if (!leakedMethod.getDeclaringClass().getName().equals(fact.getO1().getDeclaringClass().getName())
+                            || !leakedMethod.getName().equals(fact.getO1().getResource().getPlaceToRelease())) {
+                         locationsToRemove.add(leakedUnit);
+                     }
+                 // Handle normal resources (that are declared in methods and can be passed by ref)
+                 } else {
+                     boolean leakedInCallerMethod = false;
+                     Collection<Unit> callers = icfg.getCallersOf(leakedMethod);
+                     List<Boolean> callersUseResource = new ArrayList<>();
+                     for (Unit caller : callers) {
+                         SootMethod callerMethod = icfg.getMethodOf(caller);
+                         boolean callerUsesResource = methodUsesResource(callerMethod, fact.getO1(), analysis);
+                         callersUseResource.add(callerUsesResource);
+                         if (possibleLeaksLocation.containsKey(callerMethod) && callerUsesResource) {
+                             for (Pair<ResourceInfo, Local> callerFact : analysis.getResultsAtStmt(caller)) {
+                                 if (callerFact.getO1().equals(fact.getO1())) {
+                                     leakedInCallerMethod = true;
+                                 }
+                             }
+                         }
+                     }
+                     if (!leakedInCallerMethod && callersUseResource.stream().anyMatch(b -> b)) {
+                         //leaksLocation.remove(entry.getKey());
+                         locationsToRemove.add(entry.getKey());
+                     }
+                 }
             }
         }
 
-        for (SootMethod m : locationsToRemove) {
-            leaksLocation.remove(m);
+        for (Unit u : locationsToRemove) {
+            leaksLocation.remove(u);
         }
 
         return leaksLocation;
