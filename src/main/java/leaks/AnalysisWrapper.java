@@ -129,7 +129,7 @@ public class AnalysisWrapper {
         long startSetup = System.nanoTime();
         if (!setupSoot(apkPath, androidSdkPath)) {
             System.out.println("Soot setup failed. Forcefully terminating analysis.");
-            return;
+            System.exit(0);
         }
 
         System.out.println("Registering transformers...");
@@ -168,7 +168,7 @@ public class AnalysisWrapper {
         Future<Integer> future = executor.submit(new Callable() {
             public Integer call() {
                 SootSetup.configSootInstance(androidSdkPath, apkPath);
-1                return 0;
+                return 0;
             }
         });
         try {
