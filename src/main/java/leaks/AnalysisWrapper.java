@@ -66,7 +66,15 @@ public class AnalysisWrapper {
         System.out.println("SDK path: " + ProjectRootManager.getInstance(project).getProjectSdk().getHomePath());
         System.out.println("Root path: " + project.getBasePath());
 
-        SootSetup.configSootInstance(androidSdkPath.toString(), ankidroid);
+        if (!setupSoot(ankidroid, androidSdkPath.toString())) {
+            MessageBox.Show("Resource leak detection failed. Unable to setup Soot for current APK.");
+
+            Notification notification = new Notification(
+                    "Tasks", "EcoAndroid", "Analysis failed", NotificationType.ERROR);
+            notification.setImportant(false);
+            Notifications.Bus.notify(notification);
+            return;
+        }
 
         File file = new File("/home/ricardo/ecoandroid.out");
         try {
@@ -119,7 +127,10 @@ public class AnalysisWrapper {
 
         System.out.println("Setting up Soot...");
         long startSetup = System.nanoTime();
-        setupSoot(apkPath, androidSdkPath);
+        if (!setupSoot(apkPath, androidSdkPath)) {
+            System.out.println("Soot setup failed. Forcefully terminating analysis.");
+            return;
+        }
 
         System.out.println("Registering transformers...");
         registerTransformers(ResultsStandalone.getInstance());
@@ -152,21 +163,22 @@ public class AnalysisWrapper {
         return apkFileName.substring(0, apkFileName.indexOf("."));
     }
 
-    private void setupSoot(String apkPath, String androidSdkPath) {
+    private boolean setupSoot(String apkPath, String androidSdkPath) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Future<Integer> future = executor.submit(new Callable() {
             public Integer call() {
                 SootSetup.configSootInstance(androidSdkPath, apkPath);
-                return 0;
+1                return 0;
             }
         });
         try {
             future.get(5, TimeUnit.MINUTES); // Timeout setup in 5 minutes
         } catch (TimeoutException | InterruptedException | ExecutionException e) {
             System.out.println("Failed! Soot setup timed out.");
-            return;
+            return false;
         }
         executor.shutdownNow();
+        return true;
     }
 
     private static void writeResultsToFile(String apkName, String outputFolder) {
