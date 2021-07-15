@@ -9,14 +9,20 @@ import java.util.Set;
  */
 public enum Resource {
 
+    BUFFERED_INPUT_STREAM ("java.io.InputStream",
+            new String[]{"<init>"}, "java.io.InputStream",
+            "close", "java.io.InputStream",
+            "#NONE", "#NONE",
+            true, false),
+
     /**
      * Representation of the Cursor resource.
      * A Cursor represents the result of a query to a database.
      */
-    CURSOR ( "android.database.Cursor",
+    CURSOR ("android.database.Cursor",
             new String[]{"rawQuery","query"}, "android.database.sqlite.SQLiteDatabase",
             "close", "android.database.Cursor",
-            "isClosed", "",
+            "isClosed", "#NONE",
             true, false), // TODO might be inter-proc too...
 
     /**

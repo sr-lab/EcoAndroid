@@ -72,15 +72,16 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                                     // a resource that would be used by other functions. So, to prevent false positives,
                                     // we ignore this case. If there is indeed a leak on this resource, it will be
                                     // caught in a later return stmt
-                                    if (fact.getO1().isClassMember() && m.getName().matches("onStop|onPause")
-                                            || !equalLocals(local, fact.getO2()) && !fact.getO1().isClassMember()) {
+                                    if ((fact.getO1().isClassMember() && m.getName().matches("onStop|onPause"))
+                                            || (!equalLocals(local, fact.getO2()) && !fact.getO1().isClassMember())) {
                                         out.put(stmt, m);
                                     }
                                 }
                             }
                         } else if (stmt instanceof ReturnVoidStmt) {
                             for (Pair<ResourceInfo, Local> fact : res) {
-                                if (fact.getO1().isClassMember() && m.getName().matches("onStop|onPause")) {
+                                if (fact.getO1().isClassMember() && m.getName().matches("onStop|onPause")
+                                        || !fact.getO1().isClassMember()) {
                                     out.put(stmt, m);
                                 }
                             }

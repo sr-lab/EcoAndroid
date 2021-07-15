@@ -226,6 +226,11 @@ public class IFDSResourceLeak
                         + icfg.getMethodOf(callStmt).getName() + "\n"
                         + callStmt);
 
+                if (callStmt.toString().equals("specialinvoke r1.<java.io.BufferedInputStream: void <init>(java.io.InputStream)>($r12)")) {
+                    System.out.println("works here");
+                }
+
+
                 Stmt stmt = (Stmt) callStmt;
                 InvokeExpr invokeExpr = stmt.getInvokeExpr();
                 final List<Value> args = invokeExpr.getArgs();
@@ -392,6 +397,10 @@ public class IFDSResourceLeak
                         + callSite + "\n"
                         + returnSite);
 
+                if (callSite.toString().equals("specialinvoke r1.<java.io.BufferedInputStream: void <init>(java.io.InputStream)>($r12)")) {
+                    System.out.println("");
+                }
+
                 // Case where we are dealing with a resource acquired in a method,
                 // not a class member.
                 if (callSite instanceof AssignStmt) {
@@ -428,8 +437,8 @@ public class IFDSResourceLeak
 
                                     for (Resource r : Resource.values()) {
                                         if (r.isBeingAcquired(invokedMethod.getName(), invokedMethod.getDeclaringClass().toString())) {
-                                            if (equalsZeroValue(source)) {
-                                                SootMethod callSiteMethod = icfg.getMethodOf(callSite);
+                                            SootMethod callSiteMethod = icfg.getMethodOf(callSite);
+                                            if (equalsZeroValue(source) && !callSiteMethod.getName().equals("<init>")) {
                                                 SootClass callSiteClass = callSiteMethod.getDeclaringClass();
                                                 Set<Pair<ResourceInfo, Local>> res = new LinkedHashSet<>();
                                                 //Local factLocals = new LinkedHashSet<>();
@@ -479,16 +488,28 @@ public class IFDSResourceLeak
                                     return Collections.emptySet();
                                 }
 
+                                Local local = (Local) value;
                                 for (Resource r : Resource.values()) {
                                     if (r.isBeingReleased(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
                                         if (value instanceof Local) {
-                                            Local local = (Local) value;
 
                                             if (equalLocals(source.getO2(), local)) {
                                             //if (containsLocal(source.getO2(), local)) {
                                             //if (source.getO2().equivTo(local)) {
                                                 return Collections.emptySet();
                                             }
+                                        }
+                                    } else if (r.isBeingAcquired(invokedMethod.getName(), invokedMethod.getDeclaringClass().toString())) {
+                                        SootMethod callSiteMethod = icfg.getMethodOf(callSite);
+                                        if (equalsZeroValue(source) && !callSiteMethod.getName().equals("<init>")) {
+                                            SootClass callSiteClass = callSiteMethod.getDeclaringClass();
+                                            Set<Pair<ResourceInfo, Local>> res = new LinkedHashSet<>();
+                                            Pair<ResourceInfo, Local> fact = new Pair<>(
+                                                    new ResourceInfo(local.getName(), r, callSiteClass, callSiteMethod),
+                                                    local);
+                                            res.add(fact);
+                                            return res;
+                                            //return Collections.singleton(source);
                                         }
                                     }
                                 }
