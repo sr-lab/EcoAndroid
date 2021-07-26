@@ -1,45 +1,58 @@
 package leaks;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
 
 /**
  * Representation of a Android resource.
  */
 public enum Resource {
 
-    BUFFERED_INPUT_STREAM ("java.io.InputStream",
-            new String[]{"<init>"}, "java.io.InputStream",
-            "close", "java.io.InputStream",
-            "#NONE", "#NONE",
-            true, false),
-
     /**
      * Representation of the Cursor resource.
      * A Cursor represents the result of a query to a database.
      */
     CURSOR ("android.database.Cursor",
-            new String[]{"rawQuery","query"}, "android.database.sqlite.SQLiteDatabase",
-            "close", "android.database.Cursor",
+            new String[]{"rawQuery","query"}, new String[]{"android.database.sqlite.SQLiteDatabase"},
+            new String[]{"close"}, new String[]{"android.database.Cursor"},
             "isClosed", "#NONE",
-            true, false), // TODO might be inter-proc too...
+            true, true),
 
     /**
      * Representation of the (inter-procedural) Wakelock resource.
      * A Wakelock is used to prevent the device from going to sleep, usually to perform critical operations.
      */
     WAKELOCK ("android.os.PowerManager$WakeLock",
-            new String[]{"acquire"}, "android.os.PowerManager$WakeLock",
-            "release", "android.os.PowerManager$WakeLock",
+            new String[]{"acquire"}, new String[]{"android.os.PowerManager$WakeLock"},
+            new String[]{"release"}, new String[]{"android.os.PowerManager$WakeLock"},
             "isHeld", "onPause",
-            false, true);
+            true, true),
+
+    SQLITEDB ("android.database.sqlite.SQLiteDatabase",
+            new String[]{"getWritableDatabase", "getReadableDatabase"}, new String[]{"android.database.sqlite.SQLiteOpenHelper"},
+            new String[]{"close"}, new String[]{"android.database.sqlite.SQLiteClosable", "android.database.sqlite.SQLiteOpenHelper", "android.database.sqlite.SQLiteDatabase"},
+            "#NONE", "#NONE",
+            true, true),
+
+    /*
+    BUFFERED_INPUT_STREAM ("java.io.BufferedInputStream",
+            new String[]{"<init>"}, "java.io.BufferedInputStream",
+            new String[]{"close"}, "java.io.BufferedInputStream",
+            "#NONE", "#NONE",
+            true, false),
+
+     */
+
+    CAMERA ("android.hardware.Camera",
+            new String[]{"lock", "open", "startFaceDectection", "startPreview"}, new String[]{"android.hardware.Camera"},
+            new String[]{"unlock", "close", "stopFaceDetection", "stopPreview"}, new String[]{"android.hardware.Camera"},
+            "#NONE", "onPause",
+            true, false);
 
     private final String type;
     private final String[] acquireOp;
-    private final String acquireClass;
-    private final String releaseOp;
-    private final String releaseClass;
+    private final String[] acquireClass;
+    private final String[] releaseOp;
+    private final String[] releaseClass;
     private final String heldCheckOp;
     private final String placeToRelease;
     private final boolean intraProcedural;
@@ -57,7 +70,7 @@ public enum Resource {
      * @param intraProcedural
      * @param interProcedural
      */
-    Resource(String type, String[] acquireOp, String acquireClass, String releaseOp, String releaseClass,
+    Resource(String type, String[] acquireOp, String[] acquireClass, String[] releaseOp, String[] releaseClass,
              String heldCheckOp, String placeToRelease, boolean intraProcedural, boolean interProcedural) {
         this.type = type;
         this.acquireOp = acquireOp;
@@ -89,11 +102,31 @@ public enum Resource {
                 acquireOpMatch = true;
             }
         }
-        return acquireOpMatch && this.acquireClass.equals(acquireClass);
+
+        boolean acquireClassMatch = false;
+        for (String c : this.acquireClass) {
+            if (acquireClass.equals(c)) {
+                acquireClassMatch = true;
+            }
+        }
+        return acquireOpMatch && acquireClassMatch;
     }
 
     public boolean isBeingReleased(String releaseOp, String releaseClass) {
-        return this.releaseOp.equals(releaseOp) && this.releaseClass.equals(releaseClass);
+        boolean releaseOpMatch = false;
+        for (String op : this.releaseOp) {
+            if (releaseOp.equals(op)) {
+                releaseOpMatch = true;
+            }
+        }
+
+        boolean releaseClassMatch = false;
+        for (String c : this.releaseClass) {
+            if (releaseClass.equals(c)) {
+                releaseClassMatch = true;
+            }
+        }
+        return releaseOpMatch && releaseClassMatch;
     }
 
     public boolean isBeingDeclared(String acquireClass) {
