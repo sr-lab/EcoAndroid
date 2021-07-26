@@ -3,6 +3,8 @@ package leaks.results;
 import leaks.Resource;
 import soot.SootMethod;
 
+import java.util.Objects;
+
 public class Leak {
     private final Resource resource;
     private final SootMethod leakedMethod;
@@ -46,5 +48,18 @@ public class Leak {
 
     public int getLineNumber() {
         return lineNumber;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Leak leak = (Leak) o;
+        return lineNumber == leak.lineNumber && resource == leak.resource && leakedMethod.equals(leak.leakedMethod) && declaredMethod.equals(leak.declaredMethod);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(resource, leakedMethod, declaredMethod, lineNumber);
     }
 }

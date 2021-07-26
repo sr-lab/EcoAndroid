@@ -23,9 +23,16 @@ public class IFDSResourceLeak
         this.icfg = icfg;
     }
 
+
     @Override
     public FlowFunctions<Unit, Pair<ResourceInfo, Local>, SootMethod> createFlowFunctionsFactory() {
         return new FlowFunctions<Unit, Pair<ResourceInfo, Local>, SootMethod>() {
+
+            // The getNormalFlowFunction takes care of the flow for a normal statement, i.e., a statement
+            // that is neither a a call nor exit statement.
+            // In our analysis, we use it to
+            // (1) Handle when class-member resources are acquired or used
+            // (2) Handle 'if' statements where it checks whether a resource is being held, or null
             @Override
             public FlowFunction<Pair<ResourceInfo, Local>> getNormalFlowFunction(final Unit curr, Unit succ) {
                 System.out.println("-------------------------------------\n"
@@ -38,11 +45,11 @@ public class IFDSResourceLeak
                     AssignStmt stmt = (AssignStmt) curr;
                     Value rhs = stmt.getRightOp();
 
-                    // Case where we are dealing with a class member resource
+                    // Case (1) where we are dealing with a class-member resource
 
-                    // The trick here is to look ahead - we first check for any resource declaration,
-                    // what we do depends on the next unit (succ):
-                    // -> if its an invoke stmt, then it can be acquired or released
+                    // The trick here is to look ahead - first check for any resource declaration,
+                    // and the next step depends on the "next" unit in analysis (succ):
+                    // -> if its an invoke stmt, then the resource could be acquired or released
                     // -> if not, then the resource is simply being declared and will be
                     //    used for something else
                     if (rhs instanceof InstanceFieldRef) {
@@ -78,14 +85,10 @@ public class IFDSResourceLeak
                                                         && source.getO1().getName().equals(field.getName())) {
                                                             return Collections.emptySet();
                                                         }
-                                                        //return Collections.singleton(source);
                                                     } else if (r.isBeingAcquired(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
                                                         LinkedHashSet<Pair<ResourceInfo, Local>> res = new LinkedHashSet<>();
-                                                        //Local factLocals = copy(source.getO2());
-                                                        //factLocals.add(lhs);
                                                         res.add(new Pair<>(
                                                                 new ResourceInfo(field.getName(), r, field.getDeclaringClass(), icfg.getMethodOf(curr), true),
-                                                                //factLocals));
                                                                 lhs));
                                                         return res;
                                                     }
@@ -96,7 +99,10 @@ public class IFDSResourceLeak
                                         }
                                     }
                                 // The resource is only being assigned and not acquired
-                                // This information is crucial for dealing with if stmts
+                                // (Other resources do not need to be checked for this!
+                                // We handle this type of aliasing before analysis because
+                                // it works and it is simpler)
+                                // This information is crucial for dealing with 'if' stmts
                                 } else {
                                     return new FlowFunction<Pair<ResourceInfo, Local>>() {
                                         @Override
@@ -104,18 +110,13 @@ public class IFDSResourceLeak
                                             SootMethod debug = icfg.getMethodOf(curr);
                                             // We only care about tracking acquired resources
                                             if (!equalsZeroValue(source)) {
-                                                if (source.getO1().getName().equals(field.getName())  //) {
-                                                        //&& !containsLocal(source.getO2(),lhs)) {
-                                                        //&& !lhs.equivTo(source.getO2())) {
+                                                if (source.getO1().getName().equals(field.getName())
                                                         && !equalLocals(source.getO2(), lhs)) {
-                                                    // Update the "current" local because of If check
-                                                    //Set<Local> factLocals = copy(source.getO2());
-                                                    //factLocals.add(lhs);
+                                                    // Update the "current" local because of 'if' statements
                                                     return Collections.singleton(
-                                                            new Pair<>(source.getO1(), lhs)); //factLocals));
+                                                            new Pair<>(source.getO1(), lhs));
                                                 } else {
                                                     return Collections.emptySet();
-                                                    //return Collections.singleton(source);
                                                 }
                                             } else {
                                                 return Collections.singleton(source);
@@ -126,11 +127,15 @@ public class IFDSResourceLeak
                             }
                         }
                     }
-                } // End assign stmt check
+                }
 
-                // We need to check if stmts because there can be paths
-                // where the resource is null or not acquired
-                // For those paths we need to kill facts regarding those resources
+                // Case (2) where we handle 'if' statements
+                // We handle first (a) when there is a check to see if the resource is being held and
+                // second (b) when a resource is being checked for null
+
+                // This is necessary to flow information about the state of the resource
+                // (e.g. if we branch out because the resource is null, but we have
+                // a fact that says it was acquired, we need to kill that fact)
                 else if (curr instanceof IfStmt) {
                     IfStmt stmt = (IfStmt) curr;
                     ConditionExpr cond = (ConditionExpr) stmt.getCondition();
@@ -139,12 +144,14 @@ public class IFDSResourceLeak
                     if (lhs instanceof Local) {
                         Local local = (Local) lhs;
 
-                        // Case for an if stmt where it is being checked
+                        // Case (a) for an if statement where it is being checked
                         // if a resource is being held via the proper operation
-                        // e.g. wakelock's isHeld()
+                        // (e.g. wakelock's isHeld())
 
-                        // Check if the variable seen was the result
-                        // of a isHeld operation
+                        // This "hack" allows to see if the variable used in the if statement
+                        // resulted in the use of a resource's isHeld operation.
+                        // We look for the predecessores of the if statement to search for the
+                        // assign statement related to the if's statement variable
                         for (Unit pred : icfg.getPredsOf(curr)) {
                             if (pred instanceof AssignStmt) {
                                 AssignStmt assignStmt = (AssignStmt) pred;
@@ -165,7 +172,6 @@ public class IFDSResourceLeak
                                                         public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
                                                             // The if will branch and its a about a seen resource
                                                             if (stmt.getTarget().equals(succ) && equalLocals(source.getO2(), (Local) base)) {
-                                                            //containsLocal(source.getO2(),base)) {  //source.getO2().equivTo(base)) {
                                                                 String condSymbol = cond.getSymbol();
                                                                 Value rhs = cond.getOp2();
 
@@ -189,14 +195,13 @@ public class IFDSResourceLeak
                             }
                         }
 
-                        // Case where we are simply dealing with a check to
+                        // Case (b) where we are simply dealing with a check to
                         // see if the resource is null
                         return new FlowFunction<Pair<ResourceInfo, Local>>() {
                             @Override
                             public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
                                 // The if will branch and its a about a seen resource
                                 if (stmt.getTarget().equals(succ) && equalLocals(source.getO2(), local)) {
-                                    //containsLocal(source.getO2(), local)) {//source.getO2().equivTo(local)) {
                                     String condSymbol = cond.getSymbol();
                                     Value rhs = cond.getOp2();
 
@@ -212,7 +217,7 @@ public class IFDSResourceLeak
                             }
                         };
                     }
-                } // End if stmt check
+                }
 
                 return Identity.v();
             }
@@ -225,11 +230,6 @@ public class IFDSResourceLeak
                         + icfg.getMethodOf(callStmt).getDeclaringClass().getShortName() + "."
                         + icfg.getMethodOf(callStmt).getName() + "\n"
                         + callStmt);
-
-                if (callStmt.toString().equals("specialinvoke r1.<java.io.BufferedInputStream: void <init>(java.io.InputStream)>($r12)")) {
-                    System.out.println("works here");
-                }
-
 
                 Stmt stmt = (Stmt) callStmt;
                 InvokeExpr invokeExpr = stmt.getInvokeExpr();
@@ -258,20 +258,18 @@ public class IFDSResourceLeak
                                 Pair<ResourceInfo, Local> pair = new Pair<>(
                                         source.getO1(),
                                         destinationMethod.retrieveActiveBody().getParameterLocal(paramIndex));
-                                //destinationMethod.retrieveActiveBody().getParameterLocal(paramIndex));
                                 return Collections.singleton(pair);
                             }
 
 
                         }
-                        // UNDER TEST: CLASS MEMBER RESOURCES DETECTION
                         if (destinationMethod.getName().equals("onPause") && destinationMethod.getDeclaringClass().getShortName().equals("ConsoleActivity")) {
                             System.out.println("");
                         }
                         if (source.getO1().isClassMember()) {
                             return Collections.singleton(source);
                         }
-                            /*
+                        /*
                         // We assume the resources are contained in their classes,
                         // either if they are a member of the class, or a resource declared
                         // in a method being passed by reference
@@ -284,7 +282,7 @@ public class IFDSResourceLeak
                                 return Collections.singleton(source);
                             }
                         }
-                             */
+                        */
                         return Collections.emptySet();
                     }
                 };
@@ -300,17 +298,11 @@ public class IFDSResourceLeak
                         + callSite + "\n"
                         + exitStmt);
 
-
-                if (calleeMethod.getName().equals("getCheckinUser")) {
+                if (callSite.toString().equals("staticinvoke <org.wordpress.android.util.SqlUtils: void closeCursor(android.database.Cursor)>($r3)")
+                && calleeMethod.getName().equals("getComment")
+                && icfg.getMethodOf(exitStmt).getName().equals("closeCursor")) {
                     System.out.println("");
                 }
-                if (callSite.toString().equals("$r2 = virtualinvoke $r1.<com.ushahidi.android.app.data.UshahidiDatabase: android.database.Cursor fetchUsersById(java.lang.String)>($r0)")) {
-                    System.out.println("");
-                }
-                if (icfg.getMethodOf(returnSite).getName().equals("getCheckinUser")) {
-                    System.out.println("");
-                }
-
 
 
                 // Comment: handle return of non-classmember, etc etc see notebook
@@ -332,15 +324,6 @@ public class IFDSResourceLeak
                                 // We identify that indeed a resource acquired and returned by a method, and so
                                 // we update the local
                                 if (!equalsZeroValue(source)) {
-                                    /* debug
-                                    String d3 = source.getO1().getResource().getType();
-                                    String d4 = assignStmtLocal.getType().toString();
-                                    AssignStmt as = assignStmt;
-                                    ReturnStmt rs = returnStmt;
-                                    boolean debug1 = source.getO1().getResource().getType().equals(assignStmtLocal.getType().toString());
-                                    boolean debug2 = equalLocals(returnStmtLocal, source.getO2());
-
-                                     */
                                     if (source.getO1().getResource().getType().equals(assignStmtLocal.getType().toString())
                                             && equalLocals(returnStmtLocal, source.getO2())) {
                                         return Collections.singleton(new Pair<>(source.getO1(), assignStmtLocal));
@@ -353,39 +336,53 @@ public class IFDSResourceLeak
                     }
                 }
 
+                // OUTDATED! NEW TECHNIQUE TO REDUCE FALSE POSITIVES! CLOSECURSOR WORDPRESS EXAMPLE
                 // Apart from the case above, we just need to let the class member resources through
                 // Class member resources (defined as a class member) do not care if they are returned on
                 // return stmts or not, they always need to flow, as the whole class knows them
                 return new FlowFunction<Pair<ResourceInfo, Local>>() {
                     @Override
                     public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
-                        if (icfg.getMethodOf(exitStmt).getName().equals("onStart") && icfg.getMethodOf(exitStmt).getDeclaringClass().getShortName().equals("ConsoleActivity")) {
-                            System.out.println("");
-                        }
                         if (source.getO1().isClassMember()) {
                             return Collections.singleton(source);
+                        // NEW TECHNIQUE HERE! WORKS TOGETHER WITH CALLTORETURN!
+                        } else {
+                            Stmt stmt = (Stmt) callSite;
+                            InvokeExpr invokeExpr = stmt.getInvokeExpr();
+                            final List<Value> args = invokeExpr.getArgs();
+
+                            final List<Local> localArguments = new ArrayList<>(args.size());
+                            for (Value value : args) {
+                                if (value instanceof Local) {
+                                    localArguments.add((Local) value);
+                                } else {
+                                    localArguments.add(null);
+                                }
+                            }
+                            SootMethod calledMethod = icfg.getMethodOf(exitStmt);
+                            List<Local> calledMethodParamLocals = calledMethod.retrieveActiveBody().getParameterLocals();
+                            Local param = null;
+                            // THIS IS BECAUSE OF ALIASING! EQUALSLOCAL NEEDS TO BE USED!
+                            // TODO refactor to function and refactor code :)
+                            for (Local l : calledMethodParamLocals) {
+                                if (equalLocals(l, source.getO2())) {
+                                    param = l;
+                                }
+                            }
+                            if (param != null) {
+                                int paramIndex;
+                                paramIndex = calledMethodParamLocals.indexOf(param);
+                                Local calleeLocal = localArguments.get(paramIndex);
+                                Pair<ResourceInfo, Local> fact = new Pair<>(
+                                        source.getO1(),
+                                        calleeLocal
+                                );
+                                return Collections.singleton(fact);
+                            }
                         }
                         return Collections.emptySet();
                     }
                 };
-
-                /*
-                // TODO take into account class member getting out of their class (redo callFlow)
-                // TODO AssignStmt return site - done? (it does "automatically"...)
-                // this might need rework, currently it does nothing!
-                if (exitStmt instanceof ReturnStmt || exitStmt instanceof ReturnVoidStmt || exitStmt instanceof ThrowStmt) {
-                    return new FlowFunction<Pair<ResourceInfo, Local>>() {
-                        @Override
-                        public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
-                            if (!source.getO1().isClassMember()) {
-                                //return Collections.emptySet();
-                            }
-                            return Collections.singleton(source);
-                        }
-                    };
-                }
-                return Identity.v();
-                 */
             }
 
             @Override
@@ -397,7 +394,8 @@ public class IFDSResourceLeak
                         + callSite + "\n"
                         + returnSite);
 
-                if (callSite.toString().equals("specialinvoke r1.<java.io.BufferedInputStream: void <init>(java.io.InputStream)>($r12)")) {
+                if (callSite.toString().equals("staticinvoke <org.wordpress.android.util.SqlUtils: void closeCursor(android.database.Cursor)>($r3)")
+                && icfg.getMethodOf(callSite).getName().equals("getComment")) {
                     System.out.println("");
                 }
 
@@ -407,8 +405,8 @@ public class IFDSResourceLeak
                     AssignStmt stmt = (AssignStmt) callSite;
                     Value rhs = stmt.getRightOp();
 
-                    if (rhs instanceof InstanceInvokeExpr) {
-                        InstanceInvokeExpr invokeExpr = (InstanceInvokeExpr) rhs;
+                    if (rhs instanceof InvokeExpr) {
+                        InvokeExpr invokeExpr = (InvokeExpr) rhs;
                         SootMethod invokedMethod = invokeExpr.getMethod();
 
                         if (stmt.getLeftOp() instanceof Local) {
@@ -418,7 +416,6 @@ public class IFDSResourceLeak
                                 @Override
                                 public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
                                     SootMethod debug = icfg.getMethodOf(callSite);
-
                                     // Special case for dealing with facts where resources are passed by ref
                                     // TODO comment
                                     final List<Value> args = invokeExpr.getArgs();
@@ -431,6 +428,7 @@ public class IFDSResourceLeak
                                         }
                                     }
 
+                                    // TODO Might exist problem related to aliased Local's (RESOURCE_X)
                                     if (localArguments.contains(source.getO2())) {
                                         return Collections.emptySet();
                                     }
@@ -441,15 +439,11 @@ public class IFDSResourceLeak
                                             if (equalsZeroValue(source) && !callSiteMethod.getName().equals("<init>")) {
                                                 SootClass callSiteClass = callSiteMethod.getDeclaringClass();
                                                 Set<Pair<ResourceInfo, Local>> res = new LinkedHashSet<>();
-                                                //Local factLocals = new LinkedHashSet<>();
-                                                //factLocals.add(lhs);
                                                 Pair<ResourceInfo, Local> fact = new Pair<>(
                                                         new ResourceInfo(lhs.getName(), r, callSiteClass, callSiteMethod),
-                                                        //factLocals);
                                                         lhs);
                                                 res.add(fact);
                                                 return res;
-                                                //return Collections.singleton(source);
                                             }
                                         }
                                     }
@@ -467,35 +461,16 @@ public class IFDSResourceLeak
                     return new FlowFunction<Pair<ResourceInfo, Local>>() {
                         @Override
                         public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
-                            if (invokeStmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-                                InstanceInvokeExpr invokeExpr = (InstanceInvokeExpr) invokeStmt.getInvokeExpr() ;
-                                Value value = invokeExpr.getBase();
+                            InvokeExpr invokeExpr = invokeStmt.getInvokeExpr();
 
-                                // Special case for dealing with facts where resources are passed by ref
-                                // TODO comment
-                                final List<Value> args = invokeExpr.getArgs();
-                                final List<Local> localArguments = new ArrayList<>(args.size());
-                                for (Value v : args) {
-                                    if (v instanceof Local) {
-                                        localArguments.add((Local) v);
-                                    } else {
-                                        localArguments.add(null);
-                                    }
-                                }
-
-                                // The resource was passed by ref, but there is no assign stmt, so it's lost
-                                if (localArguments.contains(source.getO2())) {
-                                    return Collections.emptySet();
-                                }
+                            if (invokeExpr instanceof InstanceInvokeExpr) {
+                                Value value = ((InstanceInvokeExpr) invokeExpr).getBase();
 
                                 Local local = (Local) value;
                                 for (Resource r : Resource.values()) {
                                     if (r.isBeingReleased(invokedMethod.getName(), invokedMethod.getDeclaringClass().getName())) {
                                         if (value instanceof Local) {
-
                                             if (equalLocals(source.getO2(), local)) {
-                                            //if (containsLocal(source.getO2(), local)) {
-                                            //if (source.getO2().equivTo(local)) {
                                                 return Collections.emptySet();
                                             }
                                         }
@@ -509,9 +484,26 @@ public class IFDSResourceLeak
                                                     local);
                                             res.add(fact);
                                             return res;
-                                            //return Collections.singleton(source);
                                         }
                                     }
+                                }
+                            } else {
+                                // Special case for dealing with facts where resources are passed by ref
+                                // TODO comment
+                                final List<Value> args = invokeExpr.getArgs();
+                                final List<Local> localArguments = new ArrayList<>(args.size());
+                                for (Value v : args) {
+                                    if (v instanceof Local) {
+                                        localArguments.add((Local) v);
+                                    } else {
+                                        localArguments.add(null);
+                                    }
+                                }
+
+                                // Resource was passed by reference, but we are in a invoke statement,
+                                // so no further information is passed on
+                                if (localArguments.contains(source.getO2())) {
+                                    return Collections.emptySet();
                                 }
                             }
 
@@ -523,26 +515,6 @@ public class IFDSResourceLeak
                 return Identity.v();
             }
         };
-    }
-
-
-    private Set<Local> copy(Set<Local> src) {
-        return new LinkedHashSet<>(src);
-    }
-
-    /**
-     * Helper function to check if a value is contained in a set using equivTo
-     * @param locals
-     * @param value
-     * @return true if a equivalent value is found in the set
-     */
-    private boolean containsLocal(Set<Local> locals, Value value) {
-        for (Local l : locals) {
-            if (l.equivTo(value) || (l.getName().matches(((Local)value).getName())) && ((Local)value).getName().startsWith("RESOURCE_")) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private boolean equalLocals(Local l1, Local l2) {

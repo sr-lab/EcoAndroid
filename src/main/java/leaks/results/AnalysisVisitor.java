@@ -28,7 +28,7 @@ public class AnalysisVisitor implements IAnalysisVisitor{
         Set<Local> analysisResults = analysis.getResults();
         for (Local local : analysisResults) {
             for (Resource resource : Resource.values()) {
-                if (resource.isIntraProcedural() &&
+                if (//resource.isIntraProcedural() &&
                         resource.getType().equals(local.getType().toString())) {
                     Leak leak = new Leak(resource, analyzedMethod, analyzedMethod, -1);
                     results.add(leak, IResults.AnalysisType.INTRA);
@@ -42,14 +42,14 @@ public class AnalysisVisitor implements IAnalysisVisitor{
     public void visit(IFDSRLAnalysis analysis, IResults results) {
         JimpleBasedInterproceduralCFG icfg = new JimpleBasedInterproceduralCFG();
         Map<Unit, SootMethod> possibleLeaksLocation = collectPossibleLeaksLocation(analysis);
-        Map<Unit, SootMethod> leaksLocation = processPossibleLeaks(possibleLeaksLocation, icfg, analysis);
-        for (Map.Entry<Unit, SootMethod> entry : leaksLocation.entrySet()) {
-            Set<Pair<ResourceInfo, Local>> facts = analysis.getResultsAtStmt(entry.getKey());
-            for (Pair<ResourceInfo, Local> fact : facts) {
-                Leak leak = new Leak(fact.getO1().getResource(), entry.getValue(),
-                        fact.getO1().getDeclaringMethod(), entry.getValue().getJavaSourceStartLineNumber());
-                results.add(leak, IResults.AnalysisType.INTER);
-            }
+        
+        Map<SootMethod, Pair<ResourceInfo, Local>> leaks = processPossibleLeaks(possibleLeaksLocation, icfg, analysis);
+        for (Map.Entry<SootMethod, Pair<ResourceInfo, Local>> entry : leaks.entrySet()) {
+            Pair<ResourceInfo, Local> fact = entry.getValue();
+            SootMethod leakedMethod = entry.getKey();
+            Leak leak = new Leak(fact.getO1().getResource(), leakedMethod,
+                    fact.getO1().getDeclaringMethod(), leakedMethod.getJavaSourceStartLineNumber());
+            results.add(leak, IResults.AnalysisType.INTER);
         }
     }
 
@@ -93,11 +93,10 @@ public class AnalysisVisitor implements IAnalysisVisitor{
         return out;
     }
 
-    private Map<Unit, SootMethod> processPossibleLeaks(Map<Unit, SootMethod> possibleLeaksLocation,
+    private Map<SootMethod, Pair<ResourceInfo, Local>> processPossibleLeaks(Map<Unit, SootMethod> possibleLeaksLocation,
                                                        JimpleBasedInterproceduralCFG icfg, IFDSRLAnalysis analysis) {
 
-        Map<Unit, SootMethod> leaksLocation = new HashMap<>(possibleLeaksLocation);
-        List<Unit> locationsToRemove = new ArrayList<>();
+        Map<SootMethod, Pair<ResourceInfo, Local>> leaks = new HashMap<>();
 
         for (Map.Entry<Unit, SootMethod> entry : possibleLeaksLocation.entrySet()) {
             Unit leakedUnit = entry.getKey();
@@ -108,9 +107,9 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                  if (fact.getO1().isClassMember()) {
                      // For a class-member resource to be leaked: the resource must have been leaked in its suggested
                      // place to release and the resource has to be leaked in the same class where it was acquired
-                     if (!leakedMethod.getDeclaringClass().getName().equals(fact.getO1().getDeclaringClass().getName())
-                            || !leakedMethod.getName().equals(fact.getO1().getResource().getPlaceToRelease())) {
-                         locationsToRemove.add(leakedUnit);
+                     if (leakedMethod.getDeclaringClass().getName().equals(fact.getO1().getDeclaringClass().getName())
+                            && leakedMethod.getName().equals(fact.getO1().getResource().getPlaceToRelease())) {
+                         leaks.put(leakedMethod, fact);
                      }
                  // Handle normal resources (that are declared in methods and can be passed by ref)
                  } else {
@@ -129,19 +128,14 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                              }
                          }
                      }
-                     if (!leakedInCallerMethod && callersUseResource.stream().anyMatch(b -> b)) {
-                         //leaksLocation.remove(entry.getKey());
-                         locationsToRemove.add(entry.getKey());
+                     if (leakedInCallerMethod || !callersUseResource.stream().anyMatch(b -> b)) {
+                     //if (!leakedInCallerMethod && callersUseResource.stream().anyMatch(b -> b)) {
+                         leaks.put(leakedMethod, fact);
                      }
                  }
             }
         }
-
-        for (Unit u : locationsToRemove) {
-            leaksLocation.remove(u);
-        }
-
-        return leaksLocation;
+        return leaks;
     }
 
     private boolean methodUsesResource(SootMethod method, ResourceInfo resourceInfo, IFDSRLAnalysis analysis) {
