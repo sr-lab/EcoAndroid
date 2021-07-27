@@ -45,8 +45,8 @@ public enum Resource {
     CAMERA ("android.hardware.Camera",
             new String[]{"lock", "open", "startFaceDectection", "startPreview"}, new String[]{"android.hardware.Camera"},
             new String[]{"unlock", "close", "stopFaceDetection", "stopPreview"}, new String[]{"android.hardware.Camera"},
-            "#NONE", "onPause",
-            true, false);
+            "#NONE", "surfaceDestroyed",
+            true, true);
 
     private final String type;
     private final String[] acquireOp;
@@ -129,8 +129,8 @@ public enum Resource {
         return releaseOpMatch && releaseClassMatch;
     }
 
-    public boolean isBeingDeclared(String acquireClass) {
-        return this.acquireClass.equals(acquireClass);
+    public boolean isBeingDeclared(String type) {
+        return this.type.equals(type);
     }
 
     @Override
