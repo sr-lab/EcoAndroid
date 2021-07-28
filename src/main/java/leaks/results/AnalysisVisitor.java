@@ -30,7 +30,7 @@ public class AnalysisVisitor implements IAnalysisVisitor{
             for (Resource resource : Resource.values()) {
                 if (//resource.isIntraProcedural() &&
                         resource.getType().equals(local.getType().toString())) {
-                    Leak leak = new Leak(resource, analyzedMethod, analyzedMethod, -1);
+                    Leak leak = new Leak(resource, analyzedMethod, analyzedMethod, false, -1);
                     results.add(leak, IResults.AnalysisType.INTRA);
                     break;
                 }
@@ -43,12 +43,12 @@ public class AnalysisVisitor implements IAnalysisVisitor{
         JimpleBasedInterproceduralCFG icfg = new JimpleBasedInterproceduralCFG();
         Map<Unit, SootMethod> possibleLeaksLocation = collectPossibleLeaksLocation(analysis);
         
-        Map<SootMethod, Pair<ResourceInfo, Local>> leaks = processPossibleLeaks(possibleLeaksLocation, icfg, analysis);
-        for (Map.Entry<SootMethod, Pair<ResourceInfo, Local>> entry : leaks.entrySet()) {
+        Map<Unit, Pair<ResourceInfo, Local>> leaks = processPossibleLeaks(possibleLeaksLocation, icfg, analysis);
+        for (Map.Entry<Unit, Pair<ResourceInfo, Local>> entry : leaks.entrySet()) {
             Pair<ResourceInfo, Local> fact = entry.getValue();
-            SootMethod leakedMethod = entry.getKey();
+            SootMethod leakedMethod = icfg.getMethodOf(entry.getKey());
             Leak leak = new Leak(fact.getO1().getResource(), leakedMethod,
-                    fact.getO1().getDeclaringMethod(), leakedMethod.getJavaSourceStartLineNumber());
+                    fact.getO1().getDeclaringMethod(), fact.getO1().isClassMember(), leakedMethod.getJavaSourceStartLineNumber());
             results.add(leak, IResults.AnalysisType.INTER);
         }
     }
@@ -93,10 +93,11 @@ public class AnalysisVisitor implements IAnalysisVisitor{
         return out;
     }
 
-    private Map<SootMethod, Pair<ResourceInfo, Local>> processPossibleLeaks(Map<Unit, SootMethod> possibleLeaksLocation,
+    private Map<Unit, Pair<ResourceInfo, Local>> processPossibleLeaks(Map<Unit, SootMethod> possibleLeaksLocation,
                                                        JimpleBasedInterproceduralCFG icfg, IFDSRLAnalysis analysis) {
 
-        Map<SootMethod, Pair<ResourceInfo, Local>> leaks = new HashMap<>();
+        Map<Unit, Pair<ResourceInfo, Local>> classMemberLeaks = new HashMap<>();
+        Map<Unit, Pair<ResourceInfo, Local>> basicLeaks = new HashMap<>();
 
         for (Map.Entry<Unit, SootMethod> entry : possibleLeaksLocation.entrySet()) {
             Unit leakedUnit = entry.getKey();
@@ -109,9 +110,12 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                      // place to release and the resource has to be leaked in the same class where it was acquired
                      if (leakedMethod.getDeclaringClass().getName().equals(fact.getO1().getDeclaringClass().getName())
                             && leakedMethod.getName().equals(fact.getO1().getResource().getPlaceToRelease())) {
-                         leaks.put(leakedMethod, fact);
+                         classMemberLeaks.put(leakedUnit, fact);
                      }
                  // Handle normal resources (that are declared in methods and can be passed by ref)
+                 // Check if method was called, and if so, check if the callee has the resource leaked.
+                 // We consider a leak only if that happens, as a way to reduce false positives.
+                 // NOTE: This is not recursive. We only check for the callee at one level.
                  } else {
                      boolean leakedInCallerMethod = false;
                      Collection<Unit> callers = icfg.getCallersOf(leakedMethod);
@@ -130,11 +134,29 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                      }
                      if (leakedInCallerMethod || !callersUseResource.stream().anyMatch(b -> b)) {
                      //if (!leakedInCallerMethod && callersUseResource.stream().anyMatch(b -> b)) {
-                         leaks.put(leakedMethod, fact);
+                         basicLeaks.put(leakedUnit, fact);
                      }
                  }
             }
         }
+
+        /* Does not work, as the locals can change during analysis!
+        // It is possible for a class member resource to be acquired as a basic resource.
+        // In this case, the class member resource takes priority, and we eliminate the duplicate basic resource.
+        Map<Unit, Pair<ResourceInfo, Local>> iterBasicLeaks = new HashMap<>(basicLeaks);
+        for (Map.Entry<Unit, Pair<ResourceInfo, Local>> entryCML : classMemberLeaks.entrySet()) {
+            if (entryCML.getValue().getO1().isClassMember()) {
+                for (Map.Entry<Unit, Pair<ResourceInfo, Local>> entryBL : iterBasicLeaks.entrySet()) {
+                    if (equalLocals(entryBL.getValue().getO2(), entryCML.getValue().getO2())) {
+                        basicLeaks.remove(entryBL);
+                    }
+                }
+            }
+        }
+         */
+
+        Map<Unit, Pair<ResourceInfo, Local>> leaks = new HashMap<>(basicLeaks);
+        leaks.putAll(classMemberLeaks);
         return leaks;
     }
 

@@ -9,12 +9,14 @@ public class Leak {
     private final Resource resource;
     private final SootMethod leakedMethod;
     private final SootMethod declaredMethod;
+    private final boolean classMember;
     private final int lineNumber;
 
-    public Leak(Resource resource, SootMethod leakedMethod, SootMethod declaredMethod, int lineNumber) {
+    public Leak(Resource resource, SootMethod leakedMethod, SootMethod declaredMethod, boolean classMember, int lineNumber) {
         this.resource = resource;
         this.leakedMethod = leakedMethod;
         this.declaredMethod = declaredMethod;
+        this.classMember = classMember;
         this.lineNumber = lineNumber;
     }
 
@@ -44,6 +46,10 @@ public class Leak {
 
     public Resource getResource() {
         return resource;
+    }
+
+    public boolean isClassMember() {
+        return classMember;
     }
 
     public int getLineNumber() {

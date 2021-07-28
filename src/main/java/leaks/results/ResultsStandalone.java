@@ -51,13 +51,15 @@ public class ResultsStandalone implements IResults {
     private void writeToFile(Set<Leak> results, String fileName, String outputFolder, String type) throws IOException {
         File file = new File(outputFolder + fileName + "_" + type + ".csv");
         FileWriter writer = new FileWriter(file);
-        writer.write("leakedInMethod,leakedInClass,declaredInMethod,declaredInClass,resource,lineno\n");
+        writer.write("leakedInMethod,leakedInClass,declaredInMethod,declaredInClass,resource,classMember,lineno\n");
         for (Leak l : results) {
+            String classMember = l.isClassMember() ? "T" : "F";
             String res = l.getLeakedMethodName() + "," +
                     l.getLeakedClassName() + "," +
                     l.getDeclaredMethodName() + "," +
                     l.getDeclaredClassName() + "," +
                     l.getResource() + "," +
+                    classMember + "," +
                     l.getLineNumber() + "\n";
             writer.write(res);
         }
