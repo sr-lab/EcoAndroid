@@ -2,7 +2,7 @@ import os
 import sys
 
 if len(sys.argv) < 3:
-    print("Missing arguments: python3 runAndroidLeaks.py sdkPath apkDatasetPath")
+    print("Missing arguments: python3 runAndroidLeaks.py sdkPath apkDatasetPath outputFolder")
     exit()
 
 android_sdk_path = sys.argv[1]
