@@ -1,4 +1,4 @@
-package leaks;
+package leaks.ui;
 
 import com.intellij.codeHighlighting.Pass;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
@@ -7,13 +7,10 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.refactoring.classMembers.MemberInfoTooltipManager;
 import icons.ResourceLeakIcons;
 import leaks.results.ResultsIntellij;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Function;
 
 public class ResourceLeakLineMarker implements LineMarkerProvider
 {

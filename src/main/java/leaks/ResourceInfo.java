@@ -5,6 +5,11 @@ import soot.SootMethod;
 
 import java.util.Objects;
 
+/**
+ * Represents information about a resource during analysis.
+ * Used as dataflow facts in {@link IFDSResourceLeak}.
+ * @see IFDSResourceLeak
+ */
 public class ResourceInfo {
     private final String name;
     private final Resource resource;

@@ -3,7 +3,7 @@ package leaks;
 import java.util.Arrays;
 
 /**
- * Representation of a Android resource.
+ * Representation of an Android resource.
  */
 public enum Resource {
 
@@ -18,7 +18,7 @@ public enum Resource {
             true, true),
 
     /**
-     * Representation of the (inter-procedural) Wakelock resource.
+     * Representation of the Wakelock resource.
      * A Wakelock is used to prevent the device from going to sleep, usually to perform critical operations.
      */
     WAKELOCK ("android.os.PowerManager$WakeLock",
@@ -27,6 +27,10 @@ public enum Resource {
             "isHeld", "onPause",
             true, true),
 
+    /**
+     * Representation of the SQLiteDatabase resource.
+     * An SQLiteDatabase is used to store and retrieve data. Usually used together with a Cursor.
+     */
     SQLITEDB ("android.database.sqlite.SQLiteDatabase",
             new String[]{"getWritableDatabase", "getReadableDatabase"}, new String[]{"android.database.sqlite.SQLiteOpenHelper"},
             new String[]{"close"}, new String[]{"android.database.sqlite.SQLiteClosable", "android.database.sqlite.SQLiteOpenHelper", "android.database.sqlite.SQLiteDatabase"},
@@ -42,6 +46,9 @@ public enum Resource {
 
      */
 
+    /**
+     * Representation of the Camera resource.
+     */
     CAMERA ("android.hardware.Camera",
             new String[]{"lock", "open", "startFaceDectection", "startPreview"}, new String[]{"android.hardware.Camera"},
             new String[]{"unlock", "close", "stopFaceDetection", "stopPreview"}, new String[]{"android.hardware.Camera"},
@@ -59,14 +66,17 @@ public enum Resource {
     private final boolean interProcedural;
 
     /**
-     *
+     * For the context of resource leak detection, an Android resource can be represented
+     * as it follows.
      * @param type Class of the resource
-     * @param acquireOp Array of operations used to release the resource
-     * @param acquireClass Class of the object where the acquire operation is invoked
-     * @param releaseOp Operation used to release the resource
-     * @param releaseClass Class of the object where the release operation is invoked
+     * @param acquireOp Operations used to release the resource
+     * @param acquireClass Classes of the object where the acquire operation is invoked
+     * @param releaseOp Operations used to release the resource
+     * @param releaseClass Classes of the object where the release operation is invoked
      * @param heldCheckOp Operation used to check if resource is acquired
+     *                    (#NONE if no such operation exists)
      * @param placeToRelease Suggested callback to release the (inter-procedural) resource
+     *                       (#NONE if no suggested place exists)
      * @param intraProcedural
      * @param interProcedural
      */
@@ -133,16 +143,16 @@ public enum Resource {
         return this.type.equals(type);
     }
 
-    @Override
-    public String toString() {
-        return this.name();
-    }
-
     public boolean isCheckedIfItsHeld(String type, String heldCheckOp) {
         return this.type.equals(type) && this.heldCheckOp.equals(heldCheckOp);
     }
 
     public String getPlaceToRelease() {
         return placeToRelease;
+    }
+
+    @Override
+    public String toString() {
+        return this.name();
     }
 }

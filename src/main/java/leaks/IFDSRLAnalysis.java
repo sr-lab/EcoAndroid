@@ -13,6 +13,10 @@ import soot.toolkits.scalar.Pair;
 import java.util.Collections;
 import java.util.Set;
 
+/**
+ * Wrapper class for {@link IFDSResourceLeak}.
+ * @see IFDSResourceLeak
+ */
 public class IFDSRLAnalysis implements IAnalysis{
 
     private IFDSSolver<Unit, Pair<ResourceInfo, Local>, SootMethod, InterproceduralCFG<Unit, SootMethod>> solver;

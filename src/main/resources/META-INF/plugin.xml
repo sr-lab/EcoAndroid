@@ -139,7 +139,7 @@
     <projectService serviceImplementation="leaks.results.ResultsIntellij"></projectService>
 
     <codeInsight.lineMarkerProvider language="JAVA"
-                                    implementationClass="leaks.ResourceLeakLineMarker"/>
+                                    implementationClass="leaks.ui.ResourceLeakLineMarker"/>
 
   </extensions>
 
