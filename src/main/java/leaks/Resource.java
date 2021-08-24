@@ -12,7 +12,7 @@ public enum Resource {
      * A Cursor represents the result of a query to a database.
      */
     CURSOR ("android.database.Cursor",
-            new String[]{"rawQuery","query"}, new String[]{"android.database.sqlite.SQLiteDatabase"},
+            new String[]{"rawQuery","query"}, new String[]{"android.database.sqlite.SQLiteDatabase", "android.content.ContentResolver"},
             new String[]{"close"}, new String[]{"android.database.Cursor"},
             "isClosed", "#NONE",
             true, true),
