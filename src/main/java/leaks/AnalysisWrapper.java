@@ -5,6 +5,9 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -50,7 +53,7 @@ public class AnalysisWrapper {
         return INSTANCE;
     }
 
-    public void RunIntellijAnalysis(Project project, ProgressIndicator indicator) {
+    public void RunIntellijAnalysis(Project project, ProgressIndicator indicator, String apkPath) {
         ResultsIntellij results = ServiceManager.getService(project, ResultsIntellij.class);
         results.clearAll();
 
@@ -66,14 +69,14 @@ public class AnalysisWrapper {
         System.out.println("SDK path: " + ProjectRootManager.getInstance(project).getProjectSdk().getHomePath());
         System.out.println("Root path: " + project.getBasePath());
 
-        if (!setupSoot(ankidroid, androidSdkPath.toString())) {
+        if (!setupSoot(apkPath, androidSdkPath.toString())) {
             MessageBox.Show("Resource leak detection failed. Unable to setup Soot for current APK.");
 
             Notification notification = new Notification(
                     "Tasks", "EcoAndroid", "Analysis failed", NotificationType.ERROR);
             notification.setImportant(false);
             Notifications.Bus.notify(notification);
-            return;
+            throw new RuntimeException("Unable to setup Soot!");
         }
 
         File file = new File("/home/ricardo/ecoandroid.out");
@@ -139,8 +142,10 @@ public class AnalysisWrapper {
         processJimpleForAliasing();
 
         long startIntraProc = System.nanoTime();
+        /* INTRA PROCEDURAL ANALYSIS DISABLED FOR NOW!
         System.out.println("Running intra-procedural analysis...");
         runIntraProceduralAnalysis();
+         */
 
         long startInterProc = System.nanoTime();
         System.out.println("Running inter-procedural analysis...");
@@ -155,7 +160,7 @@ public class AnalysisWrapper {
 
         System.out.println(setupDuration + "," + intraProcDuration + "," + interProcDuration + "," + totalDuration);
 
-        writeResultsToFile(apkName, outputFolder);
+        writeResultsToFile(apkName, outputFolder, setupDuration, analysisDuration, totalDuration);
     }
 
     private String getApkName(String apkPath) {
@@ -181,9 +186,9 @@ public class AnalysisWrapper {
         return true;
     }
 
-    private static void writeResultsToFile(String apkName, String outputFolder) {
+    private static void writeResultsToFile(String apkName, String outputFolder, long setupDuration, long analysisDuration, long totalDuration) {
         try {
-            ResultsStandalone.getInstance().toCSV(apkName, outputFolder);
+            ResultsStandalone.getInstance().toCSV(apkName, outputFolder, setupDuration, analysisDuration, totalDuration);
         } catch (IOException e) {
             System.out.println("Failed writing results to file!");
         }

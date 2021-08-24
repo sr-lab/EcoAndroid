@@ -11,15 +11,17 @@ public class ResourceLeakAnalysisTask extends Task.Backgroundable {
     private static final Logger logger = Logger.getInstance(ResourceLeakAnalysisTask.class);
     private AnActionEvent event;
     private Project project;
+    private String apkPath;
 
-    public ResourceLeakAnalysisTask(Project project, AnActionEvent event){
+    public ResourceLeakAnalysisTask(Project project, AnActionEvent event, String apkPath){
         super(project, "Resource Leak Analysis");
         this.project = project;
         this.event = event;
+        this.apkPath = apkPath;
     }
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-        AnalysisWrapper.getInstance().RunIntellijAnalysis(project, indicator);
+        AnalysisWrapper.getInstance().RunIntellijAnalysis(project, indicator, apkPath);
     }
 }

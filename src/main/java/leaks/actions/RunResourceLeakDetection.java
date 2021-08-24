@@ -8,6 +8,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import leaks.platform.ApkFileChooser;
 import org.jetbrains.annotations.NotNull;
 import leaks.ResourceLeakAnalysisTask;
 import leaks.platform.IdePlatformProvider;
@@ -26,13 +27,15 @@ public class RunResourceLeakDetection extends AnAction {
         switch (ideType) {
             case IntelliJ:
             case AndroidStudio:
-                ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project, event));
+                String apkPath = ApkFileChooser.getApkPath(project);
+                ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project, event, apkPath));
                 Notifications.Bus.notify(new Notification(
                         "Tasks", "EcoAndroid", "Running analysis", NotificationType.INFORMATION));
                 break;
             default:
                 Notifications.Bus.notify(new Notification(
-                        "Tasks", "EcoAndroid", "Could not run analysis on the current IDE", NotificationType.ERROR));
+                        "Tasks", "EcoAndroid",
+                        "Could not run analysis on the current IDE. Please use IntelliJ or AndroidStudio.", NotificationType.ERROR));
                 break;
         }
 

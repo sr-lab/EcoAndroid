@@ -42,10 +42,11 @@ public class ResultsStandalone implements IResults {
         intraProcResults.clear();
     }
 
-    public void toCSV(String fileName, String outputFolder) throws IOException {
+    public void toCSV(String fileName, String outputFolder, long setupDuration, long analysisDuration, long totalDuration) throws IOException {
         writeToFile(results, fileName, outputFolder, "all");
         writeToFile(interProcResults, fileName, outputFolder, "inter");
         writeToFile(intraProcResults, fileName, outputFolder, "intra");
+        writeToBatchFile(interProcResults, fileName, outputFolder, setupDuration, analysisDuration, totalDuration);
     }
 
     private void writeToFile(Set<Leak> results, String fileName, String outputFolder, String type) throws IOException {
@@ -61,6 +62,32 @@ public class ResultsStandalone implements IResults {
                     l.getResource() + "," +
                     classMember + "," +
                     l.getLineNumber() + "\n";
+            writer.write(res);
+        }
+        writer.flush();
+        writer.close();
+    }
+
+    private void writeToBatchFile(Set<Leak> results, String appName, String outputFolder, long setupDuration, long analysisDuration, long totalDuration) throws IOException {
+        File file = new File(outputFolder + "batch_all" + ".csv");
+        FileWriter writer = new FileWriter(file, true);
+        if (file.length() == 0) {
+            writer.write("app,leakedInMethod,leakedInClass,declaredInMethod,declaredInClass,resource,classMember," +
+                    "lineno,setupTime,analysisTime,totalTime,classification,description\n");
+        }
+        for (Leak l : results) {
+            String classMember = l.isClassMember() ? "T" : "F";
+            String res = appName + "," +
+                    l.getLeakedMethodName() + "," +
+                    l.getLeakedClassName() + "," +
+                    l.getDeclaredMethodName() + "," +
+                    l.getDeclaredClassName() + "," +
+                    l.getResource() + "," +
+                    classMember + "," +
+                    l.getLineNumber() + "," +
+                    setupDuration + "," +
+                    analysisDuration + "," +
+                    totalDuration + "\n";
             writer.write(res);
         }
         writer.flush();
