@@ -176,11 +176,11 @@ public class IFDSResourceLeak
                                                     return new FlowFunction<Pair<ResourceInfo, Local>>() {
                                                         @Override
                                                         public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
-                                                            // The if will branch and its a about a seen resource
+                                                            String condSymbol = cond.getSymbol();
+                                                            Value rhs = cond.getOp2();
+                                                            // TODO check logic again
+                                                            // The if will branch and its about a seen resource
                                                             if (stmt.getTarget().equals(succ) && equalLocals(source.getO2(), (Local) base)) {
-                                                                String condSymbol = cond.getSymbol();
-                                                                Value rhs = cond.getOp2();
-
                                                                 // We are branching, and the resource is not held,
                                                                 // so we remove facts related to that resource
                                                                 if (rhs instanceof IntConstant) {
@@ -189,7 +189,19 @@ public class IFDSResourceLeak
                                                                         return Collections.emptySet();
                                                                     }
                                                                 }
+                                                            // The if will not branch and its about a seen resource
+                                                            } else if (equalLocals(source.getO2(), (Local) base)) {
+                                                                // We are not branching, and the resource is held,
+                                                                // so we remove facts related to that resource
+                                                                if (rhs instanceof IntConstant) {
+                                                                    if (condSymbol.equals(" == ")
+                                                                            && ((IntConstant) rhs).value == 0) {
+                                                                        return Collections.emptySet();
+                                                                    }
+                                                                }
                                                             }
+                                                            // The other 2 cases (resource is held, branch; resource is not held, not branch)
+                                                            // fall in this category: we just need to remove the fact
                                                             return Collections.singleton(source);
                                                         }
                                                     };
@@ -206,11 +218,11 @@ public class IFDSResourceLeak
                         return new FlowFunction<Pair<ResourceInfo, Local>>() {
                             @Override
                             public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
-                                // The if will branch and its a about a seen resource
-                                if (stmt.getTarget().equals(succ) && equalLocals(source.getO2(), local)) {
-                                    String condSymbol = cond.getSymbol();
-                                    Value rhs = cond.getOp2();
+                                String condSymbol = cond.getSymbol();
+                                Value rhs = cond.getOp2();
 
+                                // The if will branch and its about a seen resource
+                                if (stmt.getTarget().equals(succ) && equalLocals(source.getO2(), local)) {
                                     // We are branching and the resource is "null",
                                     // so we remove facts related to that resource
                                     if (rhs instanceof NullConstant) {
@@ -218,7 +230,18 @@ public class IFDSResourceLeak
                                             return Collections.emptySet();
                                         }
                                     }
+                                // The if will not branch and its about a seen resource
+                                } else if (equalLocals(source.getO2(), local)) {
+                                    // We are not branching and the resource is "not null",
+                                    // so we remove facts related to that resource
+                                    if (rhs instanceof NullConstant) {
+                                        if (condSymbol.equals(" != ")) {
+                                            return Collections.emptySet();
+                                        }
+                                    }
                                 }
+                                // The other 2 cases (resource null, branch; resource null, not branch)
+                                // fall in this category: we just need to remove the fact
                                 return Collections.singleton(source);
                             }
                         };
