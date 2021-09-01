@@ -4,18 +4,18 @@
   <img src="logo.png" alt="EcoAndroid logo" />
 </p>
 
-EcoAndroid is an [Android Studio](https://developer.android.com/studio) plugin that suggests automated refactorings for reducing energy consumption of Java android applications. It is also compatible with IntelliJ.
+EcoAndroid is an [Android Studio plugin](https://plugins.jetbrains.com/plugin/15637-ecoandroid) that suggests automated refactorings for reducing energy consumption of Java android applications. It is also compatible with IntelliJ.
 
 ## Installation
 
 ### For users of the plugin
-For now, you have to install the plugin manually by following these steps:
+EcoAndroid can be installed from the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/15637-ecoandroid). 
+
+Alternatively, you can install the plugin manually by following these steps:
 
 1. Clone this repository
 2. Run `gradle buildPlugin`.
 3. The plugin file is available in the folder `build/distributions/`. You can now install it.
-
-In a near future, we plan to upload the plugin to the JetBrains Plugins Repository so that users can install it directly from Android Studio.
 
 ### For developers
 If you are interested in changing or exploring the source code of the plugin, follow these steps:
