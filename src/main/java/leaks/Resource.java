@@ -51,7 +51,7 @@ public enum Resource {
      */
     CAMERA ("android.hardware.Camera",
             new String[]{"lock", "open", "startFaceDectection", "startPreview"}, new String[]{"android.hardware.Camera"},
-            new String[]{"unlock", "close", "stopFaceDetection", "stopPreview"}, new String[]{"android.hardware.Camera"},
+            new String[]{"unlock", "close", "stopFaceDetection", "stopPreview", "release"}, new String[]{"android.hardware.Camera"},
             "#NONE", "surfaceDestroyed",
             true, true);
 
