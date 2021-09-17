@@ -8,6 +8,7 @@ import heros.flowfunc.Identity;
 
 import java.util.*;
 
+import heros.flowfunc.KillAll;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
@@ -289,8 +290,26 @@ public class IFDSResourceLeak
                         if (!destinationMethod.getName().equals("<clinit>")
                                 && !destinationMethod.getSubSignature().equals("void run()")) {
                             if (localArguments.contains(source.getO2()) && !source.getO1().isClassMember()) {
+
+                                // Ignore QueryMap calls
+                                if (destinationMethod.getDeclaringClass().getName().contains("QueryMap")) {
+                                    return Collections.emptySet();
+                                }
+
+                                /*
+                                ResourceInfo updatedInfo = source.getO1();
+
+                                if (destinationMethod.getDeclaringClass().getName().contains("QueryMap")) {
+                                    updatedInfo = new ResourceInfo(
+                                            "&QUERYMAP", source.getO1().getResource(),
+                                            source.getO1().getDeclaringClass(), source.getO1().getDeclaringMethod());
+                                }
+
+                                 */
+
                                 int paramIndex = args.indexOf(source.getO2());
                                 Pair<ResourceInfo, Local> pair = new Pair<>(
+                                        //updatedInfo,
                                         source.getO1(),
                                         destinationMethod.retrieveActiveBody().getParameterLocal(paramIndex));
                                 return Collections.singleton(pair);
@@ -321,18 +340,24 @@ public class IFDSResourceLeak
                         + callSite + "\n"
                         + exitStmt);
 
-                // Case (1) where a resource is acquired in a method and then returned to its callee.
-                if (callSite instanceof AssignStmt && exitStmt instanceof ReturnStmt) {
-                    AssignStmt assignStmt = (AssignStmt) callSite;
-                    ReturnStmt returnStmt = (ReturnStmt) exitStmt;
 
-                    if (assignStmt.getLeftOp() instanceof Local && returnStmt.getOp() instanceof Local) {
-                        Local assignStmtLocal = (Local) assignStmt.getLeftOp();
-                        Local returnStmtLocal = (Local) returnStmt.getOp();
+                return new FlowFunction<Pair<ResourceInfo, Local>>() {
+                    @Override
+                    public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
 
-                        return new FlowFunction<Pair<ResourceInfo, Local>>() {
-                            @Override
-                            public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
+                        if (callSite.toString().equals("specialinvoke r10.<info.guardianproject.otr.app.im.provider.Imps$ProviderSettings$QueryMap: void <init>(android.database.Cursor,android.content.ContentResolver,long,boolean,android.os.Handler)>($r9, $r4, $l1, 0, null)")) {
+                            System.out.println("ZZZ");
+                        }
+
+                        // Case (1) where a resource is acquired in a method and then returned to its callee.
+                        if (callSite instanceof AssignStmt && exitStmt instanceof ReturnStmt) {
+                            AssignStmt assignStmt = (AssignStmt) callSite;
+                            ReturnStmt returnStmt = (ReturnStmt) exitStmt;
+
+                            if (assignStmt.getLeftOp() instanceof Local && returnStmt.getOp() instanceof Local) {
+                                Local assignStmtLocal = (Local) assignStmt.getLeftOp();
+                                Local returnStmtLocal = (Local) returnStmt.getOp();
+
                                 // We identify that a resource was acquired and returned
                                 // by a method, and so we update its Local.
                                 if (!equalsZeroValue(source)) {
@@ -344,15 +369,11 @@ public class IFDSResourceLeak
                                 }
                                 return Collections.singleton(source);
                             }
-                        };
-                    }
-                }
+                        }
 
-                return new FlowFunction<Pair<ResourceInfo, Local>>() {
-                    @Override
-                    public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
                         if (source.getO1().isClassMember()) {
                             return Collections.singleton(source);
+
                         // Case (2) where a resource is passed by reference.
                         // If a resource is passed to the function, we eliminate
                         // the facts that flow through the callToReturnFlow,
@@ -382,6 +403,7 @@ public class IFDSResourceLeak
                                     param = l;
                                 }
                             }
+
                             if (param != null) {
                                 int paramIndex;
                                 paramIndex = calledMethodParamLocals.indexOf(param);
@@ -471,10 +493,37 @@ public class IFDSResourceLeak
                     InvokeStmt invokeStmt = (InvokeStmt) callSite;
                     SootMethod invokedMethod = invokeStmt.getInvokeExpr().getMethod();
 
+                    if (invokedMethod.getDeclaringClass().getName().contains("QueryMap")) {
+                        return KillAll.v();
+                    }
+
                     return new FlowFunction<Pair<ResourceInfo, Local>>() {
                         @Override
                         public Set<Pair<ResourceInfo, Local>> computeTargets(Pair<ResourceInfo, Local> source) {
                             InvokeExpr invokeExpr = invokeStmt.getInvokeExpr();
+
+                            /*
+                            if (callSite.toString().equals("specialinvoke r10.<info.guardianproject.otr.app.im.provider.Imps$ProviderSettings$QueryMap: void <init>(android.database.Cursor,android.content.ContentResolver,long,boolean,android.os.Handler)>($r9, $r4, $l1, 0, null)")) {
+                                System.out.println("ZZZ");
+                            }
+                             */
+
+                            // Handles case (2) where a resource is passed by ref. If a resource is passed
+                            // to the function, we eliminate the facts that flow through the callToReturnFlow
+                            // while letting pass the facts from the returnFlow.
+                            final List<Value> args = invokeExpr.getArgs();
+                            final List<Local> localArguments = new ArrayList<>(args.size());
+                            for (Value v : args) {
+                                if (v instanceof Local) {
+                                    localArguments.add((Local) v);
+                                } else {
+                                    localArguments.add(null);
+                                }
+                            }
+
+                            if (localArguments.contains(source.getO2())) {
+                                return Collections.emptySet();
+                            }
 
                             if (invokeExpr instanceof InstanceInvokeExpr) {
                                 Value value = ((InstanceInvokeExpr) invokeExpr).getBase();
@@ -515,23 +564,6 @@ public class IFDSResourceLeak
                                             return res;
                                         }
                                     }
-                                }
-                            // Handles case (2) where a resource is passed by ref. If a resource is passed
-                            // to the function, we eliminate the facts that flow through the callToReturnFlow
-                            // while letting pass the facts from the returnFlow.
-                            } else {
-                                final List<Value> args = invokeExpr.getArgs();
-                                final List<Local> localArguments = new ArrayList<>(args.size());
-                                for (Value v : args) {
-                                    if (v instanceof Local) {
-                                        localArguments.add((Local) v);
-                                    } else {
-                                        localArguments.add(null);
-                                    }
-                                }
-
-                                if (localArguments.contains(source.getO2())) {
-                                    return Collections.emptySet();
                                 }
                             }
 
