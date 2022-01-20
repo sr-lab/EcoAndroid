@@ -1,5 +1,6 @@
-package leaks;
+package leaks.analysis;
 
+import leaks.Resource;
 import soot.SootClass;
 import soot.SootMethod;
 

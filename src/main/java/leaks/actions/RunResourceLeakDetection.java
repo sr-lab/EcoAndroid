@@ -3,16 +3,18 @@ package leaks.actions;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import leaks.platform.ApkFileChooser;
-import org.jetbrains.annotations.NotNull;
 import leaks.ResourceLeakAnalysisTask;
+import leaks.platform.AndroidPlatformLocator;
+import leaks.platform.ApkFileChooser;
 import leaks.platform.IdePlatformProvider;
 import leaks.platform.IdeType;
+import org.jetbrains.annotations.NotNull;
 
 public class RunResourceLeakDetection extends AnAction {
     private static final Logger logger = Logger.getInstance(RunResourceLeakDetection.class);
@@ -28,7 +30,8 @@ public class RunResourceLeakDetection extends AnAction {
             case IntelliJ:
             case AndroidStudio:
                 String apkPath = ApkFileChooser.getApkPath(project);
-                ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project, event, apkPath));
+                String androidSdkPath = AndroidPlatformLocator.getAndroidPlatformsLocation(project).toAbsolutePath().toString();
+                ProgressManager.getInstance().run(new ResourceLeakAnalysisTask(project, apkPath, androidSdkPath));
                 Notifications.Bus.notify(new Notification(
                         "Tasks", "EcoAndroid", "Running analysis", NotificationType.INFORMATION));
                 break;

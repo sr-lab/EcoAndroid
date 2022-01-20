@@ -145,7 +145,8 @@
 
   <actions>
     <action id="leaks.actions.RunResourceLeakDetection" class="leaks.actions.RunResourceLeakDetection"
-            text="Run Resource Leak Analysis" description="Resource Leak Analysis"
+            text="Run Resource Leak Analysis" description="Detects possible resource leaks in Android applications.
+            Requires building the application first. May take some time."
             icon="/icons/icon.svg">
       <add-to-group group-id="AnalyzeMenu" anchor="first"/>
     </action>

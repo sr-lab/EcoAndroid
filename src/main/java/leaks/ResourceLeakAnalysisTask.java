@@ -1,27 +1,25 @@
 package leaks;
 
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import leaks.analysis.AnalysisWrapper;
 import org.jetbrains.annotations.NotNull;
 
 public class ResourceLeakAnalysisTask extends Task.Backgroundable {
-    private static final Logger logger = Logger.getInstance(ResourceLeakAnalysisTask.class);
-    private AnActionEvent event;
-    private Project project;
-    private String apkPath;
+    private final Project project;
+    private final String apkPath;
+    private final String androidSdkPath;
 
-    public ResourceLeakAnalysisTask(Project project, AnActionEvent event, String apkPath){
+    public ResourceLeakAnalysisTask(Project project, String apkPath, String androidSdkPath) {
         super(project, "Resource Leak Analysis");
         this.project = project;
-        this.event = event;
         this.apkPath = apkPath;
+        this.androidSdkPath = androidSdkPath;
     }
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
-        AnalysisWrapper.getInstance().RunIntellijAnalysis(project, indicator, apkPath);
+        AnalysisWrapper.getInstance().RunIntellijAnalysis(project, indicator, apkPath, androidSdkPath);
     }
 }

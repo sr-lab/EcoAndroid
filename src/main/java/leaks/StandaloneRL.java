@@ -1,5 +1,7 @@
 package leaks;
 
+import leaks.analysis.AnalysisWrapper;
+
 public class StandaloneRL {
 
     public static void main(String[] args) {

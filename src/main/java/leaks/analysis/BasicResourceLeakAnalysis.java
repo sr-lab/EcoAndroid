@@ -1,4 +1,4 @@
-package leaks;
+package leaks.analysis;
 
 import soot.Local;
 import soot.SootMethod;

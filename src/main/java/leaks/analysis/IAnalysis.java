@@ -1,4 +1,4 @@
-package leaks;
+package leaks.analysis;
 
 import leaks.results.IAnalysisVisitor;
 import leaks.results.IResults;

@@ -1,6 +1,9 @@
 package leaks.results;
 
 import leaks.*;
+import leaks.analysis.IFDSRLAnalysis;
+import leaks.analysis.RLAnalysis;
+import leaks.analysis.ResourceInfo;
 import soot.*;
 import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
@@ -57,6 +60,9 @@ public class AnalysisVisitor implements IAnalysisVisitor{
         Map<Unit, SootMethod> out = new HashMap<>();
         for (SootClass c : Scene.v().getApplicationClasses()) {
             for (SootMethod m : c.getMethods()) {
+                if (m.getName().equals("getAvailableSites")) {
+                    System.out.println("");
+                }
                 if (m.hasActiveBody()) {
                     for (Unit stmt : m.getActiveBody().getUnits()) {
                         Set<Pair<ResourceInfo, Local>> res = analysis.getResultsAtStmt(stmt);
@@ -64,7 +70,7 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                         if (stmt instanceof ReturnStmt) {
                             ReturnStmt returnStmt = (ReturnStmt) stmt;
 
-                            if (returnStmt.getOp() instanceof Local) {
+                            if (returnStmt.getOp() instanceof Local) { //FIX! || returnStmt.getOp() instanceof NullConstant
                                 Local local = (Local) returnStmt.getOp();
 
                                 for (Pair<ResourceInfo, Local> fact : res) {
@@ -104,6 +110,12 @@ public class AnalysisVisitor implements IAnalysisVisitor{
             SootMethod leakedMethod = entry.getValue();
 
             for (Pair<ResourceInfo, Local> fact : analysis.getResultsAtStmt(leakedUnit)) {
+                /*
+                if (fact.getO1().getName().equals("&QUERYMAP")) {
+                    continue;
+                }
+                 */
+
                  // Handle class-member resources
                  if (fact.getO1().isClassMember()) {
                      // For a class-member resource to be leaked: the resource must have been leaked in its suggested
@@ -113,7 +125,7 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                          classMemberLeaks.put(leakedUnit, fact);
                      }
                  // Handle normal resources (that are declared in methods and can be passed by ref)
-                 // Check if method was called, and if so, check if the callee has the resource leaked.
+                 // Check if method was called, and if so, check if the caller has the resource leaked.
                  // We consider a leak only if that happens, as a way to reduce false positives.
                  // NOTE: This is not recursive. We only check for the callee at one level.
                  } else {
@@ -124,7 +136,7 @@ public class AnalysisVisitor implements IAnalysisVisitor{
                          SootMethod callerMethod = icfg.getMethodOf(caller);
                          boolean callerUsesResource = methodUsesResource(callerMethod, fact.getO1(), analysis);
                          callersUseResource.add(callerUsesResource);
-                         if (possibleLeaksLocation.containsKey(callerMethod) && callerUsesResource) {
+                         if (possibleLeaksLocation.containsKey(caller) && callerUsesResource) {
                              for (Pair<ResourceInfo, Local> callerFact : analysis.getResultsAtStmt(caller)) {
                                  if (callerFact.getO1().equals(fact.getO1())) {
                                      leakedInCallerMethod = true;

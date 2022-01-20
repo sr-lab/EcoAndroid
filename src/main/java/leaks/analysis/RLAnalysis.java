@@ -1,5 +1,6 @@
-package leaks;
+package leaks.analysis;
 
+import leaks.Resource;
 import leaks.results.IAnalysisVisitor;
 import leaks.results.IResults;
 import soot.Local;
@@ -19,7 +20,7 @@ import java.util.*;
  * A resource is leaked when it is acquired, but never released.
  * Takes into consideration branching when a resource is not acquired (r==null)
  */
-public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> implements IAnalysis{
+public class RLAnalysis extends ForwardBranchedFlowAnalysis<FlowSet<Local>> implements IAnalysis {
     protected final FlowSet<Local> emptySet;
     //the results used during analysis, using Set instead of FlowSet causes bugs
     private final FlowSet<Local> results;

@@ -1,4 +1,4 @@
-package leaks;
+package leaks.analysis;
 
 import heros.DefaultSeeds;
 import heros.FlowFunction;
@@ -9,6 +9,7 @@ import heros.flowfunc.Identity;
 import java.util.*;
 
 import heros.flowfunc.KillAll;
+import leaks.Resource;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
@@ -420,7 +421,7 @@ public class IFDSResourceLeak
                 };
             }
 
-            // The getReturnFlowFunction takes care of the flow from a call site to
+            // The getCallToReturnFlowFunction takes care of the flow from a call site to
             // a successor statement just right after the call (making it best suited
             // to propagate information that does NOT concern the callee - a job for
             // getCallFlowFunction).

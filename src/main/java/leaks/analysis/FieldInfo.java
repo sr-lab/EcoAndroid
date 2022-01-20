@@ -1,4 +1,6 @@
-package leaks;
+package leaks.analysis;
+
+import leaks.Resource;
 
 import java.util.Objects;
 

@@ -1,4 +1,4 @@
-package leaks;
+package leaks.analysis;
 
 import heros.IFDSTabulationProblem;
 import heros.InterproceduralCFG;
@@ -17,7 +17,7 @@ import java.util.Set;
  * Wrapper class for {@link IFDSResourceLeak}.
  * @see IFDSResourceLeak
  */
-public class IFDSRLAnalysis implements IAnalysis{
+public class IFDSRLAnalysis implements IAnalysis {
 
     private IFDSSolver<Unit, Pair<ResourceInfo, Local>, SootMethod, InterproceduralCFG<Unit, SootMethod>> solver;
     private IDESolver<Unit, Pair<ResourceInfo, Local>, SootMethod, Set<Pair<ResourceInfo, Local>>, InterproceduralCFG<Unit, SootMethod>> solver2;

@@ -1,17 +1,15 @@
-package leaks;
+package leaks.analysis;
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectRootManager;
-import leaks.platform.AndroidPlatformLocator;
+import leaks.Resource;
+import leaks.SootSetup;
 import leaks.results.AnalysisVisitor;
 import leaks.results.IResults;
 import leaks.results.ResultsIntellij;
@@ -26,23 +24,12 @@ import soot.util.Chain;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
 public class AnalysisWrapper {
-
     private static AnalysisWrapper INSTANCE;
-
-    //TODO use intellij platform sdk to retrieve info / ask user
-    //buggy
-    private final static String anySoft = "/home/ricardo/Documents/meic/tese/DroidLeaks/AnySoftKeyboard-rev-b832671708.apk";
-    private final static String ankidroid = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/AnkiDroid/AnkiDroid 3e9ddc7eca/Apk/AnkiDroid 3e9ddc7eca.apk";
-    //private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot 76c4f80e47/Apk/ConnectBot 76c4f80e47.apk";
-    //fixed
-    //private final static String ankidroid = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/AnkiDroid/AnkiDroid 3a579e4091/Apk/AnkiDroid 3a579e4091.apk";
-    private final static String connectBot = "/home/ricardo/Documents/meic/tese/AndroidResourceLeaks-master/ConnectBot/ConnectBot f5d392e3a3/Apk/ConnectBot f5d392e3a3.apk";
 
     private AnalysisWrapper() { }
 
@@ -53,7 +40,7 @@ public class AnalysisWrapper {
         return INSTANCE;
     }
 
-    public void RunIntellijAnalysis(Project project, ProgressIndicator indicator, String apkPath) {
+    public void RunIntellijAnalysis(Project project, ProgressIndicator indicator, String apkPath, String androidSdkPath) {
         ResultsIntellij results = ServiceManager.getService(project, ResultsIntellij.class);
         results.clearAll();
 
@@ -61,8 +48,6 @@ public class AnalysisWrapper {
         indicator.setIndeterminate(false);
         indicator.setText("Setting up Soot");
         indicator.setFraction(0.1);
-
-        Path androidSdkPath = AndroidPlatformLocator.getAndroidPlatformsLocation(project).toAbsolutePath();
 
         System.out.println("Android SDK: " + androidSdkPath);
         System.out.println("SDK: " + ProjectRootManager.getInstance(project).getProjectSdkName());
@@ -77,14 +62,6 @@ public class AnalysisWrapper {
             notification.setImportant(false);
             Notifications.Bus.notify(notification);
             throw new RuntimeException("Unable to setup Soot!");
-        }
-
-        File file = new File("/home/ricardo/ecoandroid.out");
-        try {
-            PrintStream stream = new PrintStream(file);
-            System.setOut(stream);
-        } catch (Exception e) {
-            System.out.println("exception");
         }
 
         processJimpleForAliasing();

@@ -1,7 +1,7 @@
 package leaks.results;
 
-import leaks.IFDSRLAnalysis;
-import leaks.RLAnalysis;
+import leaks.analysis.IFDSRLAnalysis;
+import leaks.analysis.RLAnalysis;
 
 public interface IAnalysisVisitor {
     void visit(RLAnalysis analysis, IResults storage);

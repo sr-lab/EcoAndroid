@@ -62,6 +62,7 @@ public class SootSetup {
             @Override
             public void setSootOptions(@NotNull Options options, InfoflowConfiguration config) {
                 G.reset();
+                //options.v().set_app(false);
 
                 // Generic options
                 options.v().set_allow_phantom_refs(true);
@@ -71,7 +72,7 @@ public class SootSetup {
                 options.v().set_no_bodies_for_excluded(true);
 
                 // Lib classes to be included for analysis to work with VASCO
-                
+                /*
                 List<String> includeList = new LinkedList<String>();
                 includeList.add("android.*");
                 includeList.add("android.app.*");
@@ -80,13 +81,14 @@ public class SootSetup {
                 includeList.add("android.content.*");
                 options.v().set_include(includeList);
                 options.v().set_include_all(true);
+                 */
 
-/*
+                /*
                 List<String> excludeList = new LinkedList<String>();
                 excludeList.add("android.*");
                 options.set_exclude(excludeList);
+                */
 
- */
                 // Experimental
                 options.v().set_drop_bodies_after_load(false);
                 //options.v().setPhaseOption("jb", "use-original-names:true");
@@ -127,6 +129,7 @@ public class SootSetup {
         infoFlowConfig.getAnalysisFileConfig().setAndroidPlatformDir(sdkPath);
         //infoFlowConfig.getAnalysisFileConfig().setAdditionalClasspath("/home/ricardo/Android/Sdk/platforms/android-30/android.jar");
         infoFlowConfig.setSootIntegrationMode(InfoflowAndroidConfiguration.SootIntegrationMode.UseExistingInstance);
+        infoFlowConfig.setMergeDexFiles(true);
         return infoFlowConfig;
     }
 

@@ -1,8 +1,10 @@
-package leaks;
+package leaks.analysis;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import leaks.results.IResultsProcessor;
+import leaks.Resource;
 import soot.*;
 import soot.jimple.*;
 import soot.toolkits.scalar.Pair;
@@ -14,15 +16,18 @@ import vasco.soot.DefaultJimpleRepresentation;
 /**
  * An inter-procedural resource leak analysis.
  */
+/*
+ * The VASCO framework requires the analysis to be monotonic.
+ * Unfortunately, our resource leak analysis is not, as we need to remove facts when a resource
+ * is released, and so, this analysis does not work.
+ */
 public class VascoRLAnalysis
-        extends ForwardInterProceduralAnalysis<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>>
-        implements IAnalysis {
+        extends ForwardInterProceduralAnalysis<SootMethod, Unit, Map<FieldInfo, Pair<Local, Boolean>>> {
+        //implements IAnalysis {
 
     public VascoRLAnalysis() {
         super();
         verbose = true;
-
-        //doAnalysis();
     }
 
     @Override
@@ -147,26 +152,6 @@ public class VascoRLAnalysis
         }
 
         Map<FieldInfo, Pair<Local, Boolean>> out = copy(exitValue);
-
-        /*
-        // TODO dar OUT ao que tiver no return do invoke unit
-        if (unit instanceof InvokeStmt) {
-            InvokeStmt stmt = (InvokeStmt) unit;
-            InvokeExpr invokeExpr = stmt.getInvokeExpr();
-
-            if (invokeExpr instanceof VirtualInvokeExpr) {
-                VirtualInvokeExpr virtualInvokeExpr = (VirtualInvokeExpr) invokeExpr;
-                SootMethod invokedMethod = virtualInvokeExpr.getMethod();
-
-                if (invokedMethod.hasActiveBody()) {
-                    Unit returnStmt = invokedMethod.getActiveBody().getUnits().getLast();
-                    out = copy(getMeetOverValidPathsSolution().getValueAfter(unit));
-                }
-            }
-        }
-
-         */
-
         return out;
 
         /*
@@ -216,12 +201,11 @@ public class VascoRLAnalysis
                 if (base instanceof Local) {
                     Local local = (Local) base;
 
+                    //
                     if (invokedMethod.getName().matches("onPause|onStart|onStop|onDestroy|onRestart")) {
                         Unit u = invokedMethod.getActiveBody().getUnits().getLast();
                         HashMap<FieldInfo, Pair<Local, Boolean>> after =
                                 (HashMap<FieldInfo, Pair<Local, Boolean>>) this.getMeetOverValidPathsSolution().getValueAfter(u);
-                        HashMap<FieldInfo, Pair<Local, Boolean>> before =
-                                (HashMap<FieldInfo, Pair<Local, Boolean>>) this.getMeetOverValidPathsSolution().getValueBefore(u);
                         out = new HashMap<>(after);
                     }
 
@@ -284,11 +268,12 @@ public class VascoRLAnalysis
                     }
 
                 }
+            // else if (unit instanceof ReturnStmt) return false
             } else {
                 return existsReleaseOpInIfFlow(context, u, resource);
             }
         }
-
+        // return existsReleaseOpInIfFlow(context, u, resource);
         return false;
     }
 
@@ -344,7 +329,7 @@ public class VascoRLAnalysis
         return DefaultJimpleRepresentation.v();
     }
 
-    @Override
+    //@Override
     public void accept(IResultsProcessor resultsProcessor) {
         resultsProcessor.visit(this);
     }
